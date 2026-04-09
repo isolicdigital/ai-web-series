@@ -1,0 +1,5 @@
+Human: Life's a beautiful, unfolding journey.
+Object (a rock): Sure, riveting. Just rocks.
+
+
+
