@@ -1,8 +1,7 @@
 <?php
+// routes/web.php
 
 use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\AiStandUpController;
-use App\Http\Controllers\ComedyController;
 use App\Http\Controllers\PricingController;
 use App\Http\Controllers\DFYController;
 use App\Http\Controllers\PageBuilderController;
@@ -10,7 +9,14 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AgencyController;
 use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\WebSeriesController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Cache;
+
+// ============================================
+// PUBLIC ROUTES
+// ============================================
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -18,9 +24,12 @@ Route::get('/', function () {
 
 require __DIR__.'/auth.php';
 
-
-//Public page builder page route
+// Public page builder page route
 Route::get('/p', [PageBuilderController::class, 'maskedView'])->name('page-builder.view');
+
+// ============================================
+// PROFILE ROUTES (Auth required)
+// ============================================
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -28,89 +37,92 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-Route::middleware(['auth', 'subscription'])->group(function () {
-    Route::get('/dashboard', function () {
-        return redirect()->route('comedy.index');
-    })->name('dashboard');
-    Route::get('overview', function () {
-        return view('page.overview');
-    })->name('overview');
-    Route::get('whitelabel', function () {
-        return view('page.whitelabel');
-    })->name('whitelabel');
-    Route::prefix('comedy')->name('comedy.')->group(function () {
-        Route::get('/', [ComedyController::class, 'index'])->name('index');
-        Route::get('/jokes/list', [ComedyController::class, 'jokes'])->name('jokes');
-        Route::post('/generate', [ComedyController::class, 'generate'])->name('generate');
-        Route::post('/generate-video', [ComedyController::class, 'generateVideo'])->name('generate-video');
-        Route::get('/jokes', [ComedyController::class, 'getJokes'])->name('get-jokes');
-        Route::delete('/joke/{id}', [ComedyController::class, 'deleteJoke'])->name('delete-joke');
-        Route::delete('/video/{id}', [ComedyController::class, 'deleteVideo'])->name('delete-video');
-        Route::get('/templates', [ComedyController::class, 'templates'])->name('templates');
-        Route::get('/videos', [ComedyController::class, 'videos'])->name('videos');
-        Route::get('/my-videos', [ComedyController::class, 'myVideos'])->name('my-videos');
-    });
+// ============================================
+// WEB SERIES ROUTES - Complete System
+// ============================================
+
+Route::middleware(['auth'])->prefix('series')->name('web-series.')->group(function () {
+    // Create routes
+    Route::get('/create', [WebSeriesController::class, 'create'])->name('create');
+    Route::post('/save-project', [WebSeriesController::class, 'saveProject'])->name('save-project');
+    
+    // Episode 1 specific routes
+    Route::post('/{id}/generate-episode1-concept', [WebSeriesController::class, 'generateEpisode1Concept']);
+    Route::post('/{id}/update-episode1-concept', [WebSeriesController::class, 'updateEpisode1Concept']);
+    Route::post('/{id}/generate-episode1-scenes', [WebSeriesController::class, 'generateEpisode1Scenes']);
+    Route::get('/{id}/episode-1', [WebSeriesController::class, 'showEpisode1'])->name('episode1');
+    
+    // Scene routes
+    Route::get('/{seriesId}/scene/{sceneId}', [WebSeriesController::class, 'showScene'])->name('scene');
+    
+    // Display routes
+    Route::get('/my-series', [WebSeriesController::class, 'mySeries'])->name('my-series');
+    Route::get('/dashboard', [WebSeriesController::class, 'dashboard'])->name('dashboard');
+    Route::get('/{id}', [WebSeriesController::class, 'show'])->name('show');
+    Route::get('/{seriesId}/episode/{episodeId}', [WebSeriesController::class, 'showEpisode'])->name('episode');
+    
+    // Delete route
+    Route::delete('/{id}', [WebSeriesController::class, 'destroy'])->name('destroy');
+});
+
+// ============================================
+// IMAGE GENERATION ROUTE (ADD THIS)
+// ============================================
+
+Route::middleware(['auth'])->post('/generate-image', [WebSeriesController::class, 'generateImage'])->name('generate.image');
+
+// ============================================
+// MAIN APPLICATION ROUTES (Auth + Subscription)
+// ============================================
+
+Route::middleware(['auth', 'subscription'])->group(function () { 
+    
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('overview', function () { return view('page.overview'); })->name('overview');
+    Route::get('whitelabel', function () { return view('page.whitelabel'); })->name('whitelabel');
+    
     Route::prefix('dfy')->name('dfy.')->group(function () {
         Route::get('/', [DFYController::class, 'index'])->name('index');
         Route::get('/images', [DFYController::class, 'searchImage'])->name('images');
         Route::get('/videos', [DFYController::class, 'searchVideo'])->name('videos');
         Route::get('/audio', [DFYController::class, 'searchAudio'])->name('audio');
     });
+    
     Route::get('/buycredits', [PricingController::class, 'index'])->name('buycredits');
-    Route::prefix('standup')->name('standup.')->group(function () {
-        Route::get('/', [AiStandUpController::class, 'index'])->name('index');
-        Route::get('/templates', [AiStandUpController::class, 'templates'])->name('templates');
-        Route::get('/script', [AiStandUpController::class, 'scriptPage'])->name('script.page');
-        Route::get('/video-generator', [AiStandUpController::class, 'videoGenerator'])->name('video.generator');
-        
-        Route::post('/select-comedian', [AiStandUpController::class, 'selectComedian'])->name('select.comedian');
-        Route::post('/comedian/create', [AiStandUpController::class, 'createComedian'])->name('comedian.create');
-        Route::get('/comedian/status/{trackId}', [AiStandUpController::class, 'comedianStatus'])->name('comedian.status');
-        
-        Route::post('/script/generate', [AiStandUpController::class, 'generateScript'])->name('script.generate');
-        Route::get('/script/{id}', [AiStandUpController::class, 'getScript'])->name('script.get');
-        Route::put('/script/{id}', [AiStandUpController::class, 'updateScript'])->name('script.update');
-        Route::post('/script/{id}/regenerate', [AiStandUpController::class, 'regenerateScript'])->name('script.regenerate');
-        
-        Route::post('/video/generate', [AiStandUpController::class, 'generateStandUpVideo'])->name('video.generate');
-        Route::get('/videos', [AiStandUpController::class, 'myStandUpVideos'])->name('videos.index');
-    });
+    
     Route::prefix('page-builder')->name('page-builder.')->group(function () {
         Route::get('/', [PageBuilderController::class, 'savedPages'])->name('index');
         Route::get('/create-new/{cat?}', [PageBuilderController::class, 'createNew'])->name('create');
         Route::get('/dfy-templates/{cat?}', [PageBuilderController::class, 'dfy'])->name('dfy');
-        
         Route::get('/site-cloner', [PageBuilderController::class, 'siteCloner'])->name('cloner');
         Route::post('/clone-from-url/{id}', [PageBuilderController::class, 'cloneFromUrl'])->name('clone');
-
         Route::get('/editor/{id}/{title}', [PageBuilderController::class, 'showEditor'])->name('show');
         Route::post('/editor/{id}/{title}/{cat}/{dir}', [PageBuilderController::class, 'saveEditor'])->name('save');
-
         Route::post('/save-asset/{id}', [PageBuilderController::class, 'saveAssets'])->name('assets');
-
         Route::get('/saves', [PageBuilderController::class, 'savedPages'])->name('saves');
         Route::get('/download/{id}', [PageBuilderController::class, 'downloadPage'])->name('download');
         Route::delete('/delete/{id}', [PageBuilderController::class, 'deletePage'])->name('delete');
-
     });  
 });
 
+// ============================================
+// ADMIN ROUTES
+// ============================================
+
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', function () {
-        return view('admin.dashboard');
-    })->name('dashboard');
+    Route::get('/dashboard', function () { return view('admin.dashboard'); })->name('dashboard');
+    
+    Route::prefix('series')->name('web-series.')->group(function () {
+        Route::get('/', [WebSeriesController::class, 'adminIndex'])->name('index');
+        Route::get('/{id}', [WebSeriesController::class, 'adminShow'])->name('show');
+        Route::delete('/{id}', [WebSeriesController::class, 'adminDestroy'])->name('destroy');
+    });
+    
     Route::get('/set-temp-block/{userId}/{minutes?}', function ($userId, $minutes = 10) {
-        $cacheKey = 'video_gen_block_' . $userId;
-        $seconds = $minutes * 60;
-        Cache::put($cacheKey, $seconds, $seconds);
-        
-        return response()->json([
-            'success' => true,
-            'message' => "Temp block set for user {$userId} for {$minutes} minutes",
-            'user_id' => $userId,
-            'minutes' => $minutes
-        ]);
+        Cache::put('video_gen_block_' . $userId, $minutes * 60, $minutes * 60);
+        return response()->json(['success' => true]);
     })->name('set.temp.block');
+    
     Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('index');
         Route::get('/create', [UserController::class, 'create'])->name('create');
@@ -120,6 +132,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::put('/{user}', [UserController::class, 'update'])->name('update');
         Route::delete('/{user}', [UserController::class, 'destroy'])->name('destroy');
     });
+    
     Route::prefix('agencies')->name('agencies.')->group(function () {
         Route::get('/', [AgencyController::class, 'index'])->name('index');
         Route::get('/create', [AgencyController::class, 'create'])->name('create');
@@ -151,6 +164,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 });
 
-Route::get('support', function () {
-    return view('page.support');
-})->name('support');
+// ============================================
+// SUPPORT ROUTE
+// ============================================
+
+Route::get('support', function () { return view('page.support'); })->name('support');
+
+// ============================================
+// FALLBACK ROUTE FOR 404 ERRORS
+// ============================================
+
+Route::fallback(function () { 
+    return response()->view('errors.404', [], 404); 
+});
