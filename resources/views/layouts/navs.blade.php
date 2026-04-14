@@ -58,11 +58,7 @@
                     <div class="hidden md:flex flex-col items-start">
                         <span class="text-white text-sm font-medium leading-tight">{{ auth()->user()->name ?? 'User' }}</span>
                         <span class="text-[10px] text-gray-400 leading-tight">
-                            @if(auth()->user()->plan)
-                                {{ auth()->user()->plan }} Plan
-                            @else
-                                Free Plan
-                            @endif
+                            {{ auth()->user()->plan ?? 'Free' }} Plan
                         </span>
                     </div>
                     <i class="fas fa-chevron-down text-xs text-gray-400 hidden md:inline group-hover:text-white transition-colors"></i>
