@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.blank')
 
 @section('metadata')
     <title>Login Instructions - {{ config('app.name') }}</title>
