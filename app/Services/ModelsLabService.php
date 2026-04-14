@@ -9,272 +9,338 @@ use Illuminate\Support\Facades\Log;
 class ModelsLabService
 {
     protected $client;
-    protected $apiKey;
+    protected $chatApiKey;
+    protected $imageApiKey;
     protected $chatApiUrl;
     protected $imageApiUrl;
 
     public function __construct()
     {
         $this->client = new Client([
-            'timeout' => 120,
-            'verify' => false
+            'timeout' => 300,
+            'verify' => false,
+            'curl' => [
+                CURLOPT_DNS_USE_GLOBAL_CACHE => false,
+                CURLOPT_DNS_CACHE_TIMEOUT => 0,
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            ]
         ]);
+        
         // Chat API Key
-        $this->apiKey = '1TnJavtjQ8pitGj0ah16oZGWW6eGegeCwLSLLpKZ3V1JNy1fRiASh8jg7EN5';
+        $this->chatApiKey = '1TnJavtjQ8pitGj0ah16oZGWW6eGegeCwLSLLpKZ3V1JNy1fRiASh8jg7EN5';
+        
+        // Image API Key
+        $this->imageApiKey = '1TnJavtjQ8pitGj0ah16oZGWW6eGegeCwLSLLpKZ3V1JNy1fRiASh8jg7EN5';
+        
         $this->chatApiUrl = 'https://modelslab.com/api/v6/llm/uncensored_chat';
-        // Image API URL
         $this->imageApiUrl = 'https://modelslab.com/api/v6/images/text2img';
     }
 
     /**
-     * Generate a concept based on user prompt
+     * Generate episode concept using category template from database
      */
-    public function generateConcept($prompt, $category, $projectName)
+    public function generateConcept($prompt, $categoryId, $projectName)
     {
+        Log::info('=== GENERATING CONCEPT FROM DATABASE TEMPLATE ===');
+        
         try {
-            $systemPrompt = "You are a creative story concept generator. Create a compelling, unique concept for a {$category} web series titled '{$projectName}'.";
+            // Get category template from database
+            $template = \App\Models\CategoryTemplate::where('category_id', $categoryId)
+                ->where('is_active', true)
+                ->first();
             
-            $userPrompt = "Based on this idea: '{$prompt}'\n\nGenerate a 250-300 character concept for the first episode. Be concise, engaging, and vivid. Output ONLY the concept text, no explanations or labels.";
-
-            $response = $this->callChatApi($systemPrompt, $userPrompt);
-            
-            // Extract the concept from response
-            $concept = $this->extractConceptFromResponse($response);
-            
-            // Ensure concept is around 300 characters
-            if (strlen($concept) > 350) {
-                $concept = substr($concept, 0, 300) . '...';
+            if (!$template) {
+                throw new \Exception("No active category template found for category ID: {$categoryId}");
             }
+            
+            if (!$template->category_prompt || !isset($template->category_prompt['concept_generator'])) {
+                throw new \Exception("Category template has no concept_generator for category ID: {$categoryId}");
+            }
+            
+            // Get the full prompt directly from database
+            $userPrompt = $template->category_prompt['concept_generator'];
+            
+            // Replace placeholders
+            $userPrompt = str_replace('{user_prompt}', $prompt, $userPrompt);
+            $userPrompt = str_replace('{series_name}', $projectName, $userPrompt);
+            $userPrompt = str_replace('{category}', $template->category->name ?? 'Web Series', $userPrompt);
+            
+            Log::info('Using database category template for concept generation');
+            Log::info('Full prompt: ' . $userPrompt);
+            
+            $systemPrompt = "You are an award-winning screenwriter. Write engaging, complete episode concepts. Always finish your sentences and complete your thoughts.";
+            
+            $response = $this->callChatApi($systemPrompt, $userPrompt, 1000);
+            
+            $concept = trim($response);
+            
+            // Remove any technical labels
+            $concept = preg_replace('/^(Concept:|Episode Concept:|Story:|Summary:|Pitch:|Logline:)/i', '', $concept);
+            $concept = trim($concept);
+            $concept = preg_replace('/\s+/', ' ', $concept);
+            
+            if (!empty($concept) && !preg_match('/[.!?]$/', $concept)) {
+                $concept .= '.';
+            }
+            
+            // Smart truncate to 800 characters
+            if (strlen($concept) > 800) {
+                $truncated = substr($concept, 0, 797);
+                $lastPeriod = strrpos($truncated, '.');
+                $lastExclamation = strrpos($truncated, '!');
+                $lastQuestion = strrpos($truncated, '?');
+                $lastPunctuation = max($lastPeriod, $lastExclamation, $lastQuestion);
+                
+                if ($lastPunctuation > 500) {
+                    $concept = substr($concept, 0, $lastPunctuation + 1);
+                } else {
+                    $concept = substr($concept, 0, 797) . '...';
+                }
+            }
+            
+            Log::info('Concept length: ' . strlen($concept));
+            Log::info('Generated concept: ' . $concept);
             
             return $concept;
 
         } catch (\Exception $e) {
             Log::error('Generate concept error: ' . $e->getMessage());
-            // Return a fallback concept
-            return "A thrilling {$category} series about: {$prompt}. Follow the journey of our hero as they face incredible challenges and discover their true destiny.";
+            
+            // Fallback concept
+            $category = \App\Models\Category::find($categoryId);
+            $categoryName = $category ? $category->name : 'Web Series';
+            return "A compelling {$categoryName} story about an extraordinary journey. The hero faces challenges, discovers hidden truths, and transforms in unexpected ways. The episode ends with a revelation that changes everything.";
         }
     }
 
     /**
-     * Generate an episode based on concept
+     * Generate scene prompts based on concept
      */
-    public function generateEpisode($concept, $episodeNumber, $totalEpisodes, $category, $projectName)
+    public function generateScenePrompts($concept, $totalScenes, $episodeNumber)
     {
+        Log::info('=== GENERATING SCENE PROMPTS ===');
+        Log::info('Concept: ' . substr($concept, 0, 200) . '...');
+        Log::info('Total Scenes: ' . $totalScenes);
+        Log::info('Episode Number: ' . $episodeNumber);
+        
         try {
-            $position = $episodeNumber == 1 ? "OPENING" : ($episodeNumber == $totalEpisodes ? "FINAL" : "MIDDLE");
+            $systemPrompt = "You are a professional screenwriter. Create very concise scene descriptions.";
             
-            $systemPrompt = "You are a professional screenwriter. Write engaging, vivid episodes for a {$category} web series.";
-            
-            $userPrompt = "Concept: {$concept}\n\n";
-            $userPrompt .= "Write Episode {$episodeNumber} of {$totalEpisodes} ({$position} episode) for the web series '{$projectName}'.\n\n";
-            $userPrompt .= "Format:\n";
-            $userPrompt .= "TITLE: [Episode title - max 10 words]\n";
-            $userPrompt .= "CONTENT: [Episode content - 400-600 words including dialogue and action]\n\n";
-            $userPrompt .= "Make it dramatic, engaging, and consistent with the concept.";
+            $userPrompt = "Based on this concept, create {$totalScenes} SHORT scenes.
 
-            $response = $this->callChatApi($systemPrompt, $userPrompt);
-            
-            return $this->parseEpisodeResponse($response, $episodeNumber);
+CONCEPT: {$concept}
 
-        } catch (\Exception $e) {
-            Log::error('Generate episode error: ' . $e->getMessage());
-            // Return a fallback episode
-            return [
-                'title' => "Episode {$episodeNumber}: The Journey Continues",
-                'content' => "<p>This is episode {$episodeNumber} of {$totalEpisodes}. The story continues with exciting developments and unexpected twists.</p><p>Based on the concept: {$concept}</p>",
-                'summary' => "Episode {$episodeNumber} continues the adventure"
-            ];
-        }
-    }
+For each scene, provide:
+SCENE_[number]_TITLE: [Short title - 3-5 words]
+SCENE_[number]_DESC: [1 short sentence - under 100 characters]
 
-    /**
-     * Call the ModelsLab Chat API
-     */
-    private function callChatApi($systemPrompt, $userPrompt)
-    {
-        try {
-            $payload = [
-                'key' => $this->apiKey,
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => $systemPrompt
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $userPrompt
-                    ]
-                ],
-                'max_tokens' => 2000,
-                'temperature' => 0.8
-            ];
+Keep descriptions VERY SHORT and punchy.";
+
+            Log::info('Calling API to generate scenes...');
             
-            Log::info('ModelsLab API Request', ['payload' => $payload]);
+            $response = $this->callChatApi($systemPrompt, $userPrompt, 2000);
             
-            $response = $this->client->post($this->chatApiUrl, [
-                'json' => $payload,
-                'headers' => [
-                    'Content-Type' => 'application/json'
-                ]
-            ]);
+            Log::info('API Response received');
+            Log::info('Raw Response: ' . $response);
             
-            $body = $response->getBody()->getContents();
-            Log::info('ModelsLab API Raw Response', ['body' => $body]);
+            $scenes = $this->parseScenesFromResponse($response, $totalScenes);
             
-            $decoded = json_decode($body, true);
-            
-            // Check for different response formats
-            if (isset($decoded['status']) && $decoded['status'] === 'success') {
-                if (isset($decoded['message'])) {
-                    return $decoded['message'];
-                }
-                if (isset($decoded['response'])) {
-                    return $decoded['response'];
-                }
-                if (isset($decoded['text'])) {
-                    return $decoded['text'];
-                }
+            // Log each generated scene
+            Log::info('=== GENERATED SCENES ===');
+            foreach ($scenes as $index => $scene) {
+                Log::info('Scene ' . ($index + 1) . ':');
+                Log::info('  Title: ' . $scene['title']);
+                Log::info('  Description: ' . $scene['description']);
+                Log::info('  Description Length: ' . strlen($scene['description']) . ' chars');
             }
             
-            // Check for OpenAI-style response
-            if (isset($decoded['choices'][0]['message']['content'])) {
-                return $decoded['choices'][0]['message']['content'];
-            }
+            Log::info('Total scenes generated: ' . count($scenes));
             
-            // If we get here, log the full response and throw exception
-            Log::error('Unknown API response format', ['response' => $decoded]);
-            throw new \Exception('Invalid API response format');
+            return $scenes;
             
         } catch (\Exception $e) {
-            Log::error('ModelsLab API Error: ' . $e->getMessage());
-            throw $e;
-        }
-    }
-
-    /**
-     * Extract concept from API response
-     */
-    private function extractConceptFromResponse($response)
-    {
-        // Remove any markdown or extra formatting
-        $concept = strip_tags($response);
-        $concept = preg_replace('/\*\*(.*?)\*\*/', '$1', $concept);
-        $concept = preg_replace('/\*(.*?)\*/', '$1', $concept);
-        $concept = trim($concept);
-        
-        // Remove any common prefixes
-        $prefixes = ['Concept:', 'Story Concept:', 'Episode Concept:', 'Here is the concept:', 'Concept:', 'CONCEPT:'];
-        foreach ($prefixes as $prefix) {
-            if (str_starts_with($concept, $prefix)) {
-                $concept = trim(substr($concept, strlen($prefix)));
+            Log::error('Generate scene prompts error: ' . $e->getMessage());
+            Log::error('Error trace: ' . $e->getTraceAsString());
+            
+            $scenes = [];
+            $defaultTitles = ["The Opening", "The Conflict", "The Turning Point", "The Climax", "The Resolution"];
+            
+            for ($i = 1; $i <= $totalScenes; $i++) {
+                $scenes[] = [
+                    'title' => $defaultTitles[$i-1] ?? "Scene {$i}",
+                    'description' => "The story continues with exciting new developments."
+                ];
             }
+            
+            Log::info('Using fallback scenes due to error');
+            foreach ($scenes as $index => $scene) {
+                Log::info('Fallback Scene ' . ($index + 1) . ': ' . $scene['title']);
+            }
+            
+            return $scenes;
         }
-        
-        return $concept;
     }
-
+    
     /**
-     * Parse episode response from API
+     * Parse scenes from API response
      */
-    private function parseEpisodeResponse($response, $episodeNumber)
+    private function parseScenesFromResponse($response, $expectedCount)
     {
-        // Extract title
-        preg_match('/TITLE:\s*(.+?)(?:\n|$)/i', $response, $titleMatch);
-        $title = trim($titleMatch[1] ?? "Episode {$episodeNumber}");
+        $scenes = [];
         
-        // Extract content
-        preg_match('/CONTENT:\s*(.*)/is', $response, $contentMatch);
-        $content = trim($contentMatch[1] ?? $response);
+        preg_match_all('/SCENE_(\d+)_TITLE:\s*(.+?)(?:\n|$)/i', $response, $titleMatches);
+        preg_match_all('/SCENE_(\d+)_DESC:\s*(.+?)(?=\nSCENE_\d+_TITLE:|\n*$)/is', $response, $descMatches);
         
-        // Remove any markdown and format as HTML
-        $content = preg_replace('/\*\*(.*?)\*\*/', '<strong>$1</strong>', $content);
-        $content = preg_replace('/\*(.*?)\*/', '<em>$1</em>', $content);
-        
-        // Convert to paragraphs
-        $paragraphs = explode("\n\n", $content);
-        $formatted = '';
-        foreach ($paragraphs as $paragraph) {
-            $paragraph = trim($paragraph);
-            if (!empty($paragraph)) {
-                // Check if it's already HTML
-                if (strpos($paragraph, '<') !== false && strpos($paragraph, '>') !== false) {
-                    $formatted .= $paragraph;
-                } else {
-                    $formatted .= '<p class="mb-4">' . nl2br(htmlspecialchars($paragraph, ENT_QUOTES, 'UTF-8')) . '</p>';
+        if (!empty($titleMatches[2])) {
+            $descMap = [];
+            foreach ($descMatches[1] as $idx => $sceneNum) {
+                $descMap[$sceneNum] = trim($descMatches[2][$idx]);
+            }
+            
+            foreach ($titleMatches[2] as $idx => $title) {
+                $sceneNum = $titleMatches[1][$idx];
+                $description = $descMap[$sceneNum] ?? "The scene continues the story.";
+                
+                if (!empty($description) && !preg_match('/[.!?]$/', $description)) {
+                    $description .= '.';
                 }
+                
+                if (strlen($description) > 150) {
+                    $description = substr($description, 0, 147) . '...';
+                }
+                
+                $scenes[] = [
+                    'title' => trim($title),
+                    'description' => trim($description)
+                ];
             }
         }
         
-        if (empty($formatted)) {
-            $formatted = '<p>' . nl2br(htmlspecialchars($content, ENT_QUOTES, 'UTF-8')) . '</p>';
+        while (count($scenes) < $expectedCount) {
+            $scenes[] = [
+                'title' => "Scene " . (count($scenes) + 1),
+                'description' => "The story continues with exciting developments."
+            ];
         }
         
-        $summary = substr(strip_tags($formatted), 0, 150) . '...';
-        
-        return [
-            'title' => $title,
-            'content' => $formatted,
-            'summary' => $summary
-        ];
+        return array_slice($scenes, 0, $expectedCount);
     }
 
     /**
-     * Generate image prompts for each scene
+     * Generate image prompt using category template from database
      */
-    public function generateImagePrompts($concept, $sceneTitle, $sceneContent, $sceneNumber, $episodeNumber, $category)
+    public function generateImagePrompt($concept, $sceneTitle, $sceneDescription, $sceneNumber, $episodeNumber, $categoryId)
     {
+        Log::info('=== GENERATING IMAGE PROMPT FROM DATABASE TEMPLATE ===');
+        Log::info('Scene: ' . $sceneTitle);
+        Log::info('Category ID: ' . $categoryId);
+        
         try {
-            $systemPrompt = "You are an expert at creating detailed prompts for AI image generation (Midjourney, DALL-E, Stable Diffusion). Create vivid, descriptive prompts that will generate cinematic images.";
+            // Get category template from database
+            $template = \App\Models\CategoryTemplate::where('category_id', $categoryId)
+                ->where('is_active', true)
+                ->first();
             
-            $userPrompt = "Based on this web series scene, create a detailed image generation prompt.
-
-Series Category: {$category}
-Episode: {$episodeNumber}
-Scene {$sceneNumber}: {$sceneTitle}
-
-Scene Content:
-{$sceneContent}
-
-Create a PROMPT for AI image generation that includes:
-1. Main subject and action
-2. Setting and atmosphere  
-3. Lighting and mood
-4. Camera angle and composition
-5. Style (cinematic, movie still)
-6. Key visual elements
-
-Output ONLY the prompt text, no explanations. Make it 100-200 characters, highly descriptive.";
-
-            $response = $this->callChatApi($systemPrompt, $userPrompt);
+            if (!$template) {
+                throw new \Exception("No active category template found for category ID: {$categoryId}");
+            }
             
-            // Clean and format the prompt
-            $imagePrompt = trim($response);
-            $imagePrompt = str_replace(['"', "'"], '', $imagePrompt);
+            if (!$template->category_prompt || !isset($template->category_prompt['image_generator'])) {
+                throw new \Exception("Category template has no image_generator for category ID: {$categoryId}");
+            }
             
-            return $imagePrompt;
+            // Get the full image prompt from database
+            $imagePromptTemplate = $template->category_prompt['image_generator'];
+            
+            // Replace placeholders
+            $imagePromptTemplate = str_replace('{scene_title}', $sceneTitle, $imagePromptTemplate);
+            $imagePromptTemplate = str_replace('{scene_description}', $sceneDescription, $imagePromptTemplate);
+            $imagePromptTemplate = str_replace('{concept}', $concept, $imagePromptTemplate);
+            $imagePromptTemplate = str_replace('{category}', $template->category->name ?? 'Web Series', $imagePromptTemplate);
+            
+            Log::info('Using database category template for image prompt generation');
+            Log::info('Full image prompt length: ' . strlen($imagePromptTemplate));
+            
+            return $imagePromptTemplate;
             
         } catch (\Exception $e) {
             Log::error('Generate image prompt error: ' . $e->getMessage());
-            return $this->generateFallbackImagePrompt($sceneTitle, $sceneNumber, $category);
+            
+            // Fallback image prompt
+            $category = \App\Models\Category::find($categoryId);
+            $categoryName = $category ? $category->name : 'Web Series';
+            return "Cinematic {$categoryName} scene, {$sceneTitle}. {$sceneDescription} Professional cinematography, dramatic lighting, 8K resolution, movie still.";
         }
     }
 
-    private function generateFallbackImagePrompt($sceneTitle, $sceneNumber, $category)
+    /**
+     * Get joke prompt for comedy category
+     */
+    public function getJokePrompt($categoryId, $userPrompt)
     {
-        return "Cinematic {$category} scene, {$sceneTitle}, dramatic lighting, professional cinematography, 8K resolution, movie still, epic atmosphere, detailed characters, emotional moment, wide angle shot, rich colors, film grain, ultra HD.";
+        try {
+            $template = \App\Models\CategoryTemplate::where('category_id', $categoryId)
+                ->where('is_active', true)
+                ->first();
+            
+            if ($template && $template->category_prompt && isset($template->category_prompt['joke'])) {
+                $jokePrompt = $template->category_prompt['joke'];
+                $result = str_replace('{user_prompt}', $userPrompt, $jokePrompt);
+                Log::info('Using joke prompt from database', ['prompt' => $result]);
+                return $result;
+            }
+            
+            return null;
+            
+        } catch (\Exception $e) {
+            Log::error('Get joke prompt error: ' . $e->getMessage());
+            return null;
+        }
     }
 
     /**
-     * Generate image using Flux 2 Dev model
+     * Generate unique tracking ID
      */
-    public function generateImage($prompt, $width = 1024, $height = 1024, $samples = 1)
+    public function generateTrackingId()
     {
+        return 'img_' . uniqid() . '_' . time() . '_' . bin2hex(random_bytes(8));
+    }
+
+    /**
+     * Generate image with webhook and logging
+     */
+    public function generateImageWithWebhook($prompt, $sceneId, $seriesId, $userId, $width = 1024, $height = 1024, $samples = 1)
+    {
+        Log::info('=== GENERATING IMAGE WITH WEBHOOK ===');
+        Log::info('Scene ID: ' . $sceneId);
+        Log::info('Series ID: ' . $seriesId);
+        Log::info('User ID: ' . $userId);
+        
         try {
-            // Use the image API key (different from chat API key)
-            $imageApiKey = '1TnJavtjQ8pitGj0ah16oZGWW6eGegeCwLSLLpKZ3V1JNy1fRiASh8jg7EN5';
+            $trackingId = $this->generateTrackingId();
+            $webhookUrl = url("/webhook/image-generation?tracking_id={$trackingId}&scene_id={$sceneId}&series_id={$seriesId}");
+            
+            // Create log entry if model exists
+            if (class_exists(\App\Models\ImageGenerationLog::class)) {
+                $log = \App\Models\ImageGenerationLog::create([
+                    'tracking_id' => $trackingId,
+                    'scene_id' => $sceneId,
+                    'web_series_id' => $seriesId,
+                    'user_id' => $userId,
+                    'prompt' => $prompt,
+                    'model_id' => 'flux-2-dev',
+                    'samples' => $samples,
+                    'num_inference_steps' => 30,
+                    'guidance_scale' => 7.5,
+                    'webhook_url' => $webhookUrl,
+                    'status' => 'pending',
+                    'api_called_at' => now()
+                ]);
+                Log::info('Created log entry with tracking ID: ' . $trackingId);
+            }
             
             $payload = [
-                'key' => $imageApiKey,
+                'key' => $this->imageApiKey,
                 'model_id' => 'flux-2-dev',
                 'prompt' => $prompt,
                 'width' => (string)$width,
@@ -284,70 +350,151 @@ Output ONLY the prompt text, no explanations. Make it 100-200 characters, highly
                 'safety_checker' => false,
                 'enhance_prompt' => true,
                 'guidance_scale' => 7.5,
-                'seed' => null
+                'seed' => null,
+                'webhook' => $webhookUrl
             ];
             
-            Log::info('Image Generation API Request', ['payload' => $payload]);
+            Log::info('Sending request to ModelsLab API');
             
             $response = $this->client->post($this->imageApiUrl, [
                 'json' => $payload,
-                'headers' => [
-                    'Content-Type' => 'application/json'
-                ]
+                'headers' => ['Content-Type' => 'application/json']
             ]);
             
             $body = $response->getBody()->getContents();
-            Log::info('Image Generation API Response', ['body' => substr($body, 0, 500)]);
-            
             $result = json_decode($body, true);
             
-            if (isset($result['status']) && $result['status'] === 'success') {
-                // Check for output URLs in different response formats
-                if (isset($result['output']) && is_array($result['output'])) {
-                    return $result['output'];
-                }
-                if (isset($result['image_url'])) {
-                    return [$result['image_url']];
-                }
-                if (isset($result['images']) && is_array($result['images'])) {
-                    return $result['images'];
-                }
+            Log::info('Image API Response', ['response' => $result]);
+            
+            // Update log with API response
+            if (isset($log)) {
+                $log->update([
+                    'full_api_response' => $result,
+                    'api_request_id' => $result['id'] ?? null
+                ]);
             }
             
-            // Check for error message
-            if (isset($result['message'])) {
-                throw new \Exception($result['message']);
+            // Check if future_links already available
+            if (isset($result['future_links']) && !empty($result['future_links'])) {
+                if (isset($log)) {
+                    $log->update([
+                        'status' => 'completed',
+                        'image_urls' => $result['future_links'],
+                        'completed_at' => now()
+                    ]);
+                }
+                return [
+                    'success' => true,
+                    'images' => $result['future_links'],
+                    'status' => 'completed',
+                    'tracking_id' => $trackingId
+                ];
             }
             
-            Log::error('Unexpected API response format', ['response' => $result]);
-            
-            // Return placeholder images if API fails
-            $placeholders = [];
-            for ($i = 0; $i < $samples; $i++) {
-                $placeholders[] = "https://placehold.co/{$width}x{$height}/7c3aed/ffffff?text=" . urlencode(substr($prompt, 0, 50));
+            if (isset($result['output']) && !empty($result['output'])) {
+                if (isset($log)) {
+                    $log->update([
+                        'status' => 'completed',
+                        'image_urls' => $result['output'],
+                        'completed_at' => now()
+                    ]);
+                }
+                return [
+                    'success' => true,
+                    'images' => $result['output'],
+                    'status' => 'completed',
+                    'tracking_id' => $trackingId
+                ];
             }
-            return $placeholders;
+            
+            if (isset($result['status']) && $result['status'] === 'processing') {
+                if (isset($log)) {
+                    $log->update(['status' => 'processing']);
+                }
+                return [
+                    'success' => true,
+                    'status' => 'processing',
+                    'request_id' => $result['id'] ?? null,
+                    'tracking_id' => $trackingId,
+                    'message' => 'Image generation started'
+                ];
+            }
+            
+            if (isset($log)) {
+                $log->update([
+                    'status' => 'failed',
+                    'error_message' => $result['message'] ?? 'Failed to start generation',
+                    'completed_at' => now()
+                ]);
+            }
+            
+            return [
+                'success' => false,
+                'message' => $result['message'] ?? 'Failed to start generation',
+                'tracking_id' => $trackingId
+            ];
             
         } catch (\Exception $e) {
-            Log::error('Generate image API error: ' . $e->getMessage());
-            // Return placeholder on error
-            return ["https://placehold.co/{$width}x{$height}/7c3aed/ffffff?text=Image+Generation+Failed"];
+            Log::error('Generate image error: ' . $e->getMessage());
+            Log::error('Error trace: ' . $e->getTraceAsString());
+            
+            // Create failed log entry
+            if (class_exists(\App\Models\ImageGenerationLog::class)) {
+                \App\Models\ImageGenerationLog::create([
+                    'tracking_id' => $this->generateTrackingId(),
+                    'scene_id' => $sceneId,
+                    'web_series_id' => $seriesId,
+                    'user_id' => $userId,
+                    'prompt' => $prompt,
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                    'api_called_at' => now(),
+                    'completed_at' => now()
+                ]);
+            }
+            
+            return [
+                'success' => false,
+                'message' => $e->getMessage()
+            ];
         }
     }
 
     /**
-     * Test API connection
+     * Call Chat API
      */
-    public function testConnection()
+    private function callChatApi($systemPrompt, $userPrompt, $maxTokens = 2000)
     {
-        try {
-            $response = $this->callChatApi(
-                "You are a helpful assistant.",
-                "Say 'API is working'"
-            );
-            return ['success' => true, 'response' => $response];
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+        $payload = [
+            'key' => $this->chatApiKey,
+            'messages' => [
+                ['role' => 'system', 'content' => $systemPrompt],
+                ['role' => 'user', 'content' => $userPrompt]
+            ],
+            'max_tokens' => $maxTokens,
+            'temperature' => 0.7,
+            'top_p' => 0.9,
+            'presence_penalty' => 0.3,
+            'frequency_penalty' => 0.3
+        ];
+        
+        Log::info('Calling Chat API with max_tokens: ' . $maxTokens);
+        
+        $response = $this->client->post($this->chatApiUrl, [
+            'json' => $payload,
+            'headers' => ['Content-Type' => 'application/json']
+        ]);
+        
+        $body = $response->getBody()->getContents();
+        $decoded = json_decode($body, true);
+        
+        if (isset($decoded['status']) && $decoded['status'] === 'success') {
+            $message = $decoded['message'] ?? $decoded['response'] ?? '';
+            Log::info('Chat API response length: ' . strlen($message) . ' chars');
+            return $message;
         }
+        
+        Log::error('Chat API invalid response', ['body' => substr($body, 0, 500)]);
+        throw new \Exception('Invalid API response: ' . substr($body, 0, 200));
     }
 }

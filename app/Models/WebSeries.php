@@ -14,11 +14,17 @@ class WebSeries extends Model
     protected $fillable = [
         'user_id',
         'project_name',
-        'category',
+        'category_id',
         'concept',
         'total_episodes',
         'status'
     ];
+
+    // Relationship with Category
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
     
     protected $casts = [
         'total_episodes' => 'integer',

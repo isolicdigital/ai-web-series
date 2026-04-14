@@ -11,6 +11,7 @@ Route::group(['prefix' => 'standup', 'namespace' => 'App\Http\Controllers'], fun
     });
 });
 Route::post('/aigen/saveresponse', [\App\Http\Controllers\MlController::class, 'saveResponse'])->name('aigen.saveresponse');
+Route::post('/webhook/image-generation', [\App\Http\Controllers\WebSeriesController::class, 'handleImageWebhook']);
 
 Route::group(['prefix' => 'register', 'namespace' => 'App\Http\Controllers\Auth'], function () {
     Route::controller(RegisteredUserController::class)->group(function () {

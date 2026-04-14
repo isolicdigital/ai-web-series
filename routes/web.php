@@ -24,11 +24,10 @@ Route::get('/', function () {
 
 require __DIR__.'/auth.php';
 
-// Public page builder page route
 Route::get('/p', [PageBuilderController::class, 'maskedView'])->name('page-builder.view');
 
 // ============================================
-// PROFILE ROUTES (Auth required)
+// PROFILE ROUTES
 // ============================================
 
 Route::middleware('auth')->group(function () {
@@ -38,45 +37,44 @@ Route::middleware('auth')->group(function () {
 });
 
 // ============================================
-// WEB SERIES ROUTES - Complete System
+// WEB SERIES ROUTES
 // ============================================
 
 Route::middleware(['auth'])->prefix('series')->name('web-series.')->group(function () {
-    // Create routes
     Route::get('/create', [WebSeriesController::class, 'create'])->name('create');
     Route::post('/save-project', [WebSeriesController::class, 'saveProject'])->name('save-project');
-    
-    // Episode 1 specific routes
     Route::post('/{id}/generate-episode1-concept', [WebSeriesController::class, 'generateEpisode1Concept']);
     Route::post('/{id}/update-episode1-concept', [WebSeriesController::class, 'updateEpisode1Concept']);
     Route::post('/{id}/generate-episode1-scenes', [WebSeriesController::class, 'generateEpisode1Scenes']);
     Route::get('/{id}/episode-1', [WebSeriesController::class, 'showEpisode1'])->name('episode1');
-    
-    // Scene routes
     Route::get('/{seriesId}/scene/{sceneId}', [WebSeriesController::class, 'showScene'])->name('scene');
-    
-    // Display routes
     Route::get('/my-series', [WebSeriesController::class, 'mySeries'])->name('my-series');
     Route::get('/dashboard', [WebSeriesController::class, 'dashboard'])->name('dashboard');
     Route::get('/{id}', [WebSeriesController::class, 'show'])->name('show');
-    Route::get('/{seriesId}/episode/{episodeId}', [WebSeriesController::class, 'showEpisode'])->name('episode');
-    
-    // Delete route
     Route::delete('/{id}', [WebSeriesController::class, 'destroy'])->name('destroy');
+     Route::get('/{id}/generate-video', [WebSeriesController::class, 'generateVideoPage'])->name('generate-video');
+    Route::post('/generate-video', [WebSeriesController::class, 'generateVideo'])->name('generate.video');
 });
 
 // ============================================
-// IMAGE GENERATION ROUTE (ADD THIS)
+// IMAGE GENERATION ROUTES
 // ============================================
 
-Route::middleware(['auth'])->post('/generate-image', [WebSeriesController::class, 'generateImage'])->name('generate.image');
+// Image Generation Routes
+Route::middleware(['auth'])->post('/generate-image', [WebSeriesController::class, 'generateImage']);
+Route::middleware(['auth'])->post('/check-image-status', [WebSeriesController::class, 'checkImageStatus']);
+// routes/web.php
+Route::middleware(['auth', 'admin'])->get('/image-logs', [WebSeriesController::class, 'imageLogs'])->name('image.logs');
 
+
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth'])->name('dashboard');
 // ============================================
-// MAIN APPLICATION ROUTES (Auth + Subscription)
+// MAIN APPLICATION ROUTES
 // ============================================
 
 Route::middleware(['auth', 'subscription'])->group(function () { 
-    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('overview', function () { return view('page.overview'); })->name('overview');
     Route::get('whitelabel', function () { return view('page.whitelabel'); })->name('whitelabel');
@@ -164,15 +162,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 });
 
-// ============================================
-// SUPPORT ROUTE
-// ============================================
-
 Route::get('support', function () { return view('page.support'); })->name('support');
-
-// ============================================
-// FALLBACK ROUTE FOR 404 ERRORS
-// ============================================
 
 Route::fallback(function () { 
     return response()->view('errors.404', [], 404); 

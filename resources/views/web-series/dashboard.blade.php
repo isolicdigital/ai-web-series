@@ -5,14 +5,14 @@
         @csrf
     </form>
 
-    <!-- Modern Hero Section with Clean Design -->
-    <div class="relative min-h-[90vh] overflow-hidden">
+    <!-- Modern Hero Section with Black Background -->
+    <div class="relative min-h-[90vh] overflow-hidden bg-black">
         <!-- Animated Gradient Background -->
-        <div class="absolute inset-0 bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950"></div>
+        <div class="absolute inset-0 bg-gradient-to-br from-black via-purple-950/20 to-black"></div>
         
         <!-- Modern Abstract Shapes -->
-        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-blue-500/10 to-cyan-500/10 rounded-full blur-3xl"></div>
+        <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-blue-500/5 to-cyan-500/5 rounded-full blur-3xl"></div>
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-purple-500/5 to-transparent rounded-full blur-3xl"></div>
         
         <!-- Grid Pattern Overlay -->
@@ -166,12 +166,12 @@
     </style>
 
     <!-- Main Dashboard Content -->
-    <div class="bg-slate-900 -mt-6 rounded-t-3xl relative z-20">
+    <div class="bg-black -mt-6 rounded-t-3xl relative z-20">
         <div class="container mx-auto px-4 py-12">
             
             <!-- Stats Overview Cards -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-                <div class="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-2xl p-5 border border-purple-500/20">
+                <div class="bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-2xl p-5 border border-purple-500/20">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Total Series</p>
@@ -183,7 +183,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-2xl p-5 border border-blue-500/20">
+                <div class="bg-gradient-to-br from-blue-600/10 to-cyan-600/10 rounded-2xl p-5 border border-blue-500/20">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Total Episodes</p>
@@ -195,7 +195,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-yellow-500/10 to-orange-500/10 rounded-2xl p-5 border border-yellow-500/20">
+                <div class="bg-gradient-to-br from-yellow-600/10 to-orange-600/10 rounded-2xl p-5 border border-yellow-500/20">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Available Credits</p>
@@ -207,7 +207,7 @@
                     </div>
                 </div>
                 
-                <div class="bg-gradient-to-br from-green-500/10 to-teal-500/10 rounded-2xl p-5 border border-green-500/20">
+                <div class="bg-gradient-to-br from-green-600/10 to-teal-600/10 rounded-2xl p-5 border border-green-500/20">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Completion Rate</p>
@@ -222,11 +222,11 @@
             
             <!-- Creator Section - Card Style -->
             <div class="max-w-5xl mx-auto mb-16" id="creator-section">
-                <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl border border-slate-700 overflow-hidden shadow-xl">
+                <div class="bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-800 overflow-hidden shadow-xl hover:border-purple-500/30 transition-all duration-300">
                     <div class="p-6 md:p-8">
                         <div class="flex flex-col md:flex-row gap-6 items-center">
                             <!-- Icon -->
-                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center flex-shrink-0">
+                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                                 <i class="fas fa-robot text-white text-3xl"></i>
                             </div>
                             
@@ -243,7 +243,7 @@
                             
                             <!-- Button -->
                             <a href="{{ route('web-series.create') }}" 
-                               class="px-6 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-semibold transition-colors flex items-center gap-2">
+                               class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-pink-500/25">
                                 <i class="fas fa-plus-circle"></i>
                                 New Series
                             </a>
@@ -271,14 +271,14 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     @foreach($webSeries->take(5) as $series)
                     <div class="group cursor-pointer" onclick="window.location.href='{{ route('web-series.show', $series->id) }}'">
-                        <div class="relative rounded-xl overflow-hidden bg-slate-800">
+                        <div class="relative rounded-xl overflow-hidden bg-gray-900">
                             @if($series->cover_image)
                                 <img src="{{ Storage::url($series->cover_image) }}" 
                                      alt="{{ $series->name }}"
                                      class="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300">
                             @else
-                                <div class="w-full aspect-video bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                                    <i class="fas fa-film text-white text-4xl opacity-50"></i>
+                                <div class="w-full aspect-video bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center">
+                                    <i class="fas fa-film text-white/30 text-4xl"></i>
                                 </div>
                             @endif
                             <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
@@ -315,7 +315,7 @@
                 <h3 class="text-xl font-semibold text-white mb-2">No Series Yet</h3>
                 <p class="text-gray-400 mb-4">Start your creative journey by creating your first AI web series</p>
                 <a href="{{ route('web-series.create') }}" 
-                   class="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-700 rounded-xl text-white font-semibold transition-colors">
+                   class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-pink-500/25">
                     <i class="fas fa-plus-circle"></i>
                     Create Your First Series
                 </a>
@@ -373,11 +373,11 @@
             </div>
             
             <!-- Call to Action Banner -->
-            <div class="mt-8 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-2xl border border-purple-500/30 p-6 md:p-8 text-center">
+            <div class="mt-8 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl border border-purple-500/30 p-6 md:p-8 text-center">
                 <h3 class="text-2xl font-bold text-white mb-2">Ready to Create Your Own Series?</h3>
                 <p class="text-gray-400 mb-4">Start your creative journey with our AI-powered platform today.</p>
                 <a href="{{ route('web-series.create') }}" 
-                   class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold transition-all">
+                   class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-pink-500/25">
                     Get Started Now
                     <i class="fas fa-arrow-right ml-2"></i>
                 </a>
@@ -392,16 +392,16 @@
         }
         
         ::-webkit-scrollbar-track {
-            background: #1e293b;
+            background: #1a1a1a;
         }
         
         ::-webkit-scrollbar-thumb {
-            background: #7c3aed;
+            background: linear-gradient(to bottom, #8b5cf6, #ec4899);
             border-radius: 4px;
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: #8b5cf6;
+            background: linear-gradient(to bottom, #7c3aed, #db2777);
         }
         
         html {

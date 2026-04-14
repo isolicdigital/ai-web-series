@@ -3,21 +3,33 @@
 @section('title', 'AI Standup: Full Walkthrough Video')
 
 @section('content')
-<div class="demo-page">
-    <div class="demo-container">
-        <h1 class="demo-title">AI Standup: Full Walkthrough Video</h1>
+<div class="min-h-screen bg-gradient-to-br from-gray-950 via-purple-950 to-gray-950 flex items-center justify-center p-8">
+    <div class="max-w-5xl w-full text-center">
+        <!-- Title -->
+        <h1 class="text-3xl md:text-4xl lg:text-5xl font-extrabold mb-8 bg-gradient-to-r from-white via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            AI Standup: Full Walkthrough Video
+        </h1>
         
-        <div class="video-wrapper">
-            <video controls class="demo-video">
+        <!-- Video Wrapper -->
+        <div class="bg-white/5 backdrop-blur-lg rounded-2xl border border-purple-500/20 p-3 shadow-2xl transition-all duration-300 hover:border-purple-500/40">
+            <video controls class="w-full rounded-xl">
                 <source src="{{ asset('standup-demo.mp4') }}" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
         </div>
 
-        <div class="upgrades-section">
-            <p class="upgrades-text">Missed the upgrades? Take a look at them below:</p>
-            <a href="https://aistandup.live/upgrades" class="upgrades-link" target="_blank">
-                View Upgrades <i class="fas fa-arrow-right"></i>
+        <!-- Upgrades Section -->
+        <div class="mt-8">
+            <p class="text-gray-400 text-base mb-3 font-medium">
+                Missed the upgrades? Take a look at them below:
+            </p>
+            <a href="https://aistandup.live/upgrades" 
+               class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-full transition-all duration-300 shadow-lg hover:shadow-purple-500/25 hover:scale-105"
+               target="_blank">
+                View Upgrades
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
             </a>
         </div>
     </div>
@@ -26,78 +38,36 @@
 
 @section('css')
 <style>
-.demo-page {
-    min-height: calc(100vh - 70px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem;
-}
-
-.demo-container {
-    max-width: 900px;
-    width: 100%;
-    text-align: center;
-}
-
-.demo-title {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 2rem;
-    background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.video-wrapper {
-    background: var(--card-bg);
-    border-radius: 20px;
-    border: 1px solid var(--glass-border);
-    padding: 0.5rem;
-    box-shadow: var(--shadow);
-}
-
-.demo-video {
-    width: 100%;
-    border-radius: 16px;
-}
-
-.upgrades-section {
-    margin-top: 2rem;
-}
-
-.upgrades-text {
-    color: var(--text-secondary);
-    font-size: 1rem;
-    margin-bottom: 1rem;
-}
-
-.upgrades-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.75rem 1.5rem;
-    background: var(--accent);
-    color: white;
-    border-radius: 40px;
-    text-decoration: none;
-    font-weight: 600;
-    transition: var(--transition);
-}
-
-.upgrades-link:hover {
-    background: var(--accent-dark);
-    transform: translateY(-2px);
-}
-
-@media (max-width: 768px) {
-    .demo-title {
-        font-size: 1.5rem;
+    /* Custom video player styling */
+    video {
+        width: 100%;
+        max-height: 500px;
+        object-fit: contain;
+        background: #000;
+        outline: none;
     }
     
-    .demo-container {
-        padding: 0 1rem;
+    video:focus {
+        outline: none;
     }
-}
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(to bottom, #7c3aed, #db2777);
+    }
 </style>
 @endsection

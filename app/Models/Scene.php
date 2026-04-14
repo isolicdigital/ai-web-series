@@ -17,7 +17,8 @@ class Scene extends Model
         'image_prompt',
         'generated_image_url',
         'summary',
-        'status'
+        'status',
+        
     ];
     
     protected $casts = [
