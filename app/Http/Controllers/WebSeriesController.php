@@ -7,6 +7,7 @@ use App\Models\WebSeries;
 use App\Models\Episode;
 use App\Models\Scene;
 use App\Models\Category;
+use App\Models\CategoryTemplate;
 use App\Models\ImageGenerationLog;
 use App\Services\ModelsLabService;
 use Illuminate\Http\Request;
@@ -592,25 +593,67 @@ class WebSeriesController extends Controller
     
     public function dashboard()
     {
+        // Get counts
+        $mySeriesCount = WebSeries::where('user_id', auth()->id())->count();
+        $myEpisodesCount = Episode::whereHas('webSeries', function($q) {
+            $q->where('user_id', auth()->id());
+        })->count();
+        $myScenesCount = Scene::whereHas('webSeries', function($q) {
+            $q->where('user_id', auth()->id());
+        })->count();
+        $completedSeries = WebSeries::where('user_id', auth()->id())
+            ->where('status', 'completed')->count();
+        
+        // Calculate completion rate
+        $completionRate = $mySeriesCount > 0 ? round(($completedSeries / $mySeriesCount) * 100) : 0;
+        
         $stats = [
-            'total_series' => WebSeries::where('user_id', auth()->id())->count(),
-            'total_episodes' => Episode::whereHas('webSeries', function($q) {
-                $q->where('user_id', auth()->id());
-            })->count(),
-            'total_scenes' => Scene::whereHas('webSeries', function($q) {
-                $q->where('user_id', auth()->id());
-            })->count(),
-            'completed_series' => WebSeries::where('user_id', auth()->id())
-                ->where('status', 'completed')->count()
+            'total_series' => $mySeriesCount,
+            'total_episodes' => $myEpisodesCount,
+            'total_scenes' => $myScenesCount,
+            'completed_series' => $completedSeries
         ];
         
+        // Get user's web series
         $webSeries = WebSeries::where('user_id', auth()->id())
             ->with('category')
             ->withCount('episodes')
             ->latest()
             ->paginate(12);
         
-        return view('web-series.dashboard', compact('webSeries', 'stats'));
+        // Get all categories for the popular categories section
+        $categories = Category::where('is_active', true)
+            ->orderBy('display_order', 'asc')
+            ->get();
+        
+        // Get trending series (most recent completed series)
+        $trendingSeries = WebSeries::where('user_id', auth()->id())
+            ->where('status', 'completed')
+            ->with('category')
+            ->withCount('episodes')
+            ->latest()
+            ->take(10)
+            ->get();
+        
+        // Get total users count (for admin stats)
+        $totalUsers = \App\Models\User::count();
+        
+        // Get average rating (mock data for now)
+        $avgRating = 4.9;
+        
+        return view('web-series.dashboard', compact(
+            'webSeries', 
+            'stats', 
+            'categories',
+            'trendingSeries',
+            'mySeriesCount',
+            'myEpisodesCount',
+            'myScenesCount',
+            'completedSeries',
+            'completionRate',
+            'totalUsers',
+            'avgRating'
+        ));
     }
     
     public function destroy($id)

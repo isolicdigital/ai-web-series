@@ -45,4 +45,13 @@ class Category extends Model
     {
         return $this->hasOne(CategoryTemplate::class)->where('is_active', true);
     }
+    // Get image from template
+    public function getImageUrlAttribute()
+    {
+        if ($this->template && $this->template->init_image) {
+            return asset($this->template->init_image);
+        }
+        return null;
+    }
+    
 }

@@ -26,4 +26,12 @@ class ComedyTemplate extends Model
     {
         return $this->hasMany(ComedyComedian::class, 'template_id');
     }
+    // Get the image URL
+    public function getImageUrlAttribute()
+    {
+        if ($this->init_image) {
+            return asset($this->init_image);
+        }
+        return null;
+    }
 }
