@@ -274,6 +274,28 @@ Keep descriptions VERY SHORT and punchy.";
     }
 
     /**
+     * Get negative prompt from category template
+     */
+    public function getNegativePrompt($categoryId)
+    {
+        try {
+            $template = \App\Models\CategoryTemplate::where('category_id', $categoryId)
+                ->where('is_active', true)
+                ->first();
+            
+            if ($template && $template->category_prompt && isset($template->category_prompt['negative_prompt'])) {
+                return $template->category_prompt['negative_prompt'];
+            }
+            
+            return null;
+            
+        } catch (\Exception $e) {
+            Log::error('Get negative prompt error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
      * Get joke prompt for comedy category
      */
     public function getJokePrompt($categoryId, $userPrompt)
@@ -307,7 +329,7 @@ Keep descriptions VERY SHORT and punchy.";
     }
 
     /**
-     * Generate image with webhook and logging
+     * Generate image with webhook and logging (includes negative prompt in API call only)
      */
     public function generateImageWithWebhook($prompt, $sceneId, $seriesId, $userId, $width = 1024, $height = 1024, $samples = 1)
     {
@@ -320,7 +342,17 @@ Keep descriptions VERY SHORT and punchy.";
             $trackingId = $this->generateTrackingId();
             $webhookUrl = url("/webhook/image-generation?tracking_id={$trackingId}&scene_id={$sceneId}&series_id={$seriesId}");
             
-            // Create log entry if model exists
+            // Get negative prompt from category template (for API call only, not stored in DB)
+            $scene = \App\Models\Scene::find($sceneId);
+            $negativePrompt = null;
+            if ($scene && $scene->web_series_id) {
+                $series = \App\Models\WebSeries::find($scene->web_series_id);
+                if ($series && $series->category_id) {
+                    $negativePrompt = $this->getNegativePrompt($series->category_id);
+                }
+            }
+            
+            // Create log entry (without negative_prompt column)
             if (class_exists(\App\Models\ImageGenerationLog::class)) {
                 $log = \App\Models\ImageGenerationLog::create([
                     'tracking_id' => $trackingId,
@@ -353,6 +385,12 @@ Keep descriptions VERY SHORT and punchy.";
                 'seed' => null,
                 'webhook' => $webhookUrl
             ];
+            
+            // Add negative prompt to API payload if available
+            if ($negativePrompt) {
+                $payload['negative_prompt'] = $negativePrompt;
+                Log::info('Using negative prompt in API call');
+            }
             
             Log::info('Sending request to ModelsLab API');
             
@@ -438,7 +476,7 @@ Keep descriptions VERY SHORT and punchy.";
             Log::error('Generate image error: ' . $e->getMessage());
             Log::error('Error trace: ' . $e->getTraceAsString());
             
-            // Create failed log entry
+            // Create failed log entry (without negative_prompt)
             if (class_exists(\App\Models\ImageGenerationLog::class)) {
                 \App\Models\ImageGenerationLog::create([
                     'tracking_id' => $this->generateTrackingId(),

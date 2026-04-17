@@ -83,7 +83,10 @@ class CategorySeeder extends Seeder
         ];
         
         foreach ($categories as $category) {
-            Category::create($category);
+            Category::updateOrCreate(
+                ['name' => $category['name']], // Find by name
+                $category // Update or create with these values
+            );
         }
     }
 }

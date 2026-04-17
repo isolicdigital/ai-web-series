@@ -22,9 +22,6 @@
                 <a href="{{ route('web-series.my-series') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
                     <i class="fas fa-tv mr-2 text-xs"></i>My Series
                 </a>
-                <a href="{{ route('web-series.dashboard') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
-                    <i class="fas fa-fire mr-2 text-xs text-orange-400"></i>Dashboard
-                </a>
                 <a href="{{ route('buycredits') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
                     <i class="fas fa-gem mr-2 text-xs text-yellow-400"></i>Buy Credits
                 </a>

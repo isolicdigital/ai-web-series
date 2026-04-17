@@ -65,20 +65,67 @@
         <!-- Series Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($webSeries as $series)
+            @php
+                // Get episodes for this series
+                $episodes = $series->episodes()->with('scenes')->get();
+                $episodeCount = $episodes->count();
+                
+                // Get thumbnail from first episode's first scene
+                $thumbnailUrl = null;
+                $firstEpisode = $episodes->first();
+                if ($firstEpisode) {
+                    $firstScene = $firstEpisode->scenes->first();
+                    if ($firstScene && $firstScene->generated_image_url) {
+                        $thumbnailUrl = asset($firstScene->generated_image_url);
+                    }
+                }
+                
+                // Determine if series has multiple episodes
+                $hasMultipleEpisodes = $episodeCount > 1;
+            @endphp
             <div class="group bg-gray-900/40 backdrop-blur-lg rounded-2xl border border-gray-800 hover:border-purple-500/50 transition-all duration-300 overflow-hidden hover:transform hover:scale-105">
-                <!-- Card Header with Gradient -->
-                <div class="relative h-40 bg-gradient-to-br from-purple-600/20 to-pink-600/20 overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-purple-600/30 to-pink-600/30 group-hover:opacity-75 transition-opacity"></div>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <svg class="w-16 h-16 text-white/20 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
-                        </svg>
-                    </div>
+                <!-- Card Header with Thumbnail Image -->
+                <div class="relative h-48 overflow-hidden bg-gradient-to-br from-purple-600/20 to-pink-600/20">
+                    @if($thumbnailUrl)
+                        <img src="{{ $thumbnailUrl }}" 
+                             alt="{{ $series->project_name }}" 
+                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    @else
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <svg class="w-20 h-20 text-white/20 group-hover:scale-110 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+                            </svg>
+                        </div>
+                    @endif
+                    
+                    <!-- Status Badge -->
                     <div class="absolute top-3 right-3">
                         <span class="px-2 py-1 rounded-full text-xs font-medium {{ $series->status === 'completed' ? 'bg-green-600/80 text-white' : ($series->status === 'generating' ? 'bg-yellow-600/80 text-white' : 'bg-gray-600/80 text-white') }}">
                             {{ $series->status === 'completed' ? 'Completed' : ucfirst($series->status) }}
                         </span>
                     </div>
+                    
+                    <!-- Episode count overlay -->
+                    <div class="absolute bottom-3 left-3">
+                        <div class="flex items-center gap-1 bg-black/60 backdrop-blur-sm px-2 py-1 rounded-lg">
+                            <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            <span class="text-white text-xs">{{ $episodeCount }} Episode{{ $episodeCount !== 1 ? 's' : '' }}</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Multiple Episodes Indicator -->
+                    @if($hasMultipleEpisodes)
+                    <div class="absolute top-3 left-3">
+                        <div class="flex items-center gap-1 bg-purple-600/80 backdrop-blur-sm px-2 py-1 rounded-lg">
+                            <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                            </svg>
+                            <span class="text-white text-xs">{{ $episodeCount }} Episodes</span>
+                        </div>
+                    </div>
+                    @endif
                 </div>
                 
                 <!-- Card Content -->
@@ -93,8 +140,10 @@
                             <span>{{ $series->episodes->count() }}/{{ $series->total_episodes ?: 1 }} Episodes</span>
                         </div>
                         <div class="w-full h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" 
-                                 style="width: {{ $series->total_episodes ? ($series->episodes->count() / $series->total_episodes) * 100 : 0 }}%"></div>
+                            @php
+                                $progressPercent = $series->total_episodes ? ($series->episodes->count() / $series->total_episodes) * 100 : 0;
+                            @endphp
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
                         </div>
                     </div>
                     
@@ -114,16 +163,36 @@
                         </div>
                     </div>
                     
+                    <!-- Category Badge -->
+                    @if($series->category)
+                    <div class="mb-3">
+                        <span class="text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300">
+                            {{ $series->category->name }}
+                        </span>
+                    </div>
+                    @endif
+                    
                     <!-- Action Buttons -->
                     <div class="flex gap-2 pt-3 border-t border-gray-800">
-                        <button onclick="viewSeries({{ $series->id }})" 
-                                class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                            </svg>
-                            View Series
-                        </button>
+                        @if($hasMultipleEpisodes)
+                            <button onclick="showEpisodeSelector({{ $series->id }}, '{{ addslashes($series->project_name) }}', {{ json_encode($episodes->map(function($e) { return ['id' => $e->id, 'title' => $e->title, 'episode_number' => $e->episode_number]; })) }})" 
+                                    class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                                <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                Select Episode
+                            </button>
+                        @else
+                            <button onclick="viewSeries({{ $series->id }})" 
+                                    class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                                <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                </svg>
+                                View Series
+                            </button>
+                        @endif
                         <button onclick="confirmDelete({{ $series->id }}, '{{ $series->project_name }}')" 
                                 class="px-3 py-2 bg-red-600/20 hover:bg-red-600 border border-red-500/30 hover:border-red-500 rounded-lg text-red-400 hover:text-white transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,6 +232,33 @@
     </div>
 </div>
 
+<!-- Episode Selector Modal -->
+<div id="episodeSelectorModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center transition-all duration-300">
+    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full mx-4 border border-purple-500/30 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="episodeSelectorContent">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Select Episode</h3>
+                </div>
+                <button onclick="closeEpisodeSelector()" class="text-gray-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-gray-400 text-sm mb-4" id="episodeSeriesName"></p>
+            <div class="space-y-2 max-h-96 overflow-y-auto" id="episodeList">
+                <!-- Episodes will be populated here -->
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center transition-all duration-300">
     <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full mx-4 p-6 border border-red-500/30 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="deleteModalContent">
@@ -198,7 +294,61 @@
 let seriesToDelete = null;
 
 function viewSeries(id) {
-    window.location.href = `/series/${id}`;
+    window.location.href = `/web-series/${id}`;
+}
+
+function viewEpisode(seriesId, episodeId) {
+    window.location.href = `/web-series/${seriesId}?episode=${episodeId}`;
+}
+
+function showEpisodeSelector(seriesId, seriesName, episodes) {
+    document.getElementById('episodeSeriesName').innerHTML = `Choose an episode from <span class="text-purple-400 font-semibold">${seriesName}</span>`;
+    
+    const episodeList = document.getElementById('episodeList');
+    episodeList.innerHTML = '';
+    
+    episodes.forEach(episode => {
+        const episodeCard = document.createElement('div');
+        episodeCard.className = 'bg-gray-800/50 rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all duration-300 border border-gray-700 hover:border-purple-500/50 group';
+        episodeCard.onclick = () => viewEpisode(seriesId, episode.id);
+        episodeCard.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center group-hover:scale-110 transition-transform">
+                        <span class="text-purple-400 font-bold">${episode.episode_number}</span>
+                    </div>
+                    <div>
+                        <h4 class="text-white font-medium text-sm">${episode.title}</h4>
+                        <p class="text-gray-500 text-xs">Episode ${episode.episode_number}</p>
+                    </div>
+                </div>
+                <svg class="w-5 h-5 text-gray-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </div>
+        `;
+        episodeList.appendChild(episodeCard);
+    });
+    
+    const modal = document.getElementById('episodeSelectorModal');
+    const content = document.getElementById('episodeSelectorContent');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeEpisodeSelector() {
+    const modal = document.getElementById('episodeSelectorModal');
+    const content = document.getElementById('episodeSelectorContent');
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }, 300);
 }
 
 function confirmDelete(id, name) {
@@ -235,7 +385,7 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async func
     btn.disabled = true;
     
     try {
-        const response = await fetch(`/series/${seriesToDelete}`, {
+        const response = await fetch(`/web-series/${seriesToDelete}`, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': '{{ csrf_token() }}',
@@ -260,6 +410,12 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async func
         btn.innerHTML = originalHtml;
         btn.disabled = false;
         closeDeleteModal();
+    }
+});
+
+document.getElementById('episodeSelectorModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeEpisodeSelector();
     }
 });
 
@@ -323,6 +479,21 @@ function showToast(message, type) {
 
 .animate-spin {
     animation: spin 1s linear infinite;
+}
+
+/* Custom scrollbar for episode list */
+#episodeList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#episodeList::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 3px;
+}
+
+#episodeList::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+    border-radius: 3px;
 }
 
 @media (max-width: 768px) {
