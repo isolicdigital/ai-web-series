@@ -11,6 +11,8 @@ use App\Http\Controllers\Admin\PlanController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\WebSeriesController;
+use App\Http\Controllers\EpisodeController;
+use App\Http\Controllers\DemoController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Cache;
 
@@ -26,12 +28,9 @@ require __DIR__.'/auth.php';
 
 Route::get('/p', [PageBuilderController::class, 'maskedView'])->name('page-builder.view');
 Route::post('/generate-single-scene-image/{sceneId}', [WebSeriesController::class, 'generateSingleSceneImage'])->name('generate.single.scene.image');
-Route::post('/create-full-episode', [App\Http\Controllers\EpisodeController::class, 'createFullEpisode'])->name('create.full.episode');
-
-// Add these routes to your existing routes file
-Route::post('/check-image-status', [App\Http\Controllers\WebSeriesController::class, 'checkImageStatus'])->name('check.image.status');
-Route::post('/generate-image-for-scene/{sceneId}', [App\Http\Controllers\WebSeriesController::class, 'generateImageForScene'])->name('generate.image.for.scene');
-
+Route::post('/create-full-episode', [EpisodeController::class, 'createFullEpisode'])->name('create.full.episode');
+Route::post('/check-image-status', [WebSeriesController::class, 'checkImageStatus'])->name('check.image.status');
+Route::post('/generate-image-for-scene/{sceneId}', [WebSeriesController::class, 'generateImageForScene'])->name('generate.image.for.scene');
 
 // ============================================
 // PROFILE & AUTH ROUTES
@@ -41,10 +40,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    // Add this inside your auth middleware group, before the parameterized routes
-Route::get('/web-series/dashboard', [WebSeriesController::class, 'dashboard'])->name('web-series.dashboard');
-// Replicate webhook route (for async processing)
-Route::post('/replicate-webhook', [WebSeriesController::class, 'handleReplicateWebhook'])->name('replicate.webhook');
+    Route::get('/web-series/dashboard', [WebSeriesController::class, 'dashboard'])->name('web-series.dashboard');
+    Route::post('/replicate-webhook', [WebSeriesController::class, 'handleReplicateWebhook'])->name('replicate.webhook');
 });
 
 // ============================================
@@ -59,6 +56,7 @@ Route::middleware(['auth'])->group(function () {
     // Video generation routes
     Route::post('/generate-scene-video', [WebSeriesController::class, 'generateSceneVideo'])->name('generate.scene.video');
     Route::get('/check-video-status/{sceneId}', [WebSeriesController::class, 'checkVideoStatus'])->name('check.video.status');
+    Route::post('/generate-video', [WebSeriesController::class, 'generateSceneVideo'])->name('generate.video');
     
     // Scene status polling
     Route::get('/series/{id}/scenes-status', [WebSeriesController::class, 'getScenesStatus'])->name('series.scenes.status');
@@ -76,6 +74,19 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/web-series/create', [WebSeriesController::class, 'create'])->name('web-series.create');
     Route::post('/web-series/save-project', [WebSeriesController::class, 'saveProject'])->name('web-series.save-project');
     
+    // Episode CRUD routes - ADD THESE
+    Route::post('/web-series/{seriesId}/episodes', [WebSeriesController::class, 'storeEpisode'])->name('web-series.store-episode');
+Route::get('/web-series/{seriesId}/create-episode', [WebSeriesController::class, 'createEpisode'])->name('web-series.create-episode');
+    Route::get('/web-series/{seriesId}/episodes/{episodeNumber}/edit', [WebSeriesController::class, 'editEpisode'])->name('web-series.edit-episode');
+    Route::put('/web-series/{seriesId}/episodes/{episodeNumber}', [WebSeriesController::class, 'updateEpisode'])->name('web-series.update-episode');
+    Route::delete('/web-series/{seriesId}/episodes/{episodeNumber}', [WebSeriesController::class, 'destroyEpisode'])->name('web-series.destroy-episode');
+    
+    // Episode merge route
+    Route::post('/web-series/merge-episode', [EpisodeController::class, 'merge'])->name('merge.episode');
+    
+    // Get full video for an episode
+    Route::get('/web-series/{series}/episodes/{episode}/full-video', [EpisodeController::class, 'getFullVideo'])->name('web-series.episode.full-video');
+    
     // Parameterized routes (with {id}) - MUST come AFTER specific routes
     Route::get('/web-series/{id}', [WebSeriesController::class, 'show'])->name('web-series.show');
     Route::delete('/web-series/{id}', [WebSeriesController::class, 'destroy'])->name('web-series.destroy');
@@ -88,6 +99,14 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/web-series/{id}/generate-episode1-scenes', [WebSeriesController::class, 'generateEpisode1Scenes'])->name('web-series.generate-scenes');
     Route::get('/web-series/{id}/episode-1', [WebSeriesController::class, 'showEpisode1'])->name('web-series.episode1');
     Route::get('/web-series/{seriesId}/scene/{sceneId}', [WebSeriesController::class, 'showScene'])->name('web-series.scene');
+    Route::get('/web-series/{seriesId}/episodes/{episodeId}', function($seriesId, $episodeId) {
+        $series = App\Models\WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+        $episode = App\Models\Episode::where('web_series_id', $seriesId)->where('id', $episodeId)->firstOrFail();
+        return redirect()->route('web-series.show', $seriesId)->with('selected_episode', $episodeId);
+    })->name('web-series.episode.show');
+    
+    Route::get('/web-series/{seriesId}/episodes', [WebSeriesController::class, 'showEpisodes'])->name('web-series.episodes');
+    Route::get('/web-series/{seriesId}/create-episode', [WebSeriesController::class, 'createEpisode'])->name('web-series.create-episode');
 });
 
 // ============================================
@@ -95,8 +114,6 @@ Route::middleware(['auth'])->group(function () {
 // ============================================
 
 Route::middleware(['auth'])->prefix('series')->name('web-series.')->group(function () {
-    // These routes will be accessible at /series/... 
-    // (keeping for backward compatibility)
     Route::get('/my-series', [WebSeriesController::class, 'mySeries']);
     Route::get('/create', [WebSeriesController::class, 'create']);
     Route::post('/save-project', [WebSeriesController::class, 'saveProject']);
@@ -124,16 +141,31 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/image-logs', [WebSeriesController::class, 'imageLogs'])->name('image.logs');
-    
 });
 
+// ============================================
+// DEMO ROUTES (for user ID 141)
+// ============================================
+
 Route::middleware(['auth'])->prefix('demo')->name('demo.')->group(function () {
+    // Video endpoints
+    Route::get('/video/{episodeNumber}', [DemoController::class, 'getDemoVideo'])->name('video');
+    Route::get('/episode/{episodeId}/full-video', [DemoController::class, 'getFullEpisodeVideo'])->name('episode.full-video');
+    
+    // Merge and generate endpoints
+    Route::post('/merge-episode', [DemoController::class, 'mergeEpisode'])->name('merge-episode');
+    Route::post('/generate-video/{sceneId}', [DemoController::class, 'generateVideo'])->name('generate-video');
+    
+    // Image endpoints
+    Route::get('/image/{sceneNumber}', [DemoController::class, 'getDemoImage'])->name('image');
+    
+    // Series management
+    Route::post('/create-series', [DemoController::class, 'createDemoSeries'])->name('create-series');
     Route::post('/generate-concept/{id}', [DemoController::class, 'generateConcept'])->name('generate-concept');
     Route::post('/generate-scenes/{id}', [DemoController::class, 'generateScenes'])->name('generate-scenes');
-    Route::post('/create-series', [DemoController::class, 'createDemoSeries'])->name('create-series');
-    Route::get('/dashboard-stats', [DemoController::class, 'getDashboardStats'])->name('dashboard-stats');
-    Route::get('/image/{sceneNumber}', [DemoController::class, 'getDemoImage'])->name('image');
-    Route::get('/video/{sceneNumber}', [DemoController::class, 'getDemoVideo'])->name('video');
+    
+    // Dashboard
+    Route::get('/dashboard-stats', [DemoController::class, 'getDashboardData'])->name('dashboard-stats');
     Route::get('/keywords', [DemoController::class, 'getAvailableKeywords'])->name('keywords');
 });
 

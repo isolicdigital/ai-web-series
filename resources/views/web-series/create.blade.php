@@ -33,55 +33,118 @@
 
         <!-- Step 1: Create Series -->
         <div id="step1" class="bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-800 p-8 transform transition-all duration-500 hover:border-purple-500/50">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-                    <i class="fas fa-tv text-white text-lg"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-white">Create Your Series</h2>
-            </div>
-            
-            <form id="projectForm">
-                @csrf
-                <div class="mb-6">
-                    <label class="block text-white font-semibold mb-2 flex items-center gap-2">
-                        <i class="fas fa-heading text-purple-400 text-sm"></i>
-                        Series Name
-                    </label>
-                    <input type="text" id="project_name" required 
-                           placeholder="e.g., The Chronicles of AI, Future Tales, Mystery Manor"
-                           class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
-                    <p class="text-gray-500 text-xs mt-2">Give your web series a unique and memorable title</p>
-                </div>
-                
-                <div class="mb-8">
-                    <label class="block text-white font-semibold mb-3 flex items-center gap-2">
-                        <i class="fas fa-tags text-purple-400 text-sm"></i>
-                        Select Genre
-                    </label>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-                        @foreach($categories as $category)
-                        <label class="category-card cursor-pointer group">
-                            <input type="radio" name="category_id" value="{{ $category->id }}" class="hidden peer" required>
-                            <div class="text-center p-3 rounded-xl border-2 border-gray-700 bg-gray-800/30 transition-all duration-300 peer-checked:border-purple-500 peer-checked:bg-purple-500/20 peer-checked:shadow-lg hover:border-gray-500 hover:bg-gray-700/50 cursor-pointer">
-                                <div class="text-3xl mb-2 group-hover:scale-110 transition-transform text-purple-400">
-                                    <i class="fas {{ $category->icon }}"></i>
-                                </div>
-                                <div class="text-white text-sm font-medium">{{ $category->name }}</div>
-                                <div class="text-gray-500 text-xs mt-1 hidden md:block">{{ Str::limit($category->description, 30) }}</div>
-                            </div>
-                        </label>
-                        @endforeach
-                    </div>
-                    <p class="text-gray-500 text-xs mt-3">Choose the genre that best fits your story</p>
-                </div>
-                
-                <button type="submit" 
-                        class="group w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-pink-500/25 hover:scale-[1.02]">
-                    <span>Create Series</span>
-                    <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-                </button>
-            </form>
+    <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+            <i class="fas fa-tv text-white text-lg"></i>
         </div>
+        <h2 class="text-2xl font-bold text-white">Create Your Series</h2>
+    </div>
+    
+    <form id="projectForm">
+        @csrf
+        <div class="mb-6">
+            <label class="block text-white font-semibold mb-2 flex items-center gap-2">
+                <i class="fas fa-heading text-purple-400 text-sm"></i>
+                Series Name
+            </label>
+            <input type="text" id="project_name" required 
+                   placeholder="e.g., The Chronicles of AI, Future Tales, Mystery Manor"
+                   class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+            <p class="text-gray-500 text-xs mt-2">Give your web series a unique and memorable title</p>
+        </div>
+        
+        <div class="mb-8">
+            <label class="block text-white font-semibold mb-3 flex items-center gap-2">
+                <i class="fas fa-tags text-purple-400 text-sm"></i>
+                Select Genre
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                @foreach($categories as $category)
+                @php
+                    // Get category template image
+                    $template = \App\Models\CategoryTemplate::where('category_id', $category->id)
+                        ->where('is_active', true)
+                        ->first();
+                    
+                    $imageUrl = null;
+                    if ($template && $template->init_image) {
+                        $imagePath = str_replace(['/public/', 'public/'], '', $template->init_image);
+                        $imagePath = ltrim($imagePath, '/');
+                        if (file_exists(public_path($imagePath))) {
+                            $imageUrl = asset($imagePath);
+                        }
+                    }
+                @endphp
+                <label class="category-card cursor-pointer group">
+                    <input type="radio" name="category_id" value="{{ $category->id }}" class="hidden peer" required>
+                    <div class="relative overflow-hidden rounded-xl border-2 border-gray-700 bg-gray-800/30 transition-all duration-300 peer-checked:border-purple-500 peer-checked:bg-purple-500/20 peer-checked:shadow-lg hover:border-gray-500 hover:bg-gray-700/50 cursor-pointer">
+                        <!-- Category Image -->
+                        <div class="relative h-32 overflow-hidden">
+                            @if($imageUrl)
+                                <img src="{{ $imageUrl }}" 
+                                     alt="{{ $category->name }}" 
+                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                            @else
+                                <div class="w-full h-full bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                                    <i class="fas {{ $category->icon ?? 'fa-tag' }} text-4xl text-purple-400/70"></i>
+                                </div>
+                            @endif
+                            
+                            <!-- Checkmark overlay for selected -->
+                            <div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-purple-500 scale-0 peer-checked:scale-100 transition-transform duration-300 flex items-center justify-center shadow-lg z-10">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Category Info -->
+                        <div class="p-3 text-center">
+                            <div class="text-white font-semibold text-sm">{{ $category->name }}</div>
+                        </div>
+                    </div>
+                </label>
+                @endforeach
+            </div>
+            <p class="text-gray-500 text-xs mt-3">Choose the genre that best fits your story</p>
+        </div>
+        
+        <button type="submit" 
+                class="group w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-pink-500/25 hover:scale-[1.02]">
+            <span>Create Series</span>
+            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+        </button>
+    </form>
+</div>
+
+<style>
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.category-card {
+    transition: all 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-3px);
+}
+
+/* Custom radio styling */
+.peer:checked ~ div {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+}
+
+/* Gradient overlay */
+.bg-gradient-to-t {
+    background-image: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
+}
+</style>
 
         <!-- Step 2: Add Prompt for Episode 1 -->
         <div id="step2" class="hidden bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-800 p-8">
@@ -470,6 +533,11 @@ function showConceptLoader() {
         existingLoader.remove();
     }
     
+    // Clear any existing interval
+    if (window.conceptTextInterval) {
+        clearInterval(window.conceptTextInterval);
+    }
+    
     // Create loader HTML with your design
     const loaderHTML = `
         <div id="conceptLoader" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] flex items-center justify-center">
@@ -483,12 +551,15 @@ function showConceptLoader() {
                         <i class="fas fa-brain text-purple-400 text-4xl animate-pulse"></i>
                     </div>
                 </div>
-                <h3 id="loaderTitle" class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
-                <p id="loaderMessage" class="text-gray-400">Creating your unique concept...</p>
+                <h3 class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
+                <p id="loaderMessage" class="text-gray-400 text-lg">Creating your unique concept...</p>
                 <div class="flex gap-2 justify-center mt-4">
                     <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0s"></div>
                     <div class="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 0.2s"></div>
                     <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0.4s"></div>
+                </div>
+                <div class="mt-6 w-64 h-1.5 bg-gray-700 rounded-full overflow-hidden mx-auto">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-progress" style="width: 0%; animation: progress 8s ease-out forwards;"></div>
                 </div>
                 <p class="text-gray-500 text-sm mt-4">Please wait...</p>
             </div>
@@ -496,6 +567,37 @@ function showConceptLoader() {
     `;
     
     document.body.insertAdjacentHTML('beforeend', loaderHTML);
+    
+    // Array of messages to cycle through
+    const messages = [
+        "Creating your unique concept...",
+        "Analyzing story elements...",
+        "Building character arcs...",
+        "Crafting engaging plot twists...",
+        "Developing emotional moments...",
+        "Structuring your narrative...",
+        "Adding creative details...",
+        "Polishing your story...",
+        "Almost there...",
+        "Finalizing your concept!"
+    ];
+    
+    let messageIndex = 0;
+    const messageElement = document.getElementById('loaderMessage');
+    
+    // Change text every 2 seconds
+    window.conceptTextInterval = setInterval(() => {
+        if (messageElement) {
+            messageIndex = (messageIndex + 1) % messages.length;
+            messageElement.textContent = messages[messageIndex];
+            
+            // Add fade animation
+            messageElement.style.opacity = '0';
+            setTimeout(() => {
+                if (messageElement) messageElement.style.opacity = '1';
+            }, 200);
+        }
+    }, 2000);
     
     // Add animation styles if not present
     if (!document.querySelector('#loaderStyles')) {
@@ -511,11 +613,60 @@ function showConceptLoader() {
                 0%, 100% { opacity: 1; transform: scale(1); }
                 50% { opacity: 0.8; transform: scale(0.95); }
             }
+            @keyframes progress {
+                0% { width: 0%; }
+                100% { width: 100%; }
+            }
             .animate-spin { animation: spin 1s linear infinite; }
             .animate-bounce { animation: bounce 0.8s ease-in-out infinite; }
             .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+            .animate-progress { animation: progress 8s ease-out forwards; }
+            #loaderMessage {
+                transition: opacity 0.2s ease-in-out;
+                min-height: 60px;
+            }
         `;
         document.head.appendChild(style);
+    }
+}
+
+function hideConceptLoader() {
+    // Clear interval
+    if (window.conceptTextInterval) {
+        clearInterval(window.conceptTextInterval);
+        window.conceptTextInterval = null;
+    }
+    
+    // Remove loader with fade effect
+    const loader = document.getElementById('conceptLoader');
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            loader.remove();
+        }, 300);
+    }
+}
+
+function hideConceptLoader() {
+    // Clear intervals
+    if (window.conceptTextInterval) {
+        clearInterval(window.conceptTextInterval);
+        window.conceptTextInterval = null;
+    }
+    if (window.conceptTimerInterval) {
+        clearInterval(window.conceptTimerInterval);
+        window.conceptTimerInterval = null;
+    }
+    
+    // Remove loader with fade effect
+    const loader = document.getElementById('conceptLoader');
+    if (loader) {
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            loader.remove();
+        }, 300);
     }
 }
 
@@ -737,7 +888,7 @@ function switchStep(step) {
 // Add this to your create.blade.php script section
 
 // Check if user is demo user
-const isDemoUser = {{ auth()->id() == 141 ? 'true' : 'false' }};
+const isDemoUser = {{ auth()->check() && auth()->user()->demo_mode ? 'true' : 'false' }};
 
 // Step 2: Generate Concept with delay for demo user
 document.getElementById('promptForm').addEventListener('submit', async (e) => {
@@ -816,6 +967,11 @@ function showConceptLoading() {
         existingLoading.remove();
     }
     
+    // Clear any existing interval
+    if (window.conceptTextInterval) {
+        clearInterval(window.conceptTextInterval);
+    }
+    
     // Create loading overlay
     const loadingDiv = document.createElement('div');
     loadingDiv.id = 'conceptLoading';
@@ -832,7 +988,7 @@ function showConceptLoading() {
                 </div>
             </div>
             <h3 class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
-            <p class="text-gray-400">Creating your unique concept...</p>
+            <p id="conceptLoadingText" class="text-gray-400">Creating your unique concept...</p>
             <div class="flex gap-2 justify-center mt-4">
                 <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0s"></div>
                 <div class="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 0.2s"></div>
@@ -843,6 +999,36 @@ function showConceptLoading() {
     `;
     
     document.body.appendChild(loadingDiv);
+    
+    // Array of messages to cycle through
+    const messages = [
+        "Creating your unique concept...",
+        "Analyzing story elements...",
+        "Building character arcs...",
+        "Crafting engaging plot twists...",
+        "Developing emotional moments...",
+        "Structuring your narrative...",
+        "Adding creative details...",
+        "Almost there...",
+        "Finalizing your concept..."
+    ];
+    
+    let messageIndex = 0;
+    const textElement = document.getElementById('conceptLoadingText');
+    
+    // Change text every 2 seconds
+    window.conceptTextInterval = setInterval(() => {
+        if (textElement) {
+            messageIndex = (messageIndex + 1) % messages.length;
+            textElement.textContent = messages[messageIndex];
+            
+            // Add a subtle fade animation
+            textElement.style.opacity = '0';
+            setTimeout(() => {
+                if (textElement) textElement.style.opacity = '1';
+            }, 200);
+        }
+    }, 2000);
     
     // Add animation styles if not already present
     if (!document.querySelector('#conceptLoadingStyles')) {
@@ -856,8 +1042,25 @@ function showConceptLoading() {
             .animate-bounce {
                 animation: bounce 0.8s ease-in-out infinite;
             }
+            #conceptLoadingText {
+                transition: opacity 0.2s ease-in-out;
+            }
         `;
         document.head.appendChild(style);
+    }
+}
+
+function hideConceptLoading() {
+    // Clear the interval
+    if (window.conceptTextInterval) {
+        clearInterval(window.conceptTextInterval);
+        window.conceptTextInterval = null;
+    }
+    
+    // Remove the loading element
+    const loadingElement = document.getElementById('conceptLoading');
+    if (loadingElement) {
+        loadingElement.remove();
     }
 }
 

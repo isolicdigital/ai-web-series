@@ -21,9 +21,6 @@
             <div class="flex gap-3 mt-2">
                 <span class="text-purple-400 text-xs px-2 py-0.5 rounded-full bg-purple-500/20">{{ $series->category ? $series->category->name : 'Uncategorized' }}</span>
                 <span class="text-gray-500 text-xs">{{ $series->scenes->count() }} Segments</span>
-                @if(auth()->id() == 141)
-                    <span class="text-amber-400 text-xs px-2 py-0.5 rounded-full bg-amber-500/20">Demo Account</span>
-                @endif
             </div>
         </div>
         
@@ -121,55 +118,45 @@
                     
                     <div class="p-3 segment-content">
                         @if(!$isDemoUser && $isVideoCompleted)
-                         @if(!$isDemoUser && $isVideoCompleted)
-<div class="relative group/video bg-black rounded-lg overflow-hidden cursor-pointer" style="aspect-ratio: 4 / 3;">
-    <!-- Blurred Background Image -->
-    <div class="absolute inset-0 w-full h-full overflow-hidden">
-        <img src="{{ $imageUrl }}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
-    </div>
-    <div class="absolute inset-0 bg-black/30"></div>
-    
-    <!-- Play Overlay -->
-    <div class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-300 z-10" id="playOverlay-{{ $scene->id }}">
-        <div class="relative">
-            <div class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" style="animation-duration: 1.5s;"></div>
-            <svg class="w-16 h-16 text-purple-400 cursor-pointer hover:text-purple-300 transition-all duration-300 hover:scale-110 relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z"/>
-            </svg>
-        </div>
-        <p class="text-white text-sm font-semibold drop-shadow-lg mt-5">Ready to View</p>
-    </div>
-    
-    <!-- Video Element -->
-    <video controls class="w-full h-full object-cover hidden relative z-20" id="video-{{ $scene->id }}">
-        <source src="{{ asset($scene->video_url) }}" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-    
-    <!-- Download Button -->
-    <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover/video:opacity-100 transition z-30">
-        <button onclick="downloadClick('{{ $scene->video_url }}', {{ $scene->id }})" class="bg-black/60 hover:bg-green-600 p-1.5 rounded-lg backdrop-blur-sm transition">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-            </svg>
-        </button>
-    </div>
-</div>
-
-<script>
-    (function() {
-        const overlay = document.getElementById('playOverlay-{{ $scene->id }}');
-        const video = document.getElementById('video-{{ $scene->id }}');
-        if (overlay && video) {
-            overlay.addEventListener('click', function() {
-                overlay.style.display = 'none';
-                video.classList.remove('hidden');
-                video.play();
-            });
-        }
-    })();
-</script>
-@endif
+                            <!-- Video Player -->
+                            <div class="relative group/video bg-black rounded-lg overflow-hidden cursor-pointer" style="aspect-ratio: 4 / 3;">
+                                <div class="absolute inset-0 w-full h-full overflow-hidden">
+                                    <img src="{{ $imageUrl }}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
+                                </div>
+                                <div class="absolute inset-0 bg-black/30"></div>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-300 z-10" id="playOverlay-{{ $scene->id }}">
+                                    <div class="relative">
+                                        <div class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" style="animation-duration: 1.5s;"></div>
+                                        <svg class="w-16 h-16 text-purple-400 cursor-pointer hover:text-purple-300 transition-all duration-300 hover:scale-110 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M8 5v14l11-7z"/>
+                                        </svg>
+                                    </div>
+                                    <p class="text-white text-sm font-semibold drop-shadow-lg mt-5">Ready to View</p>
+                                </div>
+                                <video controls class="w-full h-full object-cover hidden relative z-20" id="video-{{ $scene->id }}">
+                                    <source src="{{ asset($scene->video_url) }}" type="video/mp4">
+                                </video>
+                                <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover/video:opacity-100 transition z-30">
+                                    <button onclick="downloadClick('{{ $scene->video_url }}', {{ $scene->id }})" class="bg-black/60 hover:bg-green-600 p-1.5 rounded-lg backdrop-blur-sm transition">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <script>
+                                (function() {
+                                    const overlay = document.getElementById('playOverlay-{{ $scene->id }}');
+                                    const video = document.getElementById('video-{{ $scene->id }}');
+                                    if (overlay && video) {
+                                        overlay.addEventListener('click', function() {
+                                            overlay.style.display = 'none';
+                                            video.classList.remove('hidden');
+                                            video.play();
+                                        });
+                                    }
+                                })();
+                            </script>
                             
                         @elseif($isDemoUser && !$isVideoCompleted)
                             <!-- Demo User - Generate Button -->
@@ -322,10 +309,10 @@
     </div>
 </div>
 
-<!-- Episode Preview Modal -->
+<!-- Episode Preview Modal with Checkbox -->
 <div id="episodeModal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-50 hidden items-center justify-center p-2 sm:p-4" style="display: none;">
-    <!-- Modal content (same as before) -->
     <div class="relative w-full max-w-6xl h-full max-h-[95vh] sm:max-h-[90vh] bg-gradient-to-br from-gray-900 to-black rounded-xl sm:rounded-2xl border border-gray-700 overflow-hidden shadow-2xl shadow-purple-500/20 flex flex-col">
+        
         <!-- Modal Header -->
         <div class="flex-shrink-0 flex justify-between items-center px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-700 bg-gradient-to-r from-gray-800/50 to-gray-900/50">
             <div class="flex items-center gap-2 sm:gap-3">
@@ -404,63 +391,70 @@
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 max-h-36 sm:max-h-48 overflow-y-auto custom-scrollbar p-2 bg-gray-800/20 rounded-lg" id="playlistContainer"></div>
             </div>
             
-            <!-- Audio Upload Section -->
+            <!-- Checkbox for adding background track -->
             <div class="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
-                        </svg>
+                <label class="flex items-center gap-3 cursor-pointer group">
+                    <div class="relative">
+                        <input type="checkbox" id="addBackgroundTrack" class="w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer">
                     </div>
                     <div>
-                        <span class="text-white font-medium">Background Music</span>
-                        <p class="text-gray-500 text-xs">Upload your own audio file</p>
+                        <span class="text-white font-medium group-hover:text-purple-400 transition-colors">Add your background track</span>
+                        <p class="text-gray-500 text-xs">Enhance your episode with custom music</p>
                     </div>
-                </div>
+                </label>
                 
-                <div class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 hover:bg-purple-500/5 transition-all duration-300 cursor-pointer" id="uploadArea">
-                    <input type="file" id="audioUpload" accept="audio/*" class="hidden" />
-                    <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                    </svg>
-                    <p class="text-gray-400 text-sm">Click or drag to upload your audio file</p>
-                    <p class="text-gray-500 text-xs mt-1">MP3, WAV, OGG (Max 10MB)</p>
-                    <div id="uploadProgress" class="hidden mt-3">
-                        <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                            <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" style="width: 0%" id="uploadProgressBar"></div>
+                <!-- Upload Area (Hidden by default) -->
+                <div id="uploadAreaContainer" class="hidden mt-4 transition-all duration-300">
+                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 hover:bg-purple-500/5 transition-all duration-300 cursor-pointer" id="uploadArea">
+                        <input type="file" id="audioUpload" accept="audio/*" class="hidden" />
+                        <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                        </svg>
+                        <p class="text-gray-400 text-sm">Click or drag to upload your audio file</p>
+                        <p class="text-gray-500 text-xs mt-1">MP3, WAV, OGG (Max 10MB)</p>
+                        <div id="uploadProgress" class="hidden mt-3">
+                            <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
+                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" style="width: 0%" id="uploadProgressBar"></div>
+                            </div>
+                            <p class="text-xs text-gray-400 mt-1" id="uploadStatus">Uploading...</p>
                         </div>
-                        <p class="text-xs text-gray-400 mt-1" id="uploadStatus">Uploading...</p>
                     </div>
-                </div>
-                
-                <div id="uploadedAudioPreview" class="hidden mt-3 p-3 bg-gray-700/50 rounded-lg">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                    
+                    <!-- Uploaded Audio Preview -->
+                    <div id="uploadedAudioPreview" class="hidden mt-3 p-3 bg-gray-700/50 rounded-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-white text-sm font-medium" id="uploadedFileName">audio_file.mp3</p>
+                                    <p class="text-gray-400 text-xs" id="uploadedFileSize">0 MB</p>
+                                </div>
+                            </div>
+                            <button onclick="removeUploadedAudio()" class="text-red-400 hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-500/10">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                 </svg>
-                            </div>
-                            <div>
-                                <p class="text-white text-sm font-medium" id="uploadedFileName">audio_file.mp3</p>
-                                <p class="text-gray-400 text-xs" id="uploadedFileSize">0 MB</p>
-                            </div>
+                            </button>
                         </div>
-                        <button onclick="removeUploadedAudio()" class="text-red-400 hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-500/10">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                            </svg>
-                        </button>
+                        <audio controls class="w-full mt-2 h-8 rounded-lg">
+                            <source src="" id="uploadedAudioSource" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
                     </div>
-                    <audio controls class="w-full mt-2 h-8 rounded-lg">
-                        <source src="" id="uploadedAudioSource" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
                 </div>
                 
-                <div id="musicStatus" class="mt-3 text-sm text-gray-400 hidden">
-                    <span class="text-green-400">✓</span> Audio applied to episode
-                </div>
+                <!-- Merge Button -->
+                <button onclick="createFullEpisode()" 
+                        class="mt-4 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-pink-500/25 transform hover:scale-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Merge & Create Episode
+                </button>
             </div>
         </div>
         
@@ -471,36 +465,29 @@
                     <div class="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <span class="text-xs sm:text-sm text-gray-400" id="currentSegmentInfo">Segment 1 of 0</span>
                 </div>
-                <div class="flex items-center gap-1 sm:gap-2">
-                    <button onclick="toggleAutoPlay()" id="autoPlayBtn" class="text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-all duration-300 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                        </svg>
-                        Auto-play ON
-                    </button>
-                    <button onclick="toggleLoop()" id="loopBtn" class="text-xs px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition-all duration-300 flex items-center gap-1">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
-                        Loop OFF
-                    </button>
-                </div>
-            </div>
-            <div class="flex gap-2 sm:gap-3">
-                <button onclick="downloadEpisode()" class="px-3 sm:px-4 py-1.5 sm:py-2 bg-green-600 hover:bg-green-700 rounded-lg text-white text-xs sm:text-sm font-medium transition-all duration-300 flex items-center gap-1 sm:gap-2 transform hover:scale-105">
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                    Download
-                </button>
-                <button onclick="shareEpisode()" class="px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-xs sm:text-sm font-medium transition-all duration-300 flex items-center gap-1 sm:gap-2 transform hover:scale-105">
-                    <svg class="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
-                    </svg>
-                    Share
-                </button>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Full Page Loader -->
+<div id="fullPageLoader" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] hidden items-center justify-center flex-col" style="display: none;">
+    <div class="text-center">
+        <div class="relative w-24 h-24 mb-6 mx-auto">
+            <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
+            <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 rounded-full animate-spin"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+                <svg class="w-10 h-10 text-purple-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                </svg>
+            </div>
+        </div>
+        <p class="text-white text-xl font-semibold mb-2">Creating Your Episode</p>
+        <p class="text-gray-400 text-sm" id="loaderMessage">Merging videos and adding music...</p>
+        <div class="mt-6 w-64 h-1.5 bg-gray-700 rounded-full overflow-hidden mx-auto">
+            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: 0%" id="loaderProgress"></div>
+        </div>
+        <p class="text-gray-500 text-xs mt-3" id="loaderPercent">0%</p>
     </div>
 </div>
 
@@ -510,7 +497,7 @@
 <script>
 const intervals = {};
 let isProcessingVideo = false;
-const isDemoUser = {{ auth()->id() == 141 ? 'true' : 'false' }};
+const isDemoUser = {{ auth()->check() && auth()->user()->demo_mode ? 'true' : 'false' }};
 let demoSegmentsProgress = {};
 let episodeVideoUrls = [];
 let currentMusic = null;
@@ -519,6 +506,8 @@ let loopEnabled = false;
 let currentPlaylistIndex = 0;
 let uploadedAudioUrl = null;
 let currentMusicSource = null;
+let uploadedAudioFileUrl = null;
+let mergedVideoUrl = null;
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
@@ -533,537 +522,228 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// ==================== UNIFIED VIDEO GENERATION FUNCTION (Same for both user types) ====================
+// ==================== CHECKBOX FUNCTIONALITY ====================
 
-function startVideoGeneration(sceneId) {
-    if (isProcessingVideo) {
-        showToast('Please wait, another video is being generated...', 'warning');
+document.addEventListener('DOMContentLoaded', function() {
+    const checkbox = document.getElementById('addBackgroundTrack');
+    const uploadContainer = document.getElementById('uploadAreaContainer');
+    
+    if (checkbox && uploadContainer) {
+        checkbox.addEventListener('change', function() {
+            if (this.checked) {
+                uploadContainer.classList.remove('hidden');
+                uploadContainer.classList.add('animate-fadeIn');
+            } else {
+                uploadContainer.classList.add('hidden');
+                // Clear uploaded audio if exists
+                if (uploadedAudioUrl || uploadedAudioFileUrl) {
+                    removeUploadedAudio();
+                }
+            }
+        });
+    }
+});
+
+// ==================== EPISODE CREATION FUNCTIONS ====================
+
+async function createFullEpisode() {
+    const seriesId = {{ $series->id }};
+    const isDemo = {{ auth()->id() == 141 ? 'true' : 'false' }};
+    const addMusic = document.getElementById('addBackgroundTrack').checked;
+    
+    if (addMusic && !uploadedAudioUrl && !uploadedAudioFileUrl) {
+        showToast('Please upload audio first', 'warning');
         return;
     }
     
-    const sceneCard = document.getElementById(`scene-${sceneId}`);
-    if (!sceneCard) return;
+    // Show full page loader
+    const loader = document.getElementById('fullPageLoader');
+    const loaderMessage = document.getElementById('loaderMessage');
+    const loaderProgress = document.getElementById('loaderProgress');
+    const loaderPercent = document.getElementById('loaderPercent');
     
-    const lockOverlay = sceneCard.querySelector('.locked-overlay');
-    if (lockOverlay && lockOverlay.style.display !== 'none') {
-        showToast('This segment is locked. Complete previous segment first.', 'warning');
-        return;
-    }
+    loader.style.display = 'flex';
+    loaderProgress.style.width = '0%';
+    loaderPercent.textContent = '0%';
     
-    const imageUrl = sceneCard.getAttribute('data-image-url');
-    const videoUrl = sceneCard.getAttribute('data-video-url');
-    const contentContainer = sceneCard.querySelector('.segment-content');
-    
-    if (!imageUrl) {
-        showToast('No image found for this segment', 'error');
-        return;
-    }
-    
-    isProcessingVideo = true;
-    
-    // Loading messages
-    const loadingMessages = [
-        "🖼️ Analyzing image and preparing scene...",
-        "🎬 Generating video frames...",
-        "✨ Adding effects and enhancements...",
-        "🎥 Finalizing your clip..."
-    ];
-    
-    let messageIndex = 0;
-    const totalDuration = 2100; // 3.5 minutes
+    // Animate progress for demo user - 10 seconds
+    let progress = 0;
+    const totalDuration = isDemo ? 10000 : 30000; // 10 seconds for demo, 30 seconds for normal
     const startTime = Date.now();
     
-    // Show loader with animation
-    contentContainer.innerHTML = `
-        <div class="relative rounded-lg overflow-hidden border border-purple-500/30" style="aspect-ratio: 4 / 3;">
-            <div class="absolute inset-0 w-full h-full overflow-hidden">
-                <img src="${imageUrl}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
-            </div>
-            <div class="absolute inset-0 bg-black/40"></div>
-            
-            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
-                <div class="relative w-20 h-20 mb-4">
-                    <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
-                    <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 rounded-full animate-spin"></div>
-                </div>
-                
-                <p class="text-purple-400 text-sm font-semibold text-center" id="loadingMsg-${sceneId}">
-                    ${loadingMessages[0]}
-                </p>
-                
-                <div class="mt-6 w-64 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300" style="width: 0%" id="progressBar-${sceneId}"></div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Update progress bar smoothly
     const progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
-        const percent = Math.min((elapsed / totalDuration) * 100, 100);
-        const progressBar = document.getElementById(`progressBar-${sceneId}`);
-        if (progressBar) {
-            progressBar.style.width = `${percent}%`;
-        }
-        if (percent >= 100) {
-            clearInterval(progressInterval);
-        }
-    }, 50);
-    
-    // Rotate messages every few seconds
-    const messageIntervalDuration = totalDuration / loadingMessages.length;
-    const messageInterval = setInterval(() => {
-        messageIndex++;
-        if (messageIndex < loadingMessages.length) {
-            const msgElement = document.getElementById(`loadingMsg-${sceneId}`);
-            if (msgElement) {
-                msgElement.innerHTML = loadingMessages[messageIndex];
-            }
-        } else {
-            clearInterval(messageInterval);
-        }
-    }, messageIntervalDuration);
-    
-    // Store intervals for cleanup
-    window[`progressInterval_${sceneId}`] = progressInterval;
-    window[`messageInterval_${sceneId}`] = messageInterval;
-    
-    if (isDemoUser) {
-        // Demo user: simulated generation
-        setTimeout(() => {
-            clearInterval(messageInterval);
-            clearInterval(progressInterval);
-            markSegmentCompletedForDemo(sceneCard, sceneId, true);
-            isProcessingVideo = false;
-            showToast('✅ Clip generated successfully!', 'success');
-        }, totalDuration);
-    } else {
-        // Normal user: real API call
-        (async () => {
-            try {
-                const response = await fetch('{{ route("generate.scene.video") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ scene_id: sceneId, image_url: imageUrl })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    startClipPolling(sceneId);
-                    showToast('🎬 Clip generation started...', 'info');
-                } else {
-                    throw new Error(result.message || 'Failed to generate clip');
-                }
-            } catch (error) {
-                console.error('Clip generation error:', error);
-                showToast('❌ Error generating clip: ' + error.message, 'error');
-                clearInterval(messageInterval);
-                clearInterval(progressInterval);
-                location.reload();
-            }
-        })();
-    }
-}
-
-function startClipPolling(sceneId) {
-    if (intervals[sceneId]) clearInterval(intervals[sceneId]);
-    
-    let attempts = 0;
-    intervals[sceneId] = setInterval(async () => {
-        attempts++;
+        progress = Math.min((elapsed / totalDuration) * 100, 90);
+        loaderProgress.style.width = `${progress}%`;
+        loaderPercent.textContent = `${Math.floor(progress)}%`;
         
-        try {
-            const response = await fetch(`/check-video-status/${sceneId}`, {
-                headers: { 'Accept': 'application/json' }
+        const messages = [
+            "Merging videos...",
+            "Synchronizing audio tracks...",
+            "Rendering final episode...",
+            "Almost there..."
+        ];
+        const messageIndex = Math.floor(progress / 25);
+        if (messageIndex < messages.length) {
+            loaderMessage.textContent = messages[messageIndex];
+        }
+    }, 100);
+    
+    try {
+        // For demo user, simulate 10 second delay then redirect
+        if (isDemo) {
+            setTimeout(() => {
+                clearInterval(progressInterval);
+                loaderProgress.style.width = '100%';
+                loaderPercent.textContent = '100%';
+                loaderMessage.textContent = "Episode created successfully!";
+                
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    showToast('✅ Episode created successfully!', 'success');
+                    // Redirect to my series page
+                    window.location.href = `/web-series/${seriesId}/episodes`;
+                }, 1000);
+            }, 10000); // 10 seconds for demo
+        } else {
+            // Normal user - make API call
+            const endpoint = '{{ route("create.full.episode") }}';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    series_id: seriesId,
+                    music_url: addMusic ? (uploadedAudioUrl || uploadedAudioFileUrl) : null
+                })
             });
             
             const result = await response.json();
             
-            if (result.success && result.status === 'completed' && result.video_url) {
-                clearInterval(intervals[sceneId]);
-                delete intervals[sceneId];
+            if (result.success) {
+                loaderProgress.style.width = '100%';
+                loaderPercent.textContent = '100%';
+                loaderMessage.textContent = "Episode created successfully!";
                 
-                // Clear loader intervals
-                const messageInterval = window[`messageInterval_${sceneId}`];
-                const progressInterval = window[`progressInterval_${sceneId}`];
-                if (messageInterval) clearInterval(messageInterval);
-                if (progressInterval) clearInterval(progressInterval);
-                
-                // Update the UI without reload
-                updateVideoInCard(sceneId, result.video_url);
-                showToast('✅ Clip generated successfully!', 'success');
-            } else if (result.success && result.status === 'failed') {
-                clearInterval(intervals[sceneId]);
-                delete intervals[sceneId];
-                showToast('❌ Clip generation failed. Please try again.', 'error');
-            } else if (attempts >= 60) {
-                clearInterval(intervals[sceneId]);
-                delete intervals[sceneId];
-                showToast('⚠️ Timeout. Please refresh the page.', 'warning');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    showToast('✅ Episode created successfully!', 'success');
+                    window.location.href = '{{ route("web-series.my-series") }}';
+                }, 1500);
+            } else {
+                throw new Error(result.message);
             }
-        } catch (error) {
-            console.error('Clip polling error:', error);
         }
-    }, 3000);
-}
-
-// Add this function to update video in card without reload
-function updateVideoInCard(sceneId, videoUrl) {
-    const sceneCard = document.getElementById(`scene-${sceneId}`);
-    if (!sceneCard) return;
-    
-    const imageUrl = sceneCard.getAttribute('data-image-url');
-    const contentContainer = sceneCard.querySelector('.segment-content');
-    
-    // Update video URL attribute
-    sceneCard.setAttribute('data-video-url', videoUrl);
-    
-    // Update content to show video player
-    contentContainer.innerHTML = `
-        <div class="relative group/video bg-black rounded-lg overflow-hidden cursor-pointer" style="aspect-ratio: 4 / 3;">
-            <div class="absolute inset-0 w-full h-full overflow-hidden">
-                <img src="${imageUrl}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
-            </div>
-            <div class="absolute inset-0 bg-black/30"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-300 z-10" id="playOverlay-${sceneId}">
-                <div class="relative">
-                    <div class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" style="animation-duration: 1.5s;"></div>
-                    <svg class="w-16 h-16 text-purple-400 cursor-pointer hover:text-purple-300 transition-all duration-300 hover:scale-110 relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                </div>
-                <p class="text-white text-sm font-semibold drop-shadow-lg mt-5">Ready to View</p>
-            </div>
-            <video controls class="w-full h-full object-cover hidden relative z-20" id="video-${sceneId}">
-                <source src="${videoUrl}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover/video:opacity-100 transition z-30">
-                <button onclick="downloadClick('${videoUrl}', ${sceneId})" class="bg-black/60 hover:bg-green-600 p-1.5 rounded-lg backdrop-blur-sm transition">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    `;
-    
-    // Setup play overlay
-    setTimeout(() => {
-        const overlay = document.getElementById(`playOverlay-${sceneId}`);
-        const video = document.getElementById(`video-${sceneId}`);
-        if (overlay && video) {
-            overlay.addEventListener('click', function() {
-                overlay.style.display = 'none';
-                video.classList.remove('hidden');
-                video.play();
-            });
-        }
-    }, 100);
-    
-    // Update header icon and status
-    const iconDiv = sceneCard.querySelector('.segment-icon');
-    const statusSpan = sceneCard.querySelector('.segment-status');
-    
-    if (iconDiv) {
-        iconDiv.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/20';
-        iconDiv.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-    }
-    
-    if (statusSpan) {
-        statusSpan.className = 'text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 flex items-center gap-1';
-        statusSpan.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Completed';
-    }
-    
-    // Update progress dot
-    const sceneNumber = sceneCard.getAttribute('data-scene-number');
-    const dot = document.querySelector(`.progress-dot-${sceneNumber}`);
-    if (dot) dot.className = `w-2 h-2 rounded-full bg-green-500 progress-dot-${sceneNumber}`;
-    
-    // Update completed count
-    const completedCount = document.querySelectorAll('[data-video-url][data-video-url!=""]').length + 1;
-    document.getElementById('completedCount').textContent = completedCount;
-    document.getElementById('episodeCompletedCount').textContent = completedCount;
-    
-    // Update episode progress
-    const totalScenes = document.querySelectorAll('.segment-card').length;
-    const progressPercent = (completedCount / totalScenes) * 100;
-    const episodeProgress = document.getElementById('episodeProgress');
-    if (episodeProgress) episodeProgress.style.width = progressPercent + '%';
-    
-    // Unlock next segment
-    const nextSegment = sceneCard.nextElementSibling;
-    if (nextSegment && nextSegment.classList.contains('segment-card')) {
-        const nextLockOverlay = nextSegment.querySelector('.locked-overlay');
-        if (nextLockOverlay) {
-            nextLockOverlay.style.display = 'none';
-        }
-        
-        // Update next segment header to show "Ready to Generate"
-        const nextIconDiv = nextSegment.querySelector('.segment-icon');
-        const nextStatusSpan = nextSegment.querySelector('.segment-status');
-        
-        if (nextIconDiv) {
-            nextIconDiv.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/20';
-            nextIconDiv.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>';
-        }
-        
-        if (nextStatusSpan) {
-            nextStatusSpan.className = 'text-[10px] px-2 py-1 rounded-full bg-purple-500/20 text-purple-400 flex items-center gap-1';
-            nextStatusSpan.innerHTML = '<div class="w-1.5 h-1.5 rounded-full bg-purple-400 animate-pulse"></div> Ready to Generate';
-        }
-    }
-    
-    // Update episode preview card if all completed
-    updateEpisodePreviewCard();
-    
-    isProcessingVideo = false;
-}
-
-function updateSixthCardProgress() {
-    const totalSegments = document.querySelectorAll('.segment-card').length;
-    const completedCount = document.querySelectorAll('[data-video-url][data-video-url!=""]').length;
-    const allCompleted = completedCount === totalSegments && totalSegments > 0;
-    
-    const episodeProgress = document.getElementById('episodeProgress');
-    const episodeCompletedCount = document.getElementById('episodeCompletedCount');
-    const previewContent = document.querySelector('.episode-preview-content');
-    const previewLockedText = document.querySelector('.episode-preview-locked-text');
-    const previewIcon = document.querySelector('.episode-preview-icon');
-    const previewStatus = document.querySelector('.episode-preview-status');
-    
-    if (episodeCompletedCount) episodeCompletedCount.textContent = completedCount;
-    if (episodeProgress) episodeProgress.style.width = (completedCount / totalSegments) * 100 + '%';
-    
-    if (allCompleted) {
-        if (previewIcon) {
-            previewIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20';
-            previewIcon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>';
-        }
-        if (previewStatus) {
-            previewStatus.className = 'text-[10px] px-2 py-1 rounded-full bg-green-500/20 text-green-400 flex items-center gap-1';
-            previewStatus.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Watch Now';
-        }
-        if (previewLockedText) {
-            previewLockedText.innerHTML = '🎬 Episode Ready! Click to Watch';
-            previewLockedText.className = 'text-green-400 text-sm font-semibold';
-        }
-        if (previewContent) {
-            previewContent.onclick = () => openEpisodeModal();
-            previewContent.style.cursor = 'pointer';
-        }
+    } catch (error) {
+        console.error('Create episode error:', error);
+        clearInterval(progressInterval);
+        loader.style.display = 'none';
+        showToast('❌ Failed to create episode: ' + error.message, 'error');
     }
 }
 
-// ==================== DEMO USER COMPLETION FUNCTION ====================
+// ==================== AUDIO UPLOAD FUNCTIONS ====================
 
-function markSegmentCompletedForDemo(sceneCard, sceneId, save = true) {
-    if (!isDemoUser) return;
+function setupAudioUpload() {
+    const uploadArea = document.getElementById('uploadArea');
+    const audioInput = document.getElementById('audioUpload');
     
-    console.log('Marking segment as completed:', sceneId);
+    if (!uploadArea || !audioInput) return;
     
-    if (save) {
-        demoSegmentsProgress[sceneId] = true;
-        saveDemoProgress();
-    }
+    uploadArea.addEventListener('click', () => audioInput.click());
     
-    const imageUrl = sceneCard.getAttribute('data-image-url');
-    const videoUrl = sceneCard.getAttribute('data-video-url');
-    const contentContainer = sceneCard.querySelector('.segment-content');
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('border-purple-500', 'bg-purple-500/10');
+    });
     
-    if (!contentContainer) {
-        console.error('Content container not found');
+    uploadArea.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-purple-500', 'bg-purple-500/10');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('border-purple-500', 'bg-purple-500/10');
+        const file = e.dataTransfer.files[0];
+        if (file && file.type.startsWith('audio/')) {
+            uploadAudioFile(file);
+        } else {
+            showToast('Please upload a valid audio file', 'error');
+        }
+    });
+    
+    audioInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            uploadAudioFile(e.target.files[0]);
+        }
+    });
+}
+
+async function uploadAudioFile(file) {
+    if (file.size > 10 * 1024 * 1024) {
+        showToast('File size must be less than 10MB', 'error');
         return;
     }
     
-    contentContainer.innerHTML = `
-        <div class="relative group/video bg-black rounded-lg overflow-hidden cursor-pointer" style="aspect-ratio: 4 / 3;">
-            <div class="absolute inset-0 w-full h-full overflow-hidden">
-                <img src="${imageUrl}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
-            </div>
-            <div class="absolute inset-0 bg-black/30"></div>
-            <div class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-300 z-10" id="playOverlay-${sceneId}">
-                <div class="relative">
-                    <div class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" style="animation-duration: 1.5s;"></div>
-                    <svg class="w-16 h-16 text-purple-400 cursor-pointer hover:text-purple-300 transition-all duration-300 hover:scale-110 relative z-10" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 5v14l11-7z"/>
-                    </svg>
-                </div>
-                <p class="text-white text-sm font-semibold drop-shadow-lg mt-5">Ready to View</p>
-            </div>
-            <video controls class="w-full h-full object-cover hidden relative z-20" id="video-${sceneId}">
-                <source src="${videoUrl}" type="video/mp4">
-                Your browser does not support the video tag.
-            </video>
-            <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover/video:opacity-100 transition z-30">
-                <button onclick="downloadClick('${videoUrl}', ${sceneId})" class="bg-black/60 hover:bg-green-600 p-1.5 rounded-lg backdrop-blur-sm transition">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    `;
+    const validTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'];
+    if (!validTypes.includes(file.type)) {
+        showToast('Please upload MP3, WAV, or OGG files only', 'error');
+        return;
+    }
     
+    const uploadProgress = document.getElementById('uploadProgress');
+    const uploadProgressBar = document.getElementById('uploadProgressBar');
+    const uploadStatus = document.getElementById('uploadStatus');
+    
+    uploadProgress.classList.remove('hidden');
+    uploadProgressBar.style.width = '0%';
+    uploadStatus.innerHTML = 'Uploading...';
+    
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 10;
+        uploadProgressBar.style.width = `${progress}%`;
+        if (progress >= 100) clearInterval(interval);
+    }, 200);
+    
+    // Simulate upload (in production, send to server)
     setTimeout(() => {
-        const overlay = document.getElementById(`playOverlay-${sceneId}`);
-        const video = document.getElementById(`video-${sceneId}`);
-        if (overlay && video) {
-            const newOverlay = overlay.cloneNode(true);
-            overlay.parentNode.replaceChild(newOverlay, overlay);
-            
-            newOverlay.addEventListener('click', function() {
-                newOverlay.style.display = 'none';
-                video.classList.remove('hidden');
-                video.play();
-            });
-        }
-    }, 100);
-    
-    const iconDiv = sceneCard.querySelector('.segment-icon');
-    const statusSpan = sceneCard.querySelector('.segment-status');
-    
-    if (iconDiv) {
-        iconDiv.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/20';
-        iconDiv.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
-    }
-    
-    if (statusSpan) {
-        statusSpan.className = 'text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 flex items-center gap-1';
-        statusSpan.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Completed';
-    }
-    
-    const sceneNumber = sceneCard.getAttribute('data-scene-number');
-    const dot = document.querySelector(`.progress-dot-${sceneNumber}`);
-    if (dot) dot.className = `w-2 h-2 rounded-full bg-green-500 progress-dot-${sceneNumber}`;
-    
-    sceneCard.setAttribute('data-video-url', videoUrl);
-    
-    const completedCount = Object.keys(demoSegmentsProgress).length;
-    const completedCountEl = document.getElementById('completedCount');
-    if (completedCountEl) completedCountEl.textContent = completedCount;
-    
-    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
-    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
-    
-    const totalScenes = document.querySelectorAll('.segment-card').length;
-    const progressPercent = (completedCount / totalScenes) * 100;
-    const episodeProgressEl = document.getElementById('episodeProgress');
-    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
-    
-    const nextSegment = sceneCard.nextElementSibling;
-    if (nextSegment && nextSegment.classList.contains('segment-card')) {
-        const nextLockOverlay = nextSegment.querySelector('.locked-overlay');
-        if (nextLockOverlay) {
-            nextLockOverlay.style.display = 'none';
-        }
-    }
-    
-    if (completedCount === totalScenes) {
-        showToast('🎉 Congratulations! You have completed all segments!', 'success');
-        updateEpisodePreviewCard();
-    }
-}
-
-// ==================== DEMO USER PROGRESS FUNCTIONS ====================
-
-function initDemoProgress() {
-    if (!isDemoUser) return;
-    
-    const saved = localStorage.getItem('demo_segments_progress_' + window.location.pathname);
-    if (saved) {
-        demoSegmentsProgress = JSON.parse(saved);
-    }
-    
-    const segments = document.querySelectorAll('.segment-card');
-    
-    segments.forEach(card => {
-        const lockOverlay = card.querySelector('.locked-overlay');
-        if (lockOverlay) lockOverlay.style.display = 'none';
-    });
-    
-    segments.forEach((card, idx) => {
-        const sceneId = card.getAttribute('data-scene-id');
-        const isCompleted = demoSegmentsProgress[sceneId];
+        const audioUrl = URL.createObjectURL(file);
+        uploadedAudioUrl = audioUrl;
+        uploadedAudioFileUrl = audioUrl;
+        currentMusicSource = 'upload';
         
-        if (isCompleted) {
-            markSegmentCompletedForDemo(card, sceneId, false);
-        } else {
-            let shouldBeUnlocked = false;
-            if (idx === 0) {
-                shouldBeUnlocked = true;
-            } else {
-                const prevCard = segments[idx - 1];
-                const prevSceneId = prevCard.getAttribute('data-scene-id');
-                if (demoSegmentsProgress[prevSceneId]) shouldBeUnlocked = true;
-            }
-            
-            if (!shouldBeUnlocked) {
-                const lockOverlay = card.querySelector('.locked-overlay');
-                if (lockOverlay) lockOverlay.style.display = 'flex';
-            }
-        }
-    });
-    
-    updateDemoProgressDisplay();
-    updateEpisodePreviewCard();
+        const preview = document.getElementById('uploadedAudioPreview');
+        const fileName = document.getElementById('uploadedFileName');
+        const fileSize = document.getElementById('uploadedFileSize');
+        const audioSource = document.getElementById('uploadedAudioSource');
+        
+        fileName.textContent = file.name;
+        fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+        audioSource.src = audioUrl;
+        
+        preview.classList.remove('hidden');
+        uploadProgress.classList.add('hidden');
+        
+        showToast('✅ Audio uploaded successfully!', 'success');
+    }, 2000);
 }
 
-function updateDemoProgressDisplay() {
-    if (!isDemoUser) return;
-    
-    const completedCount = Object.keys(demoSegmentsProgress).length;
-    const totalScenes = document.querySelectorAll('.segment-card').length;
-    
-    const completedCountEl = document.getElementById('completedCount');
-    if (completedCountEl) completedCountEl.textContent = completedCount;
-    
-    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
-    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
-    
-    const progressPercent = (completedCount / totalScenes) * 100;
-    const episodeProgressEl = document.getElementById('episodeProgress');
-    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
-    
-    for (let i = 1; i <= totalScenes; i++) {
-        const dot = document.querySelector(`.progress-dot-${i}`);
-        if (dot) {
-            const segment = document.querySelector(`[data-scene-number="${i}"]`);
-            const sceneId = segment ? segment.getAttribute('data-scene-id') : null;
-            if (sceneId && demoSegmentsProgress[sceneId]) {
-                dot.className = `w-2 h-2 rounded-full bg-green-500 progress-dot-${i}`;
-            } else {
-                dot.className = `w-2 h-2 rounded-full bg-gray-700 progress-dot-${i}`;
-            }
-        }
+function removeUploadedAudio() {
+    if (uploadedAudioUrl) {
+        URL.revokeObjectURL(uploadedAudioUrl);
+        uploadedAudioUrl = null;
+        uploadedAudioFileUrl = null;
     }
+    currentMusicSource = null;
     
-    updateEpisodePreviewCard();
-}
-
-function saveDemoProgress() {
-    if (!isDemoUser) return;
-    localStorage.setItem('demo_segments_progress_' + window.location.pathname, JSON.stringify(demoSegmentsProgress));
+    document.getElementById('uploadedAudioPreview').classList.add('hidden');
+    document.getElementById('audioUpload').value = '';
     
-    const completedCount = Object.keys(demoSegmentsProgress).length;
-    const completedCountEl = document.getElementById('completedCount');
-    if (completedCountEl) completedCountEl.textContent = completedCount;
-    
-    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
-    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
-    
-    const totalScenes = document.querySelectorAll('.segment-card').length;
-    const progressPercent = (completedCount / totalScenes) * 100;
-    const episodeProgressEl = document.getElementById('episodeProgress');
-    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
-    
-    updateEpisodePreviewCard();
+    showToast('Audio removed', 'info');
 }
 
 // ==================== EPISODE MODAL FUNCTIONS ====================
@@ -1228,7 +908,8 @@ function openEpisodeModal() {
         }
     };
     
-    setTimeout(initAudioUpload, 100);
+    // Setup audio upload when modal opens
+    setTimeout(setupAudioUpload, 100);
 }
 
 function closeEpisodeModal() {
@@ -1243,20 +924,11 @@ function downloadEpisode() {
         showToast('No videos to download', 'warning');
         return;
     }
-    showToast('🎬 Episode download started!', 'success');
+    showToast('🎬 Download started!', 'success');
     const a = document.createElement('a');
     a.href = episodeVideoUrls[0].url;
     a.download = 'episode_preview.mp4';
     a.click();
-}
-
-function shareEpisode() {
-    if (episodeVideoUrls.length === 0) {
-        showToast('No videos to share', 'warning');
-        return;
-    }
-    showToast('📤 Share link copied to clipboard!', 'success');
-    navigator.clipboard.writeText(window.location.href);
 }
 
 function updateEpisodePreviewCard() {
@@ -1304,76 +976,337 @@ function updateEpisodePreviewCard() {
     }
 }
 
-// ==================== NORMAL USER IMAGE FUNCTIONS ====================
+// ==================== DEMO USER PROGRESS FUNCTIONS ====================
 
-async function generateImage(sceneId) {
-    if (isDemoUser) return;
+function initDemoProgress() {
+    if (!isDemoUser) return;
     
-    const sceneCard = document.getElementById(`scene-${sceneId}`);
-    const prompt = sceneCard.getAttribute('data-prompt');
+    const saved = localStorage.getItem('demo_segments_progress_' + window.location.pathname);
+    if (saved) {
+        demoSegmentsProgress = JSON.parse(saved);
+    }
     
-    if (!prompt) {
-        showToast('No prompt found for this segment', 'error');
+    const segments = document.querySelectorAll('.segment-card');
+    
+    segments.forEach(card => {
+        const lockOverlay = card.querySelector('.locked-overlay');
+        if (lockOverlay) lockOverlay.style.display = 'none';
+    });
+    
+    segments.forEach((card, idx) => {
+        const sceneId = card.getAttribute('data-scene-id');
+        const isCompleted = demoSegmentsProgress[sceneId];
+        
+        if (isCompleted) {
+            markSegmentCompletedForDemo(card, sceneId, false);
+        } else {
+            let shouldBeUnlocked = false;
+            if (idx === 0) {
+                shouldBeUnlocked = true;
+            } else {
+                const prevCard = segments[idx - 1];
+                const prevSceneId = prevCard.getAttribute('data-scene-id');
+                if (demoSegmentsProgress[prevSceneId]) shouldBeUnlocked = true;
+            }
+            
+            if (!shouldBeUnlocked) {
+                const lockOverlay = card.querySelector('.locked-overlay');
+                if (lockOverlay) lockOverlay.style.display = 'flex';
+            }
+        }
+    });
+    
+    updateDemoProgressDisplay();
+    updateEpisodePreviewCard();
+}
+
+function updateDemoProgressDisplay() {
+    if (!isDemoUser) return;
+    
+    const completedCount = Object.keys(demoSegmentsProgress).length;
+    const totalScenes = document.querySelectorAll('.segment-card').length;
+    
+    const completedCountEl = document.getElementById('completedCount');
+    if (completedCountEl) completedCountEl.textContent = completedCount;
+    
+    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
+    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
+    
+    const progressPercent = (completedCount / totalScenes) * 100;
+    const episodeProgressEl = document.getElementById('episodeProgress');
+    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
+    
+    for (let i = 1; i <= totalScenes; i++) {
+        const dot = document.querySelector(`.progress-dot-${i}`);
+        if (dot) {
+            const segment = document.querySelector(`[data-scene-number="${i}"]`);
+            const sceneId = segment ? segment.getAttribute('data-scene-id') : null;
+            if (sceneId && demoSegmentsProgress[sceneId]) {
+                dot.className = `w-2 h-2 rounded-full bg-green-500 progress-dot-${i}`;
+            } else {
+                dot.className = `w-2 h-2 rounded-full bg-gray-700 progress-dot-${i}`;
+            }
+        }
+    }
+    
+    updateEpisodePreviewCard();
+}
+
+function saveDemoProgress() {
+    if (!isDemoUser) return;
+    localStorage.setItem('demo_segments_progress_' + window.location.pathname, JSON.stringify(demoSegmentsProgress));
+    
+    const completedCount = Object.keys(demoSegmentsProgress).length;
+    const completedCountEl = document.getElementById('completedCount');
+    if (completedCountEl) completedCountEl.textContent = completedCount;
+    
+    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
+    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
+    
+    const totalScenes = document.querySelectorAll('.segment-card').length;
+    const progressPercent = (completedCount / totalScenes) * 100;
+    const episodeProgressEl = document.getElementById('episodeProgress');
+    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
+    
+    updateEpisodePreviewCard();
+}
+
+function markSegmentCompletedForDemo(sceneCard, sceneId, save = true) {
+    if (!isDemoUser) return;
+    
+    if (save) {
+        demoSegmentsProgress[sceneId] = true;
+        saveDemoProgress();
+    }
+    
+    const imageUrl = sceneCard.getAttribute('data-image-url');
+    const videoUrl = sceneCard.getAttribute('data-video-url');
+    const contentContainer = sceneCard.querySelector('.segment-content');
+    
+    if (!contentContainer) return;
+    
+    contentContainer.innerHTML = `
+        <div class="relative group/video bg-black rounded-lg overflow-hidden cursor-pointer" style="aspect-ratio: 4 / 3;">
+            <div class="absolute inset-0 w-full h-full overflow-hidden">
+                <img src="${imageUrl}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
+            </div>
+            <div class="absolute inset-0 bg-black/30"></div>
+            <div class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-300 z-10" id="playOverlay-${sceneId}">
+                <div class="relative">
+                    <div class="absolute inset-0 rounded-full bg-purple-500/20 animate-ping" style="animation-duration: 1.5s;"></div>
+                    <svg class="w-16 h-16 text-purple-400 cursor-pointer hover:text-purple-300 transition-all duration-300 hover:scale-110 relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                </div>
+                <p class="text-white text-sm font-semibold drop-shadow-lg mt-5">Ready to View</p>
+            </div>
+            <video controls class="w-full h-full object-cover hidden relative z-20" id="video-${sceneId}">
+                <source src="${videoUrl}" type="video/mp4">
+            </video>
+            <div class="absolute bottom-2 right-2 flex gap-1 opacity-0 group-hover/video:opacity-100 transition z-30">
+                <button onclick="downloadClick('${videoUrl}', ${sceneId})" class="bg-black/60 hover:bg-green-600 p-1.5 rounded-lg backdrop-blur-sm transition">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    setTimeout(() => {
+        const overlay = document.getElementById(`playOverlay-${sceneId}`);
+        const video = document.getElementById(`video-${sceneId}`);
+        if (overlay && video) {
+            const newOverlay = overlay.cloneNode(true);
+            overlay.parentNode.replaceChild(newOverlay, overlay);
+            newOverlay.addEventListener('click', function() {
+                newOverlay.style.display = 'none';
+                video.classList.remove('hidden');
+                video.play();
+            });
+        }
+    }, 100);
+    
+    const iconDiv = sceneCard.querySelector('.segment-icon');
+    const statusSpan = sceneCard.querySelector('.segment-status');
+    
+    if (iconDiv) {
+        iconDiv.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/20';
+        iconDiv.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+    }
+    
+    if (statusSpan) {
+        statusSpan.className = 'text-[10px] px-2 py-1 rounded-full bg-blue-500/20 text-blue-400 flex items-center gap-1';
+        statusSpan.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Completed';
+    }
+    
+    const sceneNumber = sceneCard.getAttribute('data-scene-number');
+    const dot = document.querySelector(`.progress-dot-${sceneNumber}`);
+    if (dot) dot.className = `w-2 h-2 rounded-full bg-green-500 progress-dot-${sceneNumber}`;
+    
+    sceneCard.setAttribute('data-video-url', videoUrl);
+    
+    const completedCount = Object.keys(demoSegmentsProgress).length;
+    const completedCountEl = document.getElementById('completedCount');
+    if (completedCountEl) completedCountEl.textContent = completedCount;
+    
+    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
+    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
+    
+    const totalScenes = document.querySelectorAll('.segment-card').length;
+    const progressPercent = (completedCount / totalScenes) * 100;
+    const episodeProgressEl = document.getElementById('episodeProgress');
+    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
+    
+    const nextSegment = sceneCard.nextElementSibling;
+    if (nextSegment && nextSegment.classList.contains('segment-card')) {
+        const nextLockOverlay = nextSegment.querySelector('.locked-overlay');
+        if (nextLockOverlay) nextLockOverlay.style.display = 'none';
+    }
+    
+    if (completedCount === totalScenes) {
+        showToast('🎉 Congratulations! You have completed all segments!', 'success');
+        updateEpisodePreviewCard();
+    }
+}
+
+
+
+function startVideoGeneration(sceneId) {
+    if (isProcessingVideo) {
+        showToast('Please wait, another video is being generated...', 'warning');
         return;
     }
     
-    try {
-        const response = await fetch('/generate-image', {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ prompt: prompt, scene_id: sceneId })
-        });
-        
-        const result = await response.json();
-        
-        if (result.success && result.image_url) {
-            sceneCard.setAttribute('data-image-url', result.image_url);
-            location.reload();
-        } else if (result.processing) {
-            showToast('🖼️ Image generation started...', 'info');
-            startImagePolling(sceneId);
-        } else {
-            showToast('❌ Error: ' + result.message, 'error');
+    const sceneCard = document.getElementById(`scene-${sceneId}`);
+    if (!sceneCard) return;
+    
+    const lockOverlay = sceneCard.querySelector('.locked-overlay');
+    if (lockOverlay && lockOverlay.style.display !== 'none') {
+        showToast('This segment is locked. Complete previous segment first.', 'warning');
+        return;
+    }
+    
+    const imageUrl = sceneCard.getAttribute('data-image-url');
+    const videoUrl = sceneCard.getAttribute('data-video-url');
+    const contentContainer = sceneCard.querySelector('.segment-content');
+    
+    if (!imageUrl) {
+        showToast('No image found for this segment', 'error');
+        return;
+    }
+    
+    isProcessingVideo = true;
+    
+    // Loading messages
+    const loadingMessages = [
+        "🖼️ Analyzing image and preparing scene...",
+        "🎬 Generating video frames...",
+        "✨ Adding effects and enhancements...",
+        "🎥 Finalizing your clip..."
+    ];
+    
+    let messageIndex = 0;
+    const totalDuration = 2000; // 3.5 minutes
+    const startTime = Date.now();
+    
+    // Show loader with animation
+    contentContainer.innerHTML = `
+        <div class="relative rounded-lg overflow-hidden border border-purple-500/30" style="aspect-ratio: 4 / 3;">
+            <div class="absolute inset-0 w-full h-full overflow-hidden">
+                <img src="${imageUrl}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
+            </div>
+            <div class="absolute inset-0 bg-black/40"></div>
+            
+            <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                <div class="relative w-20 h-20 mb-4">
+                    <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 rounded-full animate-spin"></div>
+                </div>
+                
+                <p class="text-purple-400 text-sm font-semibold text-center" id="loadingMsg-${sceneId}">
+                    ${loadingMessages[0]}
+                </p>
+                
+                <div class="mt-6 w-64 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300" style="width: 0%" id="progressBar-${sceneId}"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update progress bar smoothly
+    const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const percent = Math.min((elapsed / totalDuration) * 100, 100);
+        const progressBar = document.getElementById(`progressBar-${sceneId}`);
+        if (progressBar) {
+            progressBar.style.width = `${percent}%`;
         }
-    } catch (error) {
-        console.error('Image generation error:', error);
-        showToast('❌ Network error', 'error');
+        if (percent >= 100) {
+            clearInterval(progressInterval);
+        }
+    }, 700);
+    
+    // Rotate messages every few seconds
+    const messageIntervalDuration = totalDuration / loadingMessages.length;
+    const messageInterval = setInterval(() => {
+        messageIndex++;
+        if (messageIndex < loadingMessages.length) {
+            const msgElement = document.getElementById(`loadingMsg-${sceneId}`);
+            if (msgElement) {
+                msgElement.innerHTML = loadingMessages[messageIndex];
+            }
+        } else {
+            clearInterval(messageInterval);
+        }
+    }, messageIntervalDuration);
+    
+    // Store intervals for cleanup
+    window[`progressInterval_${sceneId}`] = progressInterval;
+    window[`messageInterval_${sceneId}`] = messageInterval;
+    
+    if (isDemoUser) {
+        // Demo user: simulated generation
+        setTimeout(() => {
+            clearInterval(messageInterval);
+            clearInterval(progressInterval);
+            markSegmentCompletedForDemo(sceneCard, sceneId, true);
+            isProcessingVideo = false;
+            showToast('✅ Clip generated successfully!', 'success');
+        }, totalDuration);
+    } else {
+        // Normal user: real API call
+        (async () => {
+            try {
+                const response = await fetch('{{ route("generate.scene.video") }}', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ scene_id: sceneId, image_url: imageUrl })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    startClipPolling(sceneId);
+                    showToast('🎬 Clip generation started...', 'info');
+                } else {
+                    throw new Error(result.message || 'Failed to generate clip');
+                }
+            } catch (error) {
+                console.error('Clip generation error:', error);
+                showToast('❌ Error generating clip: ' + error.message, 'error');
+                clearInterval(messageInterval);
+                clearInterval(progressInterval);
+                location.reload();
+            }
+        })();
     }
 }
-
-function startImagePolling(sceneId) {
-    if (intervals[sceneId]) clearInterval(intervals[sceneId]);
-    let attempts = 0;
-    intervals[sceneId] = setInterval(async () => {
-        attempts++;
-        try {
-            const response = await fetch('/check-image-status', {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ scene_id: sceneId })
-            });
-            const result = await response.json();
-            if (result.success && result.status === 'completed' && result.image_url) {
-                clearInterval(intervals[sceneId]);
-                delete intervals[sceneId];
-                const sceneCard = document.getElementById(`scene-${sceneId}`);
-                sceneCard.setAttribute('data-image-url', result.image_url);
-                location.reload();
-                showToast('🖼️ Image generated successfully!', 'success');
-            } else if (attempts >= 60) {
-                clearInterval(intervals[sceneId]);
-                delete intervals[sceneId];
-                showToast('⚠️ Timeout. Please refresh the page.', 'warning');
-            }
-        } catch (error) {
-            console.error('Polling error:', error);
-        }
-    }, 3000);
-}
-
 // ==================== COMMON FUNCTIONS ====================
 
 function downloadClick(videoUrl, sceneId) {
@@ -1388,165 +1321,6 @@ function downloadClick(videoUrl, sceneId) {
     }).catch(() => { window.open(videoUrl, '_blank'); showToast('📥 Clip opened', 'info'); });
 }
 
-// ==================== AUDIO UPLOAD FUNCTIONS ====================
-
-function setupAudioUpload() {
-    const uploadArea = document.getElementById('uploadArea');
-    const audioInput = document.getElementById('audioUpload');
-    
-    if (!uploadArea || !audioInput) return;
-    
-    uploadArea.addEventListener('click', () => audioInput.click());
-    
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('border-purple-500', 'bg-purple-500/10');
-    });
-    
-    uploadArea.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('border-purple-500', 'bg-purple-500/10');
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('border-purple-500', 'bg-purple-500/10');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('audio/')) {
-            uploadAudioFile(file);
-        } else {
-            showToast('Please upload a valid audio file', 'error');
-        }
-    });
-    
-    audioInput.addEventListener('change', (e) => {
-        if (e.target.files[0]) {
-            uploadAudioFile(e.target.files[0]);
-        }
-    });
-}
-
-async function uploadAudioFile(file) {
-    if (file.size > 10 * 1024 * 1024) {
-        showToast('File size must be less than 10MB', 'error');
-        return;
-    }
-    
-    const validTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'];
-    if (!validTypes.includes(file.type)) {
-        showToast('Please upload MP3, WAV, or OGG files only', 'error');
-        return;
-    }
-    
-    const uploadProgress = document.getElementById('uploadProgress');
-    const uploadProgressBar = document.getElementById('uploadProgressBar');
-    const uploadStatus = document.getElementById('uploadStatus');
-    
-    uploadProgress.classList.remove('hidden');
-    uploadProgressBar.style.width = '0%';
-    uploadStatus.innerHTML = 'Uploading...';
-    
-    let progress = 0;
-    const interval = setInterval(() => {
-        progress += 10;
-        uploadProgressBar.style.width = `${progress}%`;
-        if (progress >= 100) clearInterval(interval);
-    }, 200);
-    
-    setTimeout(() => {
-        const audioUrl = URL.createObjectURL(file);
-        uploadedAudioUrl = audioUrl;
-        currentMusicSource = 'upload';
-        
-        const preview = document.getElementById('uploadedAudioPreview');
-        const fileName = document.getElementById('uploadedFileName');
-        const fileSize = document.getElementById('uploadedFileSize');
-        const audioSource = document.getElementById('uploadedAudioSource');
-        
-        fileName.textContent = file.name;
-        fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-        audioSource.src = audioUrl;
-        
-        preview.classList.remove('hidden');
-        uploadProgress.classList.add('hidden');
-        
-        showToast('✅ Audio uploaded successfully!', 'success');
-        applyCustomMusic(audioUrl);
-    }, 2000);
-}
-
-function removeUploadedAudio() {
-    if (uploadedAudioUrl) {
-        URL.revokeObjectURL(uploadedAudioUrl);
-        uploadedAudioUrl = null;
-    }
-    currentMusicSource = null;
-    
-    document.getElementById('uploadedAudioPreview').classList.add('hidden');
-    document.getElementById('audioUpload').value = '';
-    
-    showToast('Audio removed', 'info');
-    removeMusicFromEpisode();
-}
-
-function applyCustomMusic(audioUrl) {
-    currentMusic = audioUrl;
-    currentMusicSource = 'upload';
-    
-    const musicStatus = document.getElementById('musicStatus');
-    musicStatus.classList.remove('hidden');
-    musicStatus.innerHTML = '<span class="text-green-400">✓</span> Custom audio applied to episode';
-    
-    showToast('🎵 Custom audio applied to episode!', 'success');
-    integrateAudioWithVideo(audioUrl);
-}
-
-function integrateAudioWithVideo(audioUrl) {
-    let audioElement = document.getElementById('backgroundAudio');
-    if (!audioElement) {
-        audioElement = document.createElement('audio');
-        audioElement.id = 'backgroundAudio';
-        audioElement.loop = true;
-        document.body.appendChild(audioElement);
-    }
-    
-    audioElement.src = audioUrl;
-    audioElement.volume = 0.3;
-    
-    const video = document.getElementById('episodePlayer');
-    if (video) {
-        video.addEventListener('play', () => {
-            if (currentMusicSource === 'upload' && uploadedAudioUrl) {
-                audioElement.currentTime = video.currentTime;
-                audioElement.play();
-            }
-        });
-        
-        video.addEventListener('pause', () => {
-            audioElement.pause();
-        });
-        
-        video.addEventListener('seeked', () => {
-            audioElement.currentTime = video.currentTime;
-        });
-    }
-}
-
-function removeMusicFromEpisode() {
-    const audioElement = document.getElementById('backgroundAudio');
-    if (audioElement) {
-        audioElement.pause();
-        audioElement.src = '';
-    }
-    
-    const musicStatus = document.getElementById('musicStatus');
-    musicStatus.classList.add('hidden');
-}
-
-function initAudioUpload() {
-    setupAudioUpload();
-}
-
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     if (isDemoUser) {
@@ -1556,17 +1330,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Normal user mode - real API calls');
         updateEpisodePreviewCard();
         
-        // Auto-start first segment image generation if needed
         const firstScene = document.querySelector('[data-scene-index="0"]');
         if (firstScene) {
-            const sceneId = firstScene.getAttribute('data-scene-id');
-            const hasImage = firstScene.getAttribute('data-image-url');
-            const hasVideo = firstScene.getAttribute('data-video-url');
-            
-            if ((!hasImage || hasImage === '') && (!hasVideo || hasVideo === '')) {
-                console.log('Auto-starting image generation for first segment');
-                generateImage(sceneId);
-            }
+            const btn = firstScene.querySelector('#btn-0');
+            if (btn) setTimeout(() => btn.click(), 1500);
         }
     }
 });
@@ -1575,10 +1342,15 @@ document.addEventListener('DOMContentLoaded', function() {
 <style>
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes ping { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
 .animate-spin { animation: spin 1s linear infinite; }
 .animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
 .animate-bounce { animation: bounce 1s ease-in-out infinite; }
+.animate-fadeIn { animation: fadeIn 0.3s ease-out; }
 
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }

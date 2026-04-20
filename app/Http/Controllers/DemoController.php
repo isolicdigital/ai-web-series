@@ -14,77 +14,288 @@ use Illuminate\Support\Facades\Auth;
 class DemoController extends Controller
 {
     /**
-     * Demo user ID
-     */
-    const DEMO_USER_ID = 141;
-
-    /**
      * Check if current user is demo user
      */
     private function isDemoUser()
     {
-        return Auth::check() && Auth::id() == self::DEMO_USER_ID;
+        return Auth::check() && Auth::user()->demo_mode == true;
     }
 
     /**
-     * Get pre-defined demo concept (no API call)
+     * Get current user ID
+     */
+    private function getUserId()
+    {
+        return Auth::id();
+    }
+
+    /**
+     * Get pre-defined demo concept based on prompt (no API call)
+     * 3 Main Concepts: Cat & Dog, Dog & Cat, Space Adventure
      */
     public function getDemoConcept($prompt = null)
     {
-        return "In the neon-drenched sprawl of Neo-Tokyo, a rogue cybernetic wolfhound named K9-7 and a sly feline hacker known as Whisk3r must unite to stop a rogue AI from deleting all organic life. Their unlikely alliance is tested as they navigate through digital landscapes, dodging corporate security drones and uncovering a conspiracy that threatens to erase the boundary between man and machine.";
+        // 3 Main Concepts
+        $concepts = [
+            'cat and dog' => "In the neon-drenched sprawl of Neo-Tokyo, a rogue cybernetic wolfhound named K9-7 and a sly feline hacker known as Whisk3r must unite to stop a rogue AI from deleting all organic life. Their unlikely alliance is tested as they navigate through digital landscapes, dodging corporate security drones and uncovering a conspiracy that threatens to erase the boundary between man and machine.",
+            
+            'dog and cat' => "In the mystical kingdom of Aethelgard, a young orphan named Elara discovers she is the last descendant of the ancient Dragon Riders. With her newly hatched dragon companion, Ember, she must unite the fractured kingdoms against the Shadow Lord who seeks to plunge the world into eternal darkness. Along the way, she befriends a rogue knight seeking redemption and an elf princess fleeing an arranged marriage.",
+            
+            'space' => "Captain Marcus Drake and the crew of the starship Horizon are Earth's last hope. When a mysterious alien artifact is discovered on Mars, it triggers a countdown that could destroy the solar system. Racing against time, they must decode ancient alien technology, survive treacherous space battles, and make the ultimate sacrifice to save humanity."
+        ];
+        
+        // If prompt is provided, try to match with keywords
+        if ($prompt && !empty($prompt)) {
+            $promptLower = strtolower($prompt);
+            
+            // Cat and Dog keywords
+            $catDogKeywords = ['cat', 'dog', 'cyber', 'neon', 'tech', 'robot', 'ai', 'future', 'hacker', 'digital', 'code'];
+            foreach ($catDogKeywords as $keyword) {
+                if (strpos($promptLower, $keyword) !== false) {
+                    return $concepts['cat and dog'];
+                }
+            }
+            
+            // Dog and Cat keywords (Fantasy)
+            $fantasyKeywords = ['magic', 'dragon', 'elf', 'kingdom', 'sword', 'wizard', 'fantasy', 'medieval', 'castle'];
+            foreach ($fantasyKeywords as $keyword) {
+                if (strpos($promptLower, $keyword) !== false) {
+                    return $concepts['dog and cat'];
+                }
+            }
+            
+            // Space keywords
+            $spaceKeywords = ['space', 'star', 'galaxy', 'alien', 'planet', 'cosmic', 'mars', 'moon', 'solar'];
+            foreach ($spaceKeywords as $keyword) {
+                if (strpos($promptLower, $keyword) !== false) {
+                    return $concepts['space'];
+                }
+            }
+        }
+        
+        // Return random concept if no match
+        $randomConcept = $concepts[array_rand($concepts)];
+        return $randomConcept;
     }
 
     /**
-     * Get pre-defined demo scenes data
+     * Get concept title based on prompt
      */
-    public function getDemoScenesData($episodeId, $seriesId, $totalScenes = 5)
+    public function getConceptTitle($prompt = null)
     {
-        $demoScenes = [
+        $titles = [
+            'cat and dog' => 'Neo-Tokyo Chronicles: Digital Rebellion',
+            'dog and cat' => 'The Dragon Riders of Aethelgard',
+            'space' => 'Horizon: The Final Frontier'
+        ];
+        
+        if ($prompt && !empty($prompt)) {
+            $promptLower = strtolower($prompt);
+            
+            $catDogKeywords = ['cat', 'dog', 'cyber', 'neon', 'tech', 'robot', 'ai', 'hacker', 'digital'];
+            foreach ($catDogKeywords as $keyword) {
+                if (strpos($promptLower, $keyword) !== false) {
+                    return $titles['cat and dog'];
+                }
+            }
+            
+            $fantasyKeywords = ['magic', 'dragon', 'elf', 'kingdom', 'sword', 'wizard'];
+            foreach ($fantasyKeywords as $keyword) {
+                if (strpos($promptLower, $keyword) !== false) {
+                    return $titles['dog and cat'];
+                }
+            }
+            
+            $spaceKeywords = ['space', 'star', 'galaxy', 'alien', 'planet', 'mars'];
+            foreach ($spaceKeywords as $keyword) {
+                if (strpos($promptLower, $keyword) !== false) {
+                    return $titles['space'];
+                }
+            }
+        }
+        
+        return $titles[array_rand($titles)];
+    }
+
+    /**
+     * Get demo scenes data based on theme
+     */
+    public function getDemoScenesData($episodeId, $seriesId, $totalScenes = 5, $theme = null)
+    {
+        // Detect theme from series if not provided
+        if (!$theme) {
+            $series = WebSeries::find($seriesId);
+            $concept = $series ? $series->concept : '';
+            $theme = $this->detectThemeFromConcept($concept);
+        }
+        
+        // Scene sets for different themes
+        $sceneSets = [
+            'cat and dog' => [
+                1 => [
+                    'title' => 'The Neon Marketplace',
+                    'description' => 'K9-7 patrols the bustling neon marketplace, his cybernetic eyes scanning for threats. Holographic advertisements flicker above as drones zip through the crowded streets.',
+                    'image_prompt' => 'A futuristic neon-lit marketplace in Neo-Tokyo with holographic advertisements and flying drones, cyberpunk aesthetic, purple and pink neon lights',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                2 => [
+                    'title' => 'The Rooftop Chase',
+                    'description' => 'A thrilling chase across the skyline as K9-7 pursues Whisk3r. They leap between buildings, dodging holographic billboards and security drones.',
+                    'image_prompt' => 'A cybernetic wolfhound chasing a feline hacker across neon-lit rooftops with city lights below, dynamic action pose, cinematic lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                3 => [
+                    'title' => 'The Underground Lair',
+                    'description' => 'Whisk3r reveals her hidden underground lair filled with advanced hacking equipment. Monitors display surveillance feeds from across the city.',
+                    'image_prompt' => 'A secret underground hacker lair filled with monitors and advanced technology, cyberpunk aesthetic, blue neon lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                4 => [
+                    'title' => 'The Alliance',
+                    'description' => 'Unlikely allies join forces. K9-7 and Whisk3r shake hands, agreeing to work together to stop the rogue AI threatening their city.',
+                    'image_prompt' => 'A cybernetic wolfhound and a feline hacker shaking hands in a neon-lit room, partnership moment, warm lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                5 => [
+                    'title' => 'The Final Confrontation',
+                    'description' => 'The ultimate battle against the rogue AI. K9-7 and Whisk3r combine their skills to upload the virus and save Neo-Tokyo from digital destruction.',
+                    'image_prompt' => 'Epic battle scene with neon lights and digital effects against a rogue AI, heroic pose, dramatic lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ]
+            ],
+            'dog and cat' => [
+                1 => [
+                    'title' => 'The Prophecy Revealed',
+                    'description' => 'In the ancient library of Aethelgard, Elara discovers a dusty scroll that reveals her true destiny as the last Dragon Rider.',
+                    'image_prompt' => 'A young woman discovering an ancient prophecy scroll in a mystical library, magical lighting, fantasy art style',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                2 => [
+                    'title' => 'The Dragon\'s Egg',
+                    'description' => 'Deep within the Crystal Caves, Elara finds a glowing dragon egg that hatches, revealing her companion Ember.',
+                    'image_prompt' => 'A glowing dragon egg hatching in a crystal cave, magical energy surrounding it, fantasy artwork',
+                    'image_url' => '/demo/images//image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                3 => [
+                    'title' => 'The Shadow Lord\'s Attack',
+                    'description' => 'Dark forces attack the kingdom, forcing Elara and Ember to flee with the help of a rogue knight.',
+                    'image_prompt' => 'Dark shadow creatures attacking a fantasy kingdom, epic battle scene, dramatic lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                4 => [
+                    'title' => 'The Unlikely Alliance',
+                    'description' => 'Elara, Ember, Sir Cedric the knight, and Princess Aria the elf join forces to defeat the Shadow Lord.',
+                    'image_prompt' => 'A diverse group of fantasy heroes standing together, determined expressions, epic fantasy art',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                5 => [
+                    'title' => 'The Final Battle',
+                    'description' => 'The ultimate showdown against the Shadow Lord. Elara and Ember unleash the ancient Dragon Riders\' power.',
+                    'image_prompt' => 'Epic final battle between dragon riders and dark lord, magical explosions, heroic fantasy art',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ]
+            ],
+            'space' => [
+                1 => [
+                    'title' => 'The Discovery',
+                    'description' => 'On a routine mission to Mars, Captain Drake and his crew discover a mysterious alien artifact buried beneath the surface.',
+                    'image_prompt' => 'Astronauts discovering an alien artifact on Mars, dramatic lighting, sci-fi aesthetic',
+                    'image_url' => '/demo/images/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                2 => [
+                    'title' => 'The Countdown Begins',
+                    'description' => 'The artifact activates, triggering a countdown that could destroy the solar system. The crew must act fast.',
+                    'image_prompt' => 'A glowing alien artifact with holographic countdown display, tense atmosphere, sci-fi',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                3 => [
+                    'title' => 'Through the Asteroid Field',
+                    'description' => 'The Horizon navigates through a dangerous asteroid field to reach the ancient alien temple on Jupiter\'s moon.',
+                    'image_prompt' => 'Spaceship flying through dangerous asteroid field, epic space scene, cinematic lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                4 => [
+                    'title' => 'The Alien Revelation',
+                    'description' => 'Inside the temple, the crew discovers the true purpose of the artifact - it\'s a test for humanity.',
+                    'image_prompt' => 'Ancient alien temple interior with mysterious technology, atmospheric lighting, sci-fi',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ],
+                5 => [
+                    'title' => 'The Ultimate Sacrifice',
+                    'description' => 'Captain Drake makes the ultimate sacrifice to save humanity, becoming a legend among the stars.',
+                    'image_prompt' => 'Heroic captain making sacrifice to save Earth, dramatic space scene, emotional lighting',
+                    'image_url' => '/demo/images/image-1.png',
+                    'video_url' => '/demo/video/video.mp4'
+                ]
+            ]
+        ];
+        
+        // Default scene set
+        $defaultScenes = [
             1 => [
-                'title' => 'The Neon Marketplace',
-                'description' => 'K9-7 patrols the bustling neon marketplace, his cybernetic eyes scanning for threats. Holographic advertisements flicker above as drones zip through the crowded streets.',
-                'image_prompt' => 'A futuristic neon-lit marketplace in Neo-Tokyo with holographic advertisements and flying drones, cyberpunk aesthetic, purple and pink neon lights',
+                'title' => 'The Beginning',
+                'description' => 'Our hero embarks on an epic journey that will change their life forever.',
+                'image_prompt' => 'A hero beginning their journey, dramatic sunrise, cinematic composition',
                 'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/video/video.mp4'
+                'video_url' => '/demo/videos/video.mp4'
             ],
             2 => [
-                'title' => 'The Rooftop Chase',
-                'description' => 'A thrilling chase across the skyline as K9-7 pursues Whisk3r. They leap between buildings, dodging holographic billboards and security drones.',
-                'image_prompt' => 'A cybernetic wolfhound chasing a feline hacker across neon-lit rooftops with city lights below, dynamic action pose, cinematic lighting',
+                'title' => 'The Challenge',
+                'description' => 'Obstacles arise that test our hero\'s courage and determination.',
+                'image_prompt' => 'Hero facing a difficult challenge, intense moment, dramatic lighting',
                 'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/video/video.mp4'
+                'video_url' => '/demo/videos/video.mp4'
             ],
             3 => [
-                'title' => 'The Underground Lair',
-                'description' => 'Whisk3r reveals her hidden underground lair filled with advanced hacking equipment. Monitors display surveillance feeds from across the city.',
-                'image_prompt' => 'A secret underground hacker lair filled with monitors and advanced technology, cyberpunk aesthetic, blue neon lighting',
+                'title' => 'The Turning Point',
+                'description' => 'Everything changes in this pivotal moment of the story.',
+                'image_prompt' => 'A dramatic turning point moment, emotional scene, cinematic quality',
                 'image_url' => '/demo/images/image-1.png',
                 'video_url' => '/demo/video/video.mp4'
             ],
             4 => [
-                'title' => 'The Alliance',
-                'description' => 'Unlikely allies join forces. K9-7 and Whisk3r shake hands, agreeing to work together to stop the rogue AI threatening their city.',
-                'image_prompt' => 'A cybernetic wolfhound and a feline hacker shaking hands in a neon-lit room, partnership moment, warm lighting',
+                'title' => 'The Triumph',
+                'description' => 'Our hero overcomes the odds and achieves victory.',
+                'image_prompt' => 'Hero achieving victory, triumphant moment, glorious lighting',
                 'image_url' => '/demo/images/image-1.png',
                 'video_url' => '/demo/video/video.mp4'
             ],
             5 => [
-                'title' => 'The Final Confrontation',
-                'description' => 'The ultimate battle against the rogue AI. K9-7 and Whisk3r combine their skills to upload the virus and save Neo-Tokyo from digital destruction.',
-                'image_prompt' => 'Epic battle scene with neon lights and digital effects against a rogue AI, heroic pose, dramatic lighting',
+                'title' => 'The New Beginning',
+                'description' => 'A new chapter begins as the story reaches its conclusion.',
+                'image_prompt' => 'A new beginning, hopeful scene, beautiful sunset',
                 'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/video/video.mp4'
+                'video_url' => '/demo/videos//video.mp4'
             ]
         ];
         
+        // Select scene set based on theme
+        $selectedScenes = $sceneSets[$theme] ?? $defaultScenes;
+        
         $scenes = [];
+        $concept = $this->getDemoConcept();
+        
         for ($i = 1; $i <= $totalScenes; $i++) {
-            $sceneData = $demoScenes[$i] ?? $demoScenes[1];
+            $sceneData = $selectedScenes[$i] ?? $selectedScenes[1];
             $content = '<div class="scene-content">
                 <h3 class="text-purple-400 text-xl font-bold mb-3">' . htmlspecialchars($sceneData['title']) . '</h3>
                 <p><strong>Episode 1 - Scene ' . $i . '</strong></p>
                 <p><strong>What happens:</strong> ' . htmlspecialchars($sceneData['description']) . '</p>
-                <p><strong>Story Concept:</strong> ' . htmlspecialchars(substr($this->getDemoConcept(), 0, 200)) . '...</p>
+                <p><strong>Story Concept:</strong> ' . htmlspecialchars(substr($concept, 0, 200)) . '...</p>
             </div>';
             
             $scenes[] = [
@@ -105,35 +316,83 @@ class DemoController extends Controller
     }
 
     /**
+     * Detect theme from concept text
+     */
+    private function detectThemeFromConcept($concept)
+    {
+        if (empty($concept)) {
+            return 'default';
+        }
+        
+        $conceptLower = strtolower($concept);
+        
+        if (strpos($conceptLower, 'neon') !== false || strpos($conceptLower, 'cyber') !== false || strpos($conceptLower, 'neo-tokyo') !== false) {
+            return 'cat and dog';
+        }
+        
+        if (strpos($conceptLower, 'dragon') !== false || strpos($conceptLower, 'aethelgard') !== false || strpos($conceptLower, 'magic') !== false) {
+            return 'dog and cat';
+        }
+        
+        if (strpos($conceptLower, 'space') !== false || strpos($conceptLower, 'starship') !== false || strpos($conceptLower, 'mars') !== false) {
+            return 'space';
+        }
+        
+        return 'default';
+    }
+
+    /**
      * Get pre-defined demo image
      */
     public function getDemoImage($sceneId)
     {
         $demoImages = [
-            1 => 'https://placehold.co/1024x1024/1a1a1a/8b5cf6?text=Neon+Marketplace',
-            2 => 'https://placehold.co/1024x1024/1a1a1a/ec4899?text=Rooftop+Chase',
-            3 => 'https://placehold.co/1024x1024/1a1a1a/06b6d4?text=Underground+Lair',
-            4 => 'https://placehold.co/1024x1024/1a1a1a/10b981?text=The+Alliance',
-            5 => 'https://placehold.co/1024x1024/1a1a1a/ef4444?text=Final+Confrontation'
+            1 => 'https://placehold.co/1024x1024/1a1a1a/8b5cf6?text=Scene+1',
+            2 => 'https://placehold.co/1024x1024/1a1a1a/ec4899?text=Scene+2',
+            3 => 'https://placehold.co/1024x1024/1a1a1a/06b6d4?text=Scene+3',
+            4 => 'https://placehold.co/1024x1024/1a1a1a/10b981?text=Scene+4',
+            5 => 'https://placehold.co/1024x1024/1a1a1a/ef4444?text=Scene+5'
         ];
         
         return $demoImages[$sceneId] ?? $demoImages[1];
     }
 
     /**
-     * Get pre-defined demo video
+     * Get pre-defined demo video for a specific episode from local storage
      */
-    public function getDemoVideo($sceneId)
+    public function getDemoVideo($episodeNumber)
     {
+        // Use local videos from public directory
         $demoVideos = [
-            1 => 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-            2 => 'https://sample-videos.com/video123/mp4/720/sample_1280x720_surfing.mp4',
-            3 => 'https://sample-videos.com/video123/mp4/720/sample_1280x720_surfing_with_audio.mp4',
-            4 => 'https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4',
-            5 => 'https://sample-videos.com/video123/mp4/720/sample_1280x720_surfing.mp4'
+            1 => asset('demo/video/episode_1.mp4'),
+            2 => asset('demo/video/episode_2.mp4'),
+            3 => asset('demo/video/episode_3.mp4'),
+            4 => asset('demo/video/episode_4.mp4'),
+            5 => asset('demo/video/episode_5.mp4'),
         ];
         
-        return $demoVideos[$sceneId] ?? $demoVideos[1];
+        // Fallback video if episode number not found
+        $videoUrl = $demoVideos[$episodeNumber] ?? $demoVideos[1];
+        
+        // Check if the video file actually exists
+        $videoPath = public_path('demo/video/episode_' . $episodeNumber . '.mp4');
+        if (!file_exists($videoPath) && $episodeNumber <= 5) {
+            $videoUrl = asset('demo/video/episode_1.mp4');
+        }
+        
+        // For AJAX requests from the modal
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'success' => true,
+                'video_url' => $videoUrl
+            ]);
+        }
+        
+        // For direct access - return the video file directly
+        return response()->file(public_path(str_replace(url('/'), '', $videoUrl)), [
+            'Content-Type' => 'video/mp4',
+            'Content-Disposition' => 'inline'
+        ]);
     }
 
     /**
@@ -145,7 +404,7 @@ class DemoController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $userId = self::DEMO_USER_ID;
+        $userId = $this->getUserId();
         
         // Delete existing demo series
         WebSeries::where('user_id', $userId)->delete();
@@ -161,29 +420,35 @@ class DemoController extends Controller
             ]
         );
 
-        // Create demo series
+        // Create demo series with random concept
+        $concept = $this->getDemoConcept();
+        $title = $this->getConceptTitle();
+        
         $series = WebSeries::create([
             'user_id' => $userId,
             'category_id' => $category->id,
-            'project_name' => 'Neo-Tokyo Chronicles (Demo)',
-            'concept' => $this->getDemoConcept(),
+            'project_name' => $title,
+            'concept' => $concept,
             'status' => 'completed',
             'total_episodes' => 1
         ]);
 
+        // Detect theme from concept
+        $theme = $this->detectThemeFromConcept($concept);
+        
         // Create episode
         $episode = Episode::create([
             'web_series_id' => $series->id,
             'episode_number' => 1,
-            'title' => 'Episode 1: The Awakening',
-            'prompt' => 'A cybernetic wolfhound and a feline hacker team up to stop a rogue AI',
-            'concept' => $this->getDemoConcept(),
+            'title' => 'Episode 1: The Beginning',
+            'prompt' => $title,
+            'concept' => $concept,
             'status' => 'completed',
             'total_scenes' => 5
         ]);
 
-        // Create scenes
-        $scenes = $this->getDemoScenesData($episode->id, $series->id, 5);
+        // Create scenes based on theme
+        $scenes = $this->getDemoScenesData($episode->id, $series->id, 5, $theme);
         foreach ($scenes as $sceneData) {
             Scene::create($sceneData);
         }
@@ -205,8 +470,10 @@ class DemoController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $series = WebSeries::where('user_id', self::DEMO_USER_ID)->findOrFail($id);
+        $userId = $this->getUserId();
+        $series = WebSeries::where('user_id', $userId)->findOrFail($id);
         $concept = $this->getDemoConcept($request->prompt);
+        $title = $this->getConceptTitle($request->prompt);
         
         $episode = Episode::updateOrCreate(
             [
@@ -214,7 +481,7 @@ class DemoController extends Controller
                 'episode_number' => 1
             ],
             [
-                'title' => 'Episode 1',
+                'title' => $title,
                 'prompt' => $request->prompt,
                 'concept' => $concept,
                 'status' => 'concept_ready'
@@ -222,6 +489,7 @@ class DemoController extends Controller
         );
         
         $series->update([
+            'project_name' => $title,
             'concept' => $concept,
             'status' => 'concept_generated'
         ]);
@@ -229,6 +497,7 @@ class DemoController extends Controller
         return response()->json([
             'success' => true,
             'concept' => $concept,
+            'title' => $title,
             'episode_id' => $episode->id,
             'message' => 'Demo concept generated!'
         ]);
@@ -243,16 +512,20 @@ class DemoController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $series = WebSeries::where('user_id', self::DEMO_USER_ID)->findOrFail($id);
+        $userId = $this->getUserId();
+        $series = WebSeries::where('user_id', $userId)->findOrFail($id);
         $episode = Episode::where('web_series_id', $series->id)
             ->where('episode_number', 1)
             ->firstOrFail();
+        
+        // Detect theme from concept
+        $theme = $this->detectThemeFromConcept($series->concept);
         
         DB::beginTransaction();
         
         Scene::where('episode_id', $episode->id)->delete();
         
-        $scenes = $this->getDemoScenesData($episode->id, $series->id, $request->total_scenes ?? 5);
+        $scenes = $this->getDemoScenesData($episode->id, $series->id, $request->total_scenes ?? 5, $theme);
         foreach ($scenes as $sceneData) {
             Scene::create($sceneData);
         }
@@ -285,7 +558,7 @@ class DemoController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
 
-        $userId = self::DEMO_USER_ID;
+        $userId = $this->getUserId();
         
         $stats = [
             'total_series' => WebSeries::where('user_id', $userId)->count(),

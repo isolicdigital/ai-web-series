@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class WebSeriesController extends Controller
 {
@@ -26,15 +27,15 @@ class WebSeriesController extends Controller
         $this->modelsLabService = $modelsLabService;
     }
     
-    private function isDemoUser()
+     private function isDemoUser()
     {
-        return auth()->check() && auth()->id() == 141;
+        return Auth::check() && Auth::user()->demo_mode == true;
     }
     
     private function getDemoController()
-    {
-        return new DemoController();
-    }
+{
+    return app(DemoController::class);
+}
     
     public function create()
     {
@@ -73,58 +74,77 @@ class WebSeriesController extends Controller
     }
     
     public function generateEpisode1Concept(Request $request, $id)
-    {
-        if ($this->isDemoUser()) {
-            $demoController = $this->getDemoController();
-            return $demoController->generateConcept($request, $id);
+{
+    if ($this->isDemoUser()) {
+        $demoController = $this->getDemoController();
+        return $demoController->generateConcept($request, $id);
+    }
+    
+    try {
+        $request->validate([
+            'prompt' => 'required|string|min:10|max:500',
+            'episode_number' => 'nullable|integer|min:1'
+        ]);
+
+        $series = WebSeries::where('user_id', auth()->id())->with('category')->findOrFail($id);
+        
+        // Get episode number from request or default to next available
+        $episodeNumber = $request->episode_number ?? ($series->episodes()->max('episode_number') + 1);
+        
+        $concept = $this->modelsLabService->generateConcept(
+            $request->prompt, 
+            $series->category_id,
+            $series->project_name
+        );
+        
+        // Check if episode already exists with this number
+        $episode = Episode::where('web_series_id', $series->id)
+            ->where('episode_number', $episodeNumber)
+            ->first();
+        
+        if ($episode) {
+            // Update existing episode
+            $episode->update([
+                'title' => 'Episode ' . $episodeNumber,
+                'prompt' => $request->prompt,
+                'concept' => $concept,
+                'status' => 'concept_ready'
+            ]);
+        } else {
+            // Create new episode
+            $episode = Episode::create([
+                'web_series_id' => $series->id,
+                'user_id' => auth()->id(),
+                'episode_number' => $episodeNumber,
+                'title' => 'Episode ' . $episodeNumber,
+                'prompt' => $request->prompt,
+                'concept' => $concept,
+                'status' => 'concept_ready',
+                'total_scenes' => 0
+            ]);
         }
         
-        try {
-            $request->validate([
-                'prompt' => 'required|string|min:10|max:500'
-            ]);
+        $series->update([
+            'concept' => $concept,
+            'status' => 'concept_generated'
+        ]);
 
-            $series = WebSeries::where('user_id', auth()->id())->with('category')->findOrFail($id);
-            
-            $concept = $this->modelsLabService->generateConcept(
-                $request->prompt, 
-                $series->category_id,
-                $series->project_name
-            );
-            
-            $episode = Episode::updateOrCreate(
-                [
-                    'web_series_id' => $series->id,
-                    'episode_number' => 1
-                ],
-                [
-                    'title' => 'Episode 1',
-                    'prompt' => $request->prompt,
-                    'concept' => $concept,
-                    'status' => 'concept_ready'
-                ]
-            );
-            
-            $series->update([
-                'concept' => $concept,
-                'status' => 'concept_generated'
-            ]);
+        return response()->json([
+            'success' => true,
+            'concept' => $concept,
+            'episode_id' => $episode->id,
+            'episode_number' => $episodeNumber,
+            'message' => 'Concept generated for Episode ' . $episodeNumber . '!'
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'concept' => $concept,
-                'episode_id' => $episode->id,
-                'message' => 'Concept generated for Episode 1!'
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Generate concept error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to generate concept: ' . $e->getMessage()
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        Log::error('Generate concept error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to generate concept: ' . $e->getMessage()
+        ], 500);
     }
+}
     
     public function updateEpisode1Concept(Request $request, $id)
     {
@@ -504,7 +524,9 @@ class WebSeriesController extends Controller
             ->where('user_id', auth()->id())
             ->findOrFail($id);
         
-        return view('web-series.show', compact('series'));
+        $episodes = $series->episodes()->with('scenes')->orderBy('episode_number')->paginate(9);
+        
+        return view('web-series.show', compact('series', 'episodes'));
     }
     
     public function mySeries()
@@ -516,6 +538,152 @@ class WebSeriesController extends Controller
             ->paginate(20);
         
         return view('web-series.my-series', compact('webSeries'));
+    }
+    
+    /**
+     * Show all episodes for a series
+     */
+    public function showEpisodes($seriesId)
+    {
+        $series = WebSeries::where('user_id', auth()->id())
+            ->with('episodes.scenes')
+            ->findOrFail($seriesId);
+        
+        $episodes = $series->episodes()->with('scenes')->orderBy('episode_number')->paginate(9);
+        
+        return view('web-series.episodes', compact('series', 'episodes'));
+    }
+    
+    /**
+     * Show the form for creating a new episode.
+     */
+   /**
+ * Show the form for creating a new episode.
+ */
+/**
+ * Show the form for creating a new episode.
+ */
+/**
+ * Show the form for creating a new episode.
+ */
+public function createEpisode($seriesId)
+{
+    $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+    
+    // Get the next episode number
+    $nextEpisodeNumber = $series->episodes()->max('episode_number') + 1;
+    
+    return view('episodes.create', compact('series', 'nextEpisodeNumber'));
+}
+    
+    /**
+     * Store a newly created episode.
+     */
+  /**
+ * Store a newly created episode.
+ */
+public function storeEpisode(Request $request, $seriesId)
+{
+    $request->validate([
+        'title' => 'required|string|max:255',
+        'concept' => 'nullable|string',
+        'episode_number' => 'required|integer|min:1'
+    ]);
+
+    $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+    
+    // Check if episode number already exists
+    $exists = $series->episodes()->where('episode_number', $request->episode_number)->exists();
+    if ($exists) {
+        return back()->withErrors(['episode_number' => 'Episode number already exists for this series'])->withInput();
+    }
+    
+    // Create episode - match your database fields
+    $episode = $series->episodes()->create([
+        'web_series_id' => $series->id,
+        'user_id' => auth()->id(),
+        'episode_number' => $request->episode_number,
+        'title' => $request->title,
+        'concept' => $request->concept,
+        'status' => 'draft',
+        'total_scenes' => 0
+    ]);
+    
+    return redirect()->route('web-series.show', $seriesId)
+        ->with('success', "Episode {$episode->episode_number} created successfully!");
+}
+    
+    /**
+     * Show the form for editing an episode.
+     */
+    public function editEpisode($seriesId, $episodeNumber)
+    {
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+        $episode = $series->episodes()->where('episode_number', $episodeNumber)->firstOrFail();
+        
+        return view('episodes.edit', compact('series', 'episode'));
+    }
+    
+    /**
+     * Update an episode.
+     */
+    public function updateEpisode(Request $request, $seriesId, $episodeNumber)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'concept' => 'nullable|string'
+        ]);
+
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+        $episode = $series->episodes()->where('episode_number', $episodeNumber)->firstOrFail();
+        
+        $episode->update([
+            'title' => $request->title,
+            'concept' => $request->concept
+        ]);
+        
+        return redirect()->route('web-series.show', $seriesId)
+            ->with('success', 'Episode updated successfully!');
+    }
+    
+    /**
+     * Delete an episode.
+     */
+    public function destroyEpisode($seriesId, $episodeNumber)
+    {
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+        $episode = $series->episodes()->where('episode_number', $episodeNumber)->firstOrFail();
+        
+        // Delete associated scenes first
+        foreach ($episode->scenes as $scene) {
+            // Delete video files if they exist
+            if ($scene->video_url && Storage::disk('public')->exists($scene->video_url)) {
+                Storage::disk('public')->delete($scene->video_url);
+            }
+            // Delete image files if they exist
+            if ($scene->generated_image_url && Storage::disk('public')->exists($scene->generated_image_url)) {
+                Storage::disk('public')->delete($scene->generated_image_url);
+            }
+            $scene->delete();
+        }
+        
+        // Delete final episode video if exists
+        if ($episode->final_video_url && Storage::disk('public')->exists($episode->final_video_url)) {
+            Storage::disk('public')->delete($episode->final_video_url);
+        }
+        
+        $episode->delete();
+        
+        // Reorder remaining episodes
+        $remainingEpisodes = $series->episodes()->orderBy('episode_number')->get();
+        $counter = 1;
+        foreach ($remainingEpisodes as $remainingEpisode) {
+            $remainingEpisode->update(['episode_number' => $counter]);
+            $counter++;
+        }
+        
+        return redirect()->route('web-series.show', $seriesId)
+            ->with('success', 'Episode deleted successfully!');
     }
     
     public function dashboard()

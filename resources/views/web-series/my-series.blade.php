@@ -66,11 +66,9 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             @foreach($webSeries as $series)
             @php
-                // Get episodes for this series
                 $episodes = $series->episodes()->with('scenes')->get();
                 $episodeCount = $episodes->count();
                 
-                // Get thumbnail from first episode's first scene
                 $thumbnailUrl = null;
                 $firstEpisode = $episodes->first();
                 if ($firstEpisode) {
@@ -80,7 +78,6 @@
                     }
                 }
                 
-                // Determine if series has multiple episodes
                 $hasMultipleEpisodes = $episodeCount > 1;
             @endphp
             <div class="group bg-gray-900/40 backdrop-blur-lg rounded-2xl border border-gray-800 hover:border-purple-500/50 transition-all duration-300 overflow-hidden hover:transform hover:scale-105">
@@ -184,14 +181,14 @@
                                 Select Episode
                             </button>
                         @else
-                            <button onclick="viewSeries({{ $series->id }})" 
-                                    class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                                <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                View Series
-                            </button>
+                            <button onclick="viewSeriesEpisodes({{ $series->id }})" 
+        class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+    <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+    </svg>
+    View Episodes
+</button>
                         @endif
                         <button onclick="confirmDelete({{ $series->id }}, '{{ $series->project_name }}')" 
                                 class="px-3 py-2 bg-red-600/20 hover:bg-red-600 border border-red-500/30 hover:border-red-500 rounded-lg text-red-400 hover:text-white transition-all duration-300">
@@ -298,7 +295,11 @@ function viewSeries(id) {
 }
 
 function viewEpisode(seriesId, episodeId) {
-    window.location.href = `/web-series/${seriesId}?episode=${episodeId}`;
+    window.location.href = `/web-series/${seriesId}/episodes/${episodeId}`;
+}
+
+function viewSeriesEpisodes(seriesId) {
+    window.location.href = `/web-series/${seriesId}/episodes`;
 }
 
 function showEpisodeSelector(seriesId, seriesName, episodes) {
