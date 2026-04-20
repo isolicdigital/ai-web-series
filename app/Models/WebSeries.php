@@ -18,6 +18,7 @@ class WebSeries extends Model
         'concept',
         'total_episodes',
         'status'
+        
     ];
 
     // Relationship with Category

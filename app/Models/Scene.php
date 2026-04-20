@@ -16,13 +16,21 @@ class Scene extends Model
         'content',
         'image_prompt',
         'generated_image_url',
+        'video_url',           
+    'video_status',        
+    'video_generation_started_at',  
+    'video_generation_completed_at', 
+    'video_error_message', 
         'summary',
         'status',
         
     ];
     
     protected $casts = [
-        'scene_number' => 'integer'
+        'scene_number' => 'integer',
+         'video_generation_started_at' => 'datetime',
+    'video_generation_completed_at' => 'datetime',
+        
     ];
     
     public function episode()

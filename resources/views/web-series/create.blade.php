@@ -399,7 +399,7 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Step 2: Generate Concept
+// Step 2: Generate Concept with full page loader
 document.getElementById('promptForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -419,6 +419,9 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
     btn.disabled = true;
     
+    // Show full page loader
+    showConceptLoader();
+    
     try {
         const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
             prompt: currentPrompt
@@ -430,17 +433,112 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
             
             document.getElementById('concept').value = currentConcept;
             
+            // Simulate progress steps
+            updateLoaderMessage('Analyzing your story...');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            updateLoaderMessage('Generating creative concept...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            updateLoaderMessage('Refining story elements...');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            updateLoaderMessage('Finalizing your concept...');
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            // Hide loader and switch step
+            hideConceptLoader();
             switchStep(3);
         } else {
+            hideConceptLoader();
             alert('Error: ' + result.message);
         }
     } catch (error) { 
+        hideConceptLoader();
         alert('Error: ' + error.message);
     } finally {
         btn.innerHTML = originalText;
         btn.disabled = false;
     }
 });
+
+// Show concept loader
+function showConceptLoader() {
+    // Remove existing loader if any
+    const existingLoader = document.getElementById('conceptLoader');
+    if (existingLoader) {
+        existingLoader.remove();
+    }
+    
+    // Create loader HTML with your design
+    const loaderHTML = `
+        <div id="conceptLoader" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] flex items-center justify-center">
+            <div class="text-center transform transition-all duration-300 scale-100">
+                <div class="relative w-32 h-32 mx-auto mb-6">
+                    <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 border-b-purple-500 border-l-pink-500 rounded-full animate-spin"></div>
+                    <div class="absolute inset-2 border-2 border-purple-500/10 rounded-full"></div>
+                    <div class="absolute inset-4 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <i class="fas fa-brain text-purple-400 text-4xl animate-pulse"></i>
+                    </div>
+                </div>
+                <h3 id="loaderTitle" class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
+                <p id="loaderMessage" class="text-gray-400">Creating your unique concept...</p>
+                <div class="flex gap-2 justify-center mt-4">
+                    <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0s"></div>
+                    <div class="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 0.2s"></div>
+                    <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0.4s"></div>
+                </div>
+                <p class="text-gray-500 text-sm mt-4">Please wait...</p>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', loaderHTML);
+    
+    // Add animation styles if not present
+    if (!document.querySelector('#loaderStyles')) {
+        const style = document.createElement('style');
+        style.id = 'loaderStyles';
+        style.textContent = `
+            @keyframes spin { to { transform: rotate(360deg); } }
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+            @keyframes pulse {
+                0%, 100% { opacity: 1; transform: scale(1); }
+                50% { opacity: 0.8; transform: scale(0.95); }
+            }
+            .animate-spin { animation: spin 1s linear infinite; }
+            .animate-bounce { animation: bounce 0.8s ease-in-out infinite; }
+            .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Update loader message
+function updateLoaderMessage(message) {
+    const loaderMessage = document.getElementById('loaderMessage');
+    if (loaderMessage) {
+        loaderMessage.textContent = message;
+    }
+}
+
+// Hide concept loader
+function hideConceptLoader() {
+    const loader = document.getElementById('conceptLoader');
+    if (loader) {
+        // Add fade out effect
+        loader.style.opacity = '0';
+        loader.style.transition = 'opacity 0.3s ease';
+        setTimeout(() => {
+            loader.remove();
+        }, 300);
+    }
+}
 
 // Regenerate Concept
 document.getElementById('regenerateConceptBtn')?.addEventListener('click', async () => {
@@ -635,6 +733,200 @@ function switchStep(step) {
         }
     }
 }
+
+// Add this to your create.blade.php script section
+
+// Check if user is demo user
+const isDemoUser = {{ auth()->id() == 141 ? 'true' : 'false' }};
+
+// Step 2: Generate Concept with delay for demo user
+document.getElementById('promptForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    if (!currentSeriesId) {
+        alert('Please create a series first');
+        return;
+    }
+    
+    currentPrompt = document.getElementById('prompt').value;
+    if (currentPrompt.length < 10) {
+        alert('Please enter a more detailed prompt (minimum 10 characters)');
+        return;
+    }
+    
+    const btn = document.getElementById('generateConceptBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    btn.disabled = true;
+    
+    try {
+        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
+            prompt: currentPrompt
+        });
+        
+        if (result.success) {
+            currentConcept = result.concept;
+            currentEpisodeId = result.episode_id;
+            
+            // Safely set values - check if elements exist first
+            const conceptElement = document.getElementById('concept');
+            if (conceptElement) {
+                conceptElement.value = currentConcept;
+            }
+            
+            const charCountElement = document.getElementById('charCount');
+            if (charCountElement) {
+                charCountElement.textContent = currentConcept.length + '/600 characters';
+            }
+            
+            const originalPromptElement = document.getElementById('originalPromptDisplay');
+            if (originalPromptElement) {
+                originalPromptElement.textContent = currentPrompt;
+            }
+            
+            // For demo user, add delay before showing concept
+            if (isDemoUser) {
+                // Show loading animation
+                showConceptLoading();
+                
+                // Wait 5 seconds
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                
+                // Hide loading and show concept
+                hideConceptLoading();
+            }
+            
+            switchStep(3);
+        } else {
+            alert('Error: ' + result.message);
+        }
+    } catch (error) { 
+        alert('Error: ' + error.message);
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+});
+
+// Show loading animation on concept area
+function showConceptLoading() {
+    // Remove existing loading if any
+    const existingLoading = document.getElementById('conceptLoading');
+    if (existingLoading) {
+        existingLoading.remove();
+    }
+    
+    // Create loading overlay
+    const loadingDiv = document.createElement('div');
+    loadingDiv.id = 'conceptLoading';
+    loadingDiv.className = 'fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center';
+    loadingDiv.innerHTML = `
+        <div class="text-center transform transition-all duration-300 scale-100">
+            <div class="relative w-32 h-32 mx-auto mb-6">
+                <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 border-b-purple-500 border-l-pink-500 rounded-full animate-spin"></div>
+                <div class="absolute inset-2 border-2 border-purple-500/10 rounded-full"></div>
+                <div class="absolute inset-4 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-brain text-purple-400 text-4xl animate-pulse"></i>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
+            <p class="text-gray-400">Creating your unique concept...</p>
+            <div class="flex gap-2 justify-center mt-4">
+                <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0s"></div>
+                <div class="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 0.2s"></div>
+                <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0.4s"></div>
+            </div>
+            <p class="text-gray-500 text-sm mt-4">Please wait...</p>
+        </div>
+    `;
+    
+    document.body.appendChild(loadingDiv);
+    
+    // Add animation styles if not already present
+    if (!document.querySelector('#conceptLoadingStyles')) {
+        const style = document.createElement('style');
+        style.id = 'conceptLoadingStyles';
+        style.textContent = `
+            @keyframes bounce {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+            .animate-bounce {
+                animation: bounce 0.8s ease-in-out infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// Hide loading animation
+function hideConceptLoading() {
+    const loadingDiv = document.getElementById('conceptLoading');
+    if (loadingDiv) {
+        loadingDiv.remove();
+    }
+}
+
+// Update switchStep function to safely handle elements
+function switchStep(step) {
+    // Hide loading if any
+    hideConceptLoading();
+    
+    for(let i = 1; i <= 4; i++) {
+        const div = document.getElementById(`step${i}`);
+        if(div) div.classList.add('hidden');
+        
+        const indicator = document.getElementById(`step${i}Indicator`);
+        if(indicator) {
+            const circle = indicator.querySelector('div');
+            const text = indicator.querySelector('span');
+            
+            if(i < step) {
+                if(circle) {
+                    circle.classList.remove('bg-gray-700', 'text-gray-400');
+                    circle.classList.add('bg-green-600', 'text-white');
+                    circle.innerHTML = '✓';
+                }
+                if(text) text.classList.remove('text-gray-400');
+                if(text) text.classList.add('text-white');
+            } else if(i === step) {
+                if(circle) {
+                    circle.classList.remove('bg-gray-700', 'text-gray-400', 'bg-green-600');
+                    circle.classList.add('bg-purple-600', 'text-white');
+                    circle.innerHTML = step;
+                }
+                if(text) text.classList.remove('text-gray-400');
+                if(text) text.classList.add('text-white');
+            } else {
+                if(circle) {
+                    circle.classList.remove('bg-purple-600', 'bg-green-600', 'text-white');
+                    circle.classList.add('bg-gray-700', 'text-gray-400');
+                    circle.innerHTML = i;
+                }
+                if(text) text.classList.add('text-gray-400');
+            }
+        }
+    }
+    
+    const targetStep = document.getElementById(`step${step}`);
+    if(targetStep) targetStep.classList.remove('hidden');
+    
+    for(let i = 1; i <= 3; i++) {
+        const line = document.getElementById(`line${i}`);
+        if(line) {
+            if(i < step) {
+                line.classList.remove('bg-gray-700');
+                line.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-pink-500');
+            } else {
+                line.classList.remove('bg-gradient-to-r', 'from-purple-500', 'to-pink-500');
+                line.classList.add('bg-gray-700');
+            }
+        }
+    }
+}
+
 </script>
 
 <style>

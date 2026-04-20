@@ -25,6 +25,12 @@ Route::get('/', function () {
 require __DIR__.'/auth.php';
 
 Route::get('/p', [PageBuilderController::class, 'maskedView'])->name('page-builder.view');
+Route::post('/generate-single-scene-image/{sceneId}', [WebSeriesController::class, 'generateSingleSceneImage'])->name('generate.single.scene.image');
+Route::post('/create-full-episode', [App\Http\Controllers\EpisodeController::class, 'createFullEpisode'])->name('create.full.episode');
+
+// Add these routes to your existing routes file
+Route::post('/check-image-status', [App\Http\Controllers\WebSeriesController::class, 'checkImageStatus'])->name('check.image.status');
+Route::post('/generate-image-for-scene/{sceneId}', [App\Http\Controllers\WebSeriesController::class, 'generateImageForScene'])->name('generate.image.for.scene');
 
 
 // ============================================
@@ -118,6 +124,17 @@ Route::get('/dashboard', function () {
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/image-logs', [WebSeriesController::class, 'imageLogs'])->name('image.logs');
+    
+});
+
+Route::middleware(['auth'])->prefix('demo')->name('demo.')->group(function () {
+    Route::post('/generate-concept/{id}', [DemoController::class, 'generateConcept'])->name('generate-concept');
+    Route::post('/generate-scenes/{id}', [DemoController::class, 'generateScenes'])->name('generate-scenes');
+    Route::post('/create-series', [DemoController::class, 'createDemoSeries'])->name('create-series');
+    Route::get('/dashboard-stats', [DemoController::class, 'getDashboardStats'])->name('dashboard-stats');
+    Route::get('/image/{sceneNumber}', [DemoController::class, 'getDemoImage'])->name('image');
+    Route::get('/video/{sceneNumber}', [DemoController::class, 'getDemoVideo'])->name('video');
+    Route::get('/keywords', [DemoController::class, 'getAvailableKeywords'])->name('keywords');
 });
 
 // ============================================

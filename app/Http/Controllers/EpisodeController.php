@@ -1,113 +1,133 @@
 <?php
+// app/Http/Controllers/EpisodeController.php
 
 namespace App\Http\Controllers;
 
-use App\Models\Project;
+use App\Models\WebSeries;
 use App\Models\Episode;
-use App\Services\AIService;
+use App\Models\Scene;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use FFMpeg\FFMpeg;
+use FFMpeg\Format\Video\X264;
 
 class EpisodeController extends Controller
 {
-    protected $aiService;
-    
-    public function __construct(AIService $aiService)
+    public function createFullEpisode(Request $request)
     {
-        $this->aiService = $aiService;
+        try {
+            $request->validate([
+                'series_id' => 'required|integer|exists:web_series,id',
+                'music_url' => 'nullable|string'
+            ]);
+
+            $seriesId = $request->series_id;
+            $musicUrl = $request->music_url;
+            
+            // Get all scenes with videos
+            $scenes = Scene::where('web_series_id', $seriesId)
+                ->whereNotNull('video_url')
+                ->orderBy('scene_number')
+                ->get();
+            
+            if ($scenes->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No videos found to merge'
+                ], 400);
+            }
+            
+            // Update episode status
+            $episode = Episode::where('web_series_id', $seriesId)
+                ->where('episode_number', 1)
+                ->first();
+            
+            if ($episode) {
+                $episode->update([
+                    'status' => 'processing',
+                    'merged_video_status' => 'processing'
+                ]);
+            }
+            
+            // Dispatch job to merge videos (this will run in background)
+            dispatch(new \App\Jobs\MergeEpisodeVideos($seriesId, $scenes->pluck('id')->toArray(), $musicUrl));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Episode creation started! You will be notified when ready.',
+                'processing' => true
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Create full episode error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to create episode: ' . $e->getMessage()
+            ], 500);
+        }
     }
     
-    public function create(Project $project)
+    public function checkEpisodeStatus($seriesId)
     {
-        return view('episodes.create', compact('project'));
-    }
-    
-    public function generateConcept(Request $request, Project $project)
-    {
-        $validated = $request->validate([
-            'episode_number' => 'required|integer|min:1',
-            'prompt' => 'required|string|min:10'
-        ]);
-        
-        // Create episode in draft status
-        $episode = Episode::create([
-            'project_id' => $project->id,
-            'episode_number' => $validated['episode_number'],
-            'prompt' => $validated['prompt'],
-            'status' => 'draft'
-        ]);
-        
-        // Generate concept using AI
-        $concept = $this->aiService->generateConcept($validated['prompt']);
-        
-        // Update episode with concept
-        $episode->update([
-            'concept' => $concept,
-            'status' => 'concept_ready'
-        ]);
-        
-        return view('episodes.concept-review', compact('episode', 'project'));
-    }
-    
-    public function updateConcept(Request $request, Project $project, Episode $episode)
-    {
-        $validated = $request->validate([
-            'concept' => 'required|string|max:600'
-        ]);
-        
-        $episode->update([
-            'concept' => $validated['concept'],
-            'status' => 'concept_ready'
-        ]);
-        
-        return response()->json(['success' => true, 'message' => 'Concept updated successfully']);
-    }
-    
-    public function saveConcept(Request $request, Project $project, Episode $episode)
-    {
-        $episode->update(['status' => 'concept_ready']);
-        
-        return redirect()->route('scenes.setup', [
-            'project' => $project->id,
-            'episode' => $episode->id
-        ])->with('success', 'Concept saved! Now define how many scenes you want.');
-    }
-    
-    public function setupScenes(Project $project, Episode $episode)
-    {
-        return view('scenes.setup', compact('project', 'episode'));
-    }
-    
-    public function generateScenes(Request $request, Project $project, Episode $episode)
-    {
-        $validated = $request->validate([
-            'scene_count' => 'required|integer|min:5|max:10'
-        ]);
-        
-        // Generate scenes using AI
-        $scenesData = $this->aiService->generateScenes(
-            $episode->concept,
-            $validated['scene_count']
-        );
-        
-        // Save scenes to database
-        foreach ($scenesData as $sceneData) {
-            $episode->scenes()->create([
-                'scene_number' => $sceneData['scene_number'],
-                'content' => $sceneData['content']
+        try {
+            $episode = Episode::where('web_series_id', $seriesId)
+                ->where('episode_number', 1)
+                ->first();
+            
+            if (!$episode) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Episode not found'
+                ]);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'status' => $episode->merged_video_status ?? 'pending',
+                'merged_video_url' => $episode->merged_video_url ? asset($episode->merged_video_url) : null,
+                'message' => $episode->merged_video_error ?? null
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
             ]);
         }
-        
-        $episode->update(['status' => 'scenes_ready']);
-        
-        return redirect()->route('episodes.show', [
-            'project' => $project->id,
-            'episode' => $episode->id
-        ])->with('success', 'Scenes generated successfully!');
     }
     
-    public function show(Project $project, Episode $episode)
+    public function downloadMergedEpisode($seriesId)
     {
-        $scenes = $episode->scenes;
-        return view('episodes.show', compact('project', 'episode', 'scenes'));
+        try {
+            $episode = Episode::where('web_series_id', $seriesId)
+                ->where('episode_number', 1)
+                ->first();
+            
+            if (!$episode || !$episode->merged_video_url) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Episode not found'
+                ], 404);
+            }
+            
+            $filePath = storage_path('app/public/' . $episode->merged_video_url);
+            
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'File not found'
+                ], 404);
+            }
+            
+            return response()->download($filePath, 'episode_' . $seriesId . '.mp4');
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

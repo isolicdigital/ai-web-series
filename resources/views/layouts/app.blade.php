@@ -128,6 +128,7 @@
             100% { background-position: -200% 0; }
         }
     </style>
+    @yield('css')
 </head>
 <body>
 
