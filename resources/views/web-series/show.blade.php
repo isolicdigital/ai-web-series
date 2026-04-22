@@ -422,59 +422,174 @@
                 
                 <!-- Left: Background Narration Toggle -->
                 <div class="bg-gradient-to-br from-purple-900/20 to-purple-800/10 rounded-xl border border-purple-500/30 p-4 hover:border-purple-500/50 transition-all duration-300">
-                    <div class="flex items-center justify-between mb-3">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
-                                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="text-white font-semibold text-sm">Background Narration</h3>
-                                <p class="text-gray-400 text-xs">Add voiceover to your episode</p>
-                            </div>
-                        </div>
-                        <!-- Toggle Switch -->
+    <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+                </svg>
+            </div>
+            <div>
+                <h3 class="text-white font-semibold text-sm">Background Narration</h3>
+                <p class="text-gray-400 text-xs">Add voiceover to your episode</p>
+            </div>
+        </div>
+        <!-- Toggle Switch -->
+        <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="narrationToggle" class="sr-only peer" onchange="toggleNarration()">
+            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+            <span class="ms-3 text-xs font-medium text-gray-400 peer-checked:text-purple-400" id="narrationToggleLabel">OFF</span>
+        </label>
+    </div>
+    
+    <!-- Narration Content (Hidden by default) -->
+    <div id="narrationContent" class="hidden mt-3">
+        <!-- Voice Settings Panel -->
+        <div id="voiceSettings" class="mb-4 p-3 bg-gradient-to-r from-gray-800/50 to-gray-900/50 rounded-xl border border-gray-700">
+            <div class="flex items-center gap-2 mb-3">
+                <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+                </svg>
+                <span class="text-white text-sm font-semibold">Voice Settings</span>
+            </div>
+            
+            <!-- Language Dropdown -->
+            <div class="mb-3">
+    <label class="block text-gray-400 text-xs mb-1.5 flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path>
+        </svg>
+        Select Language
+    </label>
+    <div class="relative">
+        <select id="languageSelect" onchange="filterVoicesByGender()" 
+                class="w-full px-4 py-2.5 bg-gray-800/80 border border-gray-600 rounded-xl text-white text-sm appearance-none cursor-pointer focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/30 focus:bg-gray-800 transition-all duration-300 hover:border-purple-400/50">
+            <option value="English" class="bg-gray-900">🌍 English</option>
+            <option value="Chinese" class="bg-gray-900">🇨🇳 Chinese</option>
+            <option value="Japanese" class="bg-gray-900">🇯🇵 Japanese</option>
+            <option value="Korean" class="bg-gray-900">🇰🇷 Korean</option>
+            <option value="French" class="bg-gray-900">🇫🇷 French</option>
+            <option value="German" class="bg-gray-900">🇩🇪 German</option>
+            <option value="Italian" class="bg-gray-900">🇮🇹 Italian</option>
+            <option value="Spanish" class="bg-gray-900">🇪🇸 Spanish</option>
+            <option value="Portuguese" class="bg-gray-900">🇵🇹 Portuguese</option>
+            <option value="Russian" class="bg-gray-900">🇷🇺 Russian</option>
+        </select>
+        <!-- Custom dropdown arrow -->
+        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+            <svg class="w-4 h-4 text-purple-400 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </div>
+    </div>
+</div>
+            
+            <!-- Gender Switch (Male/Female) -->
+            <div class="mb-3">
+                <div class="flex items-center justify-between">
+                    <label class="text-gray-400 text-xs flex items-center gap-1">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                        </svg>
+                        Voice Gender
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs text-gray-400" id="genderFemaleLabel">Female</span>
                         <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="narrationToggle" class="sr-only peer" onchange="toggleNarration()">
-                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                            <span class="ms-3 text-xs font-medium text-gray-400 peer-checked:text-purple-400" id="narrationToggleLabel">OFF</span>
+                            <input type="checkbox" id="genderSwitch" class="sr-only peer bg-pink-700" onchange="filterVoicesByGender()">
+                            <div class="w-10 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-pink-600"></div>
                         </label>
-                    </div>
-                    
-                    <!-- Narration Content (Hidden by default) -->
-                    <div id="narrationContent" class="hidden mt-3">
-                        <button id="generateNarrationBtn" onclick="generateBackgroundNarration()" 
-                                class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
-                            </svg>
-                            Generate Narration
-                        </button>
-                        
-                        <!-- Narration Progress Bar -->
-                        <div id="narrationProgressContainer" class="hidden mt-3">
-                            <div class="flex justify-between text-xs text-gray-400 mb-1">
-                                <span>Generating...</span>
-                                <span id="narrationPercent">0%</span>
-                            </div>
-                            <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                                <div id="narrationProgressFill" class="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
-                            </div>
-                            <p id="narrationStatus" class="text-gray-500 text-xs mt-1">🎤 Preparing narration...</p>
-                        </div>
-                        
-                        <!-- Narration Success -->
-                        <div id="narrationSuccess" class="hidden mt-3 p-2 bg-green-500/20 rounded-lg border border-green-500/30">
-                            <div class="flex items-center gap-2">
-                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                                <span class="text-green-400 text-xs">Narration ready! ✓</span>
-                            </div>
-                        </div>
+                        <span class="text-xs text-gray-400" id="genderMaleLabel">Male</span>
                     </div>
                 </div>
+            </div>
+            
+            <!-- Voice Dropdown (Filtered by gender) -->
+            <div>
+                <label class="block text-gray-400 text-xs mb-1 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+                    </svg>
+                    Voice
+                </label>
+                <select id="voiceSelect" 
+                class="voice-select w-full px-4 py-2.5 bg-gray-800/80 border border-gray-600 rounded-xl text-white text-sm appearance-none cursor-pointer transition-all duration-300 focus:outline-none">
+            <option value="" class="bg-gray-900 text-gray-400">🎤 Choose a voice</option>
+            <option value="Aiden" class="bg-gray-900">Aiden</option>
+            <option value="Dylan" class="bg-gray-900">Dylan</option>
+            <option value="Eric" class="bg-gray-900">Eric</option>
+            <option value="Ono_anna" class="bg-gray-900">Ono anna</option>
+            <option value="Ryan" class="bg-gray-900">Ryan</option>
+            <option value="Serena" class="bg-gray-900">Serena</option>
+            <option value="Sohee" class="bg-gray-900">Sohee</option>
+            <option value="Uncle_fu" class="bg-gray-900">Uncle fu</option>
+            <option value="Vivian" class="bg-gray-900">Vivian</option>
+        </select>
+            </div>
+        </div>
+        
+        <!-- Generate Button -->
+        <!-- <button id="generateNarrationBtn" onclick="generateBackgroundNarration()" 
+                class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+            </svg>
+            Generate Narration
+        </button> -->
+        
+        <!-- Narration Progress Bar -->
+        <div id="narrationProgressContainer" class="hidden mt-3">
+            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Generating...</span>
+                <span id="narrationPercent">0%</span>
+            </div>
+            <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                <div id="narrationProgressFill" class="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+            <p id="narrationStatus" class="text-gray-500 text-xs mt-1">🎤 Preparing narration...</p>
+        </div>
+        
+        <!-- Narration Success -->
+        <div id="narrationSuccess" class="hidden mt-3 p-2 bg-green-500/20 rounded-lg border border-green-500/30">
+            <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-green-400 text-xs">Narration ready! ✓</span>
+            </div>
+        </div>
+        
+        <!-- Audio Preview (Demo Only) -->
+        <div id="audioPreviewContainer" class="hidden mt-4 p-3 bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl border border-purple-500/30">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-white text-sm font-semibold">Background Narration</span>
+                        <span class="text-green-400 text-xs flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Ready
+                        </span>
+                    </div>
+                    <audio id="narrationAudioPlayer" controls class="w-full h-8 rounded-lg" style="height: 32px;">
+                        <source id="narrationAudioSource" src="" type="audio/mpeg">
+                    </audio>
+                </div>
+                <button onclick="downloadNarration()" class="p-2 rounded-lg bg-purple-500/20 hover:bg-purple-500/30 transition-all duration-300">
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
                 
                 <!-- Right: Background Music Toggle -->
                 <div class="bg-gradient-to-br from-pink-900/20 to-pink-800/10 rounded-xl border border-pink-500/30 p-4 hover:border-pink-500/50 transition-all duration-300">
@@ -746,78 +861,8 @@ function removeUploadedAudio() {
 
 // ==================== NARRATION GENERATION ====================
 
-async function generateBackgroundNarration() {
-    if (isGeneratingNarration) {
-        showToast('Narration is already being generated...', 'info');
-        return;
-    }
-    
-    const totalSegments = document.querySelectorAll('.segment-card').length;
-    const completedCount = isDemoUser ? Object.keys(demoSegmentsProgress).length : document.querySelectorAll('[data-video-url][data-video-url!=""]').length;
-    
-    if (completedCount < totalSegments) {
-        showToast(`Please complete all ${totalSegments} segments first! (${completedCount}/${totalSegments} completed)`, 'warning');
-        return;
-    }
-    
-    isGeneratingNarration = true;
-    
-    const generateBtn = document.getElementById('generateNarrationBtn');
-    const progressContainer = document.getElementById('narrationProgressContainer');
-    const progressFill = document.getElementById('narrationProgressFill');
-    const progressPercent = document.getElementById('narrationPercent');
-    const narrationStatus = document.getElementById('narrationStatus');
-    const successMsg = document.getElementById('narrationSuccess');
-    
-    generateBtn.disabled = true;
-    generateBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Generating...';
-    generateBtn.classList.add('opacity-50');
-    
-    progressContainer.classList.remove('hidden');
-    
-    let progress = 0;
-    const totalDuration = isDemoUser ? 5000 : 15000;
-    const startTime = Date.now();
-    
-    const messages = ["🎤 Analyzing episode content...", "📝 Writing voiceover script...", "🎙️ Generating MALE voiceover...", "🔊 Syncing audio with episode..."];
-    let messageIndex = 0;
-    
-    const interval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        progress = Math.min((elapsed / totalDuration) * 100, 100);
-        
-        progressFill.style.width = `${progress}%`;
-        progressPercent.textContent = `${Math.floor(progress)}%`;
-        
-        const newIndex = Math.floor(progress / 25);
-        if (newIndex < messages.length && newIndex !== messageIndex) {
-            messageIndex = newIndex;
-            narrationStatus.innerHTML = messages[messageIndex];
-        }
-        
-        if (progress >= 100) {
-            clearInterval(interval);
-            
-            if (isDemoUser) {
-                setTimeout(() => {
-                    successMsg.classList.remove('hidden');
-                    progressContainer.classList.add('hidden');
-                    generateBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Narration Ready';
-                    generateBtn.disabled = false;
-                    generateBtn.classList.remove('opacity-50');
-                    generateBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-                    isNarrationGenerated = true;
-                    isGeneratingNarration = false;
-                    showToast('✅ Background narration generated successfully!', 'success');
-                }, 500);
-            } else {
-                generateRealNarration();
-            }
-        }
-    }, 100);
-}
-
-async function generateRealNarration() {
+// Update generateRealNarration
+async function generateRealNarration(voiceId, language, gender) {
     const seriesId = {{ $series->id }};
     const generateBtn = document.getElementById('generateNarrationBtn');
     const progressContainer = document.getElementById('narrationProgressContainer');
@@ -831,7 +876,12 @@ async function generateRealNarration() {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ series_id: seriesId })
+            body: JSON.stringify({ 
+                series_id: seriesId,
+                voice_id: voiceId,
+                language: language,
+                gender: gender
+            })
         });
         
         const result = await response.json();
@@ -843,7 +893,7 @@ async function generateRealNarration() {
             generateBtn.classList.add('bg-green-600', 'hover:bg-green-700');
             isNarrationGenerated = true;
             isGeneratingNarration = false;
-            showToast('✅ Background narration generated!', 'success');
+            showToast(`✅ ${gender === 'male' ? 'Male' : 'Female'} ${language} narration generated!`, 'success');
         } else {
             throw new Error(result.message || 'Failed to generate narration');
         }
@@ -857,6 +907,25 @@ async function generateRealNarration() {
         isGeneratingNarration = false;
     }
 }
+
+// Download narration function
+function downloadNarration() {
+    const audioPlayer = document.getElementById('narrationAudioPlayer');
+    if (audioPlayer && audioPlayer.src) {
+        const a = document.createElement('a');
+        a.href = audioPlayer.src;
+        a.download = 'background_narration.mp3';
+        a.click();
+        showToast('📥 Narration downloading...', 'success');
+    } else {
+        showToast('No audio available to download', 'error');
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    initVoiceSettings();
+});
 
 function generateImage(sceneId) {
     console.log('Generating image for scene:', sceneId);
@@ -1654,6 +1723,263 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+
+// Voice database with language and gender mapping
+const voiceDatabase = {
+    'English': {
+        female: [
+            { id: 'Serena', name: 'Serena - Female English Voice' },
+            { id: 'Vivian', name: 'Vivian - Female English Voice' }
+        ],
+        male: [
+            { id: 'Aiden', name: 'Aiden - Male English Voice' },
+            { id: 'Dylan', name: 'Dylan - Male English Voice' },
+            { id: 'Eric', name: 'Eric - Male English Voice' },
+            { id: 'Ryan', name: 'Ryan - Male English Voice' }
+        ]
+    },
+    'Korean': {
+        female: [
+            { id: 'Sohee', name: 'Sohee - Female Korean Voice' }
+        ],
+        male: [
+            { id: 'Ono_anna', name: 'Ono_anna - Male Korean Voice' }
+        ]
+    },
+    'Chinese': {
+        female: [],
+        male: [
+            { id: 'Uncle_fu', name: 'Uncle_fu - Male Chinese Voice' }
+        ]
+    },
+    'Japanese': {
+        female: [],
+        male: []
+    },
+    'French': {
+        female: [],
+        male: []
+    },
+    'German': {
+        female: [],
+        male: []
+    },
+    'Italian': {
+        female: [],
+        male: []
+    },
+    'Spanish': {
+        female: [],
+        male: []
+    },
+    'Portuguese': {
+        female: [],
+        male: []
+    },
+    'Russian': {
+        female: [],
+        male: []
+    }
+};
+
+// Get current gender based on switch
+function getCurrentGender() {
+    const genderSwitch = document.getElementById('genderSwitch');
+    return genderSwitch && genderSwitch.checked ? 'male' : 'female';
+}
+
+// Get selected language
+function getSelectedLanguage() {
+    const languageSelect = document.getElementById('languageSelect');
+    return languageSelect ? languageSelect.value : 'English';
+}
+
+// Filter voices by gender only (language selection doesn't filter)
+function filterVoicesByGender() {
+    const currentGender = getCurrentGender();
+    const voiceSelect = document.getElementById('voiceSelect');
+    
+    // Update gender label colors for visual feedback
+    const femaleLabel = document.getElementById('genderFemaleLabel');
+    const maleLabel = document.getElementById('genderMaleLabel');
+    
+    if (femaleLabel && maleLabel) {
+        if (currentGender === 'male') {
+            femaleLabel.classList.add('text-gray-500');
+            femaleLabel.classList.remove('text-purple-400');
+            maleLabel.classList.add('text-purple-400');
+            maleLabel.classList.remove('text-gray-500');
+        } else {
+            maleLabel.classList.add('text-gray-500');
+            maleLabel.classList.remove('text-purple-400');
+            femaleLabel.classList.add('text-purple-400');
+            femaleLabel.classList.remove('text-gray-500');
+        }
+    }
+    
+    if (!voiceSelect) return;
+    
+    // Get all voice options
+    const allOptions = voiceSelect.querySelectorAll('option');
+    
+    // Filter options based on gender (using naming convention)
+    allOptions.forEach(option => {
+        const voiceName = option.textContent.toLowerCase();
+        
+        if (currentGender === 'female') {
+            // Show female voices (Serena, Vivian, Sohee)
+            if (voiceName.includes('serena') || voiceName.includes('vivian') || voiceName.includes('sohee')) {
+                option.style.display = '';
+            } else if (option.value === '') {
+                option.style.display = ''; // Keep placeholder
+            } else {
+                option.style.display = 'none';
+            }
+        } else {
+            // Show male voices (Aiden, Dylan, Eric, Ryan, Ono_anna, Uncle_fu)
+            if (voiceName.includes('aiden') || voiceName.includes('dylan') || voiceName.includes('eric') || 
+                voiceName.includes('ryan') || voiceName.includes('ono_anna') || voiceName.includes('uncle_fu')) {
+                option.style.display = '';
+            } else if (option.value === '') {
+                option.style.display = ''; // Keep placeholder
+            } else {
+                option.style.display = 'none';
+            }
+        }
+    });
+    
+    // Reset selection if current selected is hidden
+    if (voiceSelect.selectedOptions[0] && voiceSelect.selectedOptions[0].style.display === 'none') {
+        voiceSelect.value = '';
+    }
+}
+
+// Get selected voice ID
+function getSelectedVoice() {
+    const voiceSelect = document.getElementById('voiceSelect');
+    return voiceSelect ? voiceSelect.value : null;
+}
+
+// Initialize voice settings when narration toggle is turned ON
+function initVoiceSettings() {
+    const narrationToggle = document.getElementById('narrationToggle');
+    const voiceSettings = document.getElementById('voiceSettings');
+    
+    if (narrationToggle && voiceSettings) {
+        if (narrationToggle.checked) {
+            voiceSettings.classList.remove('hidden');
+            // Initialize gender filtering
+            filterVoicesByGender();
+        } else {
+            voiceSettings.classList.add('hidden');
+        }
+    }
+}
+
+// Update toggleNarration function
+window.toggleNarration = function() {
+    const toggle = document.getElementById('narrationToggle');
+    const label = document.getElementById('narrationToggleLabel');
+    const content = document.getElementById('narrationContent');
+    
+    if (toggle && toggle.checked) {
+        if (label) label.textContent = 'ON';
+        if (content) {
+            content.classList.remove('hidden');
+            content.classList.add('animate-fadeIn');
+        }
+    } else {
+        if (label) label.textContent = 'OFF';
+        if (content) content.classList.add('hidden');
+    }
+    initVoiceSettings();
+};
+// Update generateBackgroundNarration to include voice validation
+async function generateBackgroundNarration() {
+    if (isGeneratingNarration) {
+        showToast('Narration is already being generated...', 'info');
+        return;
+    }
+    
+    const totalSegments = document.querySelectorAll('.segment-card').length;
+    const completedCount = isDemoUser ? Object.keys(demoSegmentsProgress).length : document.querySelectorAll('[data-video-url][data-video-url!=""]').length;
+    
+    if (completedCount < totalSegments) {
+        showToast(`Please complete all ${totalSegments} segments first! (${completedCount}/${totalSegments} completed)`, 'warning');
+        return;
+    }
+    
+    // Validate voice selection
+    const selectedVoice = getSelectedVoice();
+    if (!selectedVoice) {
+        showToast('Please select a voice first', 'warning');
+        return;
+    }
+    
+    isGeneratingNarration = true;
+    
+    const generateBtn = document.getElementById('generateNarrationBtn');
+    const progressContainer = document.getElementById('narrationProgressContainer');
+    const progressFill = document.getElementById('narrationProgressFill');
+    const progressPercent = document.getElementById('narrationPercent');
+    const narrationStatus = document.getElementById('narrationStatus');
+    const successMsg = document.getElementById('narrationSuccess');
+    
+    const selectedLanguage = getSelectedLanguage();
+    const gender = getCurrentGender();
+    
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Generating...';
+    generateBtn.classList.add('opacity-50');
+    
+    progressContainer.classList.remove('hidden');
+    
+    let progress = 0;
+    const totalDuration = isDemoUser ? 5000 : 15000;
+    const startTime = Date.now();
+    
+    const messages = [
+        "🎤 Analyzing episode content...", 
+        "📝 Writing voiceover script...", 
+        `🎙️ Generating ${gender} ${selectedLanguage} voiceover...`, 
+        "🔊 Syncing audio with episode..."
+    ];
+    let messageIndex = 0;
+    
+    const interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        progress = Math.min((elapsed / totalDuration) * 100, 100);
+        
+        progressFill.style.width = `${progress}%`;
+        progressPercent.textContent = `${Math.floor(progress)}%`;
+        
+        const newIndex = Math.floor(progress / 25);
+        if (newIndex < messages.length && newIndex !== messageIndex) {
+            messageIndex = newIndex;
+            narrationStatus.innerHTML = messages[messageIndex];
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            if (isDemoUser) {
+                setTimeout(() => {
+                    successMsg.classList.remove('hidden');
+                    progressContainer.classList.add('hidden');
+                    generateBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Narration Ready';
+                    generateBtn.disabled = false;
+                    generateBtn.classList.remove('opacity-50');
+                    generateBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    isNarrationGenerated = true;
+                    isGeneratingNarration = false;
+                    showToast(`✅ ${gender === 'male' ? 'Male' : 'Female'} ${selectedLanguage} voiceover generated!`, 'success');
+                }, 500);
+            } else {
+                generateRealNarration(selectedVoice, selectedLanguage, gender);
+            }
+        }
+    }, 100);
+}
 </script>
 
 <style>
