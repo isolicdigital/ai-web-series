@@ -218,7 +218,6 @@
                     </div>
                 </div>
             </div>
-            
             <!-- POPULAR CATEGORIES SECTION (All Categories) -->
             @php
                 use App\Models\Category;
@@ -481,12 +480,15 @@
     </style>
 
     <script>
+
+        
         // Episode Selector Functions
         let currentEpisodeSelectorCallback = null;
         
-        function viewSeries(id) {
-            window.location.href = `/web-series/${id}`;
-        }
+        function viewSeries(seriesId) {
+    // Redirect to episodes page
+    window.location.href = `/web-series/${seriesId}/episodes`;
+}
         
         function viewEpisode(seriesId, episodeId) {
             window.location.href = `/web-series/${seriesId}?episode=${episodeId}`;

@@ -40,41 +40,78 @@ class ModelsLabService
      * Generate episode concept using category template from database
      */
     public function generateConcept($prompt, $categoryId, $projectName)
-    {
-        Log::info('=== GENERATING CONCEPT FROM DATABASE TEMPLATE ===');
+{
+    Log::info('=== GENERATING CONCEPT FROM DATABASE TEMPLATE ===');
+    
+    try {
+        // Get category template from database
+        $template = \App\Models\CategoryTemplate::where('category_id', $categoryId)
+            ->where('is_active', true)
+            ->first();
         
-        try {
-            // Get category template from database
-            $template = \App\Models\CategoryTemplate::where('category_id', $categoryId)
-                ->where('is_active', true)
-                ->first();
+        if (!$template) {
+            throw new \Exception("No active category template found for category ID: {$categoryId}");
+        }
+        
+        if (!$template->category_prompt || !isset($template->category_prompt['concept_generator'])) {
+            throw new \Exception("Category template has no concept_generator for category ID: {$categoryId}");
+        }
+        
+        // Get the full prompt directly from database
+        $userPrompt = $template->category_prompt['concept_generator'];
+        
+        // Replace placeholders
+        $userPrompt = str_replace('{user_prompt}', $prompt, $userPrompt);
+        $userPrompt = str_replace('{series_name}', $projectName, $userPrompt);
+        $userPrompt = str_replace('{category}', $template->category->name ?? 'Web Series', $userPrompt);
+        
+        Log::info('Using database category template for concept generation');
+        Log::info('Full prompt: ' . $userPrompt);
+        
+        $systemPrompt = "You are an award-winning screenwriter. Write engaging, complete episode concepts. Always finish your sentences and complete your thoughts. Write detailed, vivid descriptions with rich imagery and emotional depth.";
+        
+        $response = $this->callChatApi($systemPrompt, $userPrompt, 1200);
+        
+        $concept = trim($response);
+        
+        // Remove any technical labels
+        $concept = preg_replace('/^(Concept:|Episode Concept:|Story:|Summary:|Pitch:|Logline:)/i', '', $concept);
+        $concept = trim($concept);
+        $concept = preg_replace('/\s+/', ' ', $concept);
+        
+        if (!empty($concept) && !preg_match('/[.!?]$/', $concept)) {
+            $concept .= '.';
+        }
+        
+        // Smart truncate to 1000 characters (minimum 900)
+        $conceptLength = strlen($concept);
+        
+        if ($conceptLength > 1000) {
+            // Truncate to 997 characters to allow for punctuation
+            $truncated = substr($concept, 0, 997);
             
-            if (!$template) {
-                throw new \Exception("No active category template found for category ID: {$categoryId}");
+            // Find the last sentence boundary (., !, ?)
+            $lastPeriod = strrpos($truncated, '.');
+            $lastExclamation = strrpos($truncated, '!');
+            $lastQuestion = strrpos($truncated, '?');
+            $lastPunctuation = max($lastPeriod, $lastExclamation, $lastQuestion);
+            
+            // Only truncate at sentence boundary if it's within a reasonable range
+            if ($lastPunctuation > 600) {
+                $concept = substr($concept, 0, $lastPunctuation + 1);
+            } else {
+                $concept = substr($concept, 0, 997) . '...';
             }
+        } elseif ($conceptLength < 900) {
+            // If concept is too short, add more detail
+            Log::info('Concept too short (' . $conceptLength . ' chars), regenerating with more detail...');
             
-            if (!$template->category_prompt || !isset($template->category_prompt['concept_generator'])) {
-                throw new \Exception("Category template has no concept_generator for category ID: {$categoryId}");
-            }
+            $enhancePrompt = "The following concept is too short (" . $conceptLength . " characters). Please expand it to 900-1000 characters by adding more details, emotional depth, and vivid descriptions while maintaining the same core story:\n\n" . $concept;
             
-            // Get the full prompt directly from database
-            $userPrompt = $template->category_prompt['concept_generator'];
+            $enhancedResponse = $this->callChatApi($systemPrompt, $enhancePrompt, 1200);
+            $concept = trim($enhancedResponse);
             
-            // Replace placeholders
-            $userPrompt = str_replace('{user_prompt}', $prompt, $userPrompt);
-            $userPrompt = str_replace('{series_name}', $projectName, $userPrompt);
-            $userPrompt = str_replace('{category}', $template->category->name ?? 'Web Series', $userPrompt);
-            
-            Log::info('Using database category template for concept generation');
-            Log::info('Full prompt: ' . $userPrompt);
-            
-            $systemPrompt = "You are an award-winning screenwriter. Write engaging, complete episode concepts. Always finish your sentences and complete your thoughts.";
-            
-            $response = $this->callChatApi($systemPrompt, $userPrompt, 1000);
-            
-            $concept = trim($response);
-            
-            // Remove any technical labels
+            // Clean up the enhanced concept
             $concept = preg_replace('/^(Concept:|Episode Concept:|Story:|Summary:|Pitch:|Logline:)/i', '', $concept);
             $concept = trim($concept);
             $concept = preg_replace('/\s+/', ' ', $concept);
@@ -83,35 +120,41 @@ class ModelsLabService
                 $concept .= '.';
             }
             
-            // Smart truncate to 800 characters
-            if (strlen($concept) > 800) {
-                $truncated = substr($concept, 0, 797);
-                $lastPeriod = strrpos($truncated, '.');
-                $lastExclamation = strrpos($truncated, '!');
-                $lastQuestion = strrpos($truncated, '?');
-                $lastPunctuation = max($lastPeriod, $lastExclamation, $lastQuestion);
-                
-                if ($lastPunctuation > 500) {
-                    $concept = substr($concept, 0, $lastPunctuation + 1);
-                } else {
-                    $concept = substr($concept, 0, 797) . '...';
+            // Final check - if still too short, append additional content
+            if (strlen($concept) < 900) {
+                $appendText = " This gripping narrative builds tension throughout, leading to a powerful climax that will leave audiences eager for the next episode.";
+                if (strlen($concept) + strlen($appendText) <= 1000) {
+                    $concept .= $appendText;
                 }
             }
-            
-            Log::info('Concept length: ' . strlen($concept));
-            Log::info('Generated concept: ' . $concept);
-            
-            return $concept;
-
-        } catch (\Exception $e) {
-            Log::error('Generate concept error: ' . $e->getMessage());
-            
-            // Fallback concept
+        }
+        
+        // Final length validation
+        $finalLength = strlen($concept);
+        Log::info('Final concept length: ' . $finalLength . ' characters');
+        Log::info('Generated concept: ' . $concept);
+        
+        // Ensure we're within bounds (900-1000)
+        if ($finalLength < 900) {
+            Log::warning('Concept still below 900 characters (' . $finalLength . '), using fallback');
             $category = \App\Models\Category::find($categoryId);
             $categoryName = $category ? $category->name : 'Web Series';
-            return "A compelling {$categoryName} story about an extraordinary journey. The hero faces challenges, discovers hidden truths, and transforms in unexpected ways. The episode ends with a revelation that changes everything.";
+            return $this->getFallbackConcept($categoryName, $prompt);
         }
+        
+        return $concept;
+
+    } catch (\Exception $e) {
+        Log::error('Generate concept error: ' . $e->getMessage());
+        
+        // Fallback concept
+        $category = \App\Models\Category::find($categoryId);
+        $categoryName = $category ? $category->name : 'Web Series';
+        return $this->getFallbackConcept($categoryName, $prompt);
     }
+}
+
+
 
     /**
      * Generate scene prompts based on concept

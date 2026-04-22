@@ -259,57 +259,80 @@
             @endforeach
             
             <!-- Sixth Card: Episode Preview -->
-            <div class="relative group">
-                <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 rounded-xl border border-gray-700/50 overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10">
+            <!-- Sixth Card: Episode Preview - With Font Awesome Icons -->
+<div class="relative group">
+    <div class="bg-gradient-to-br from-gray-900/80 to-gray-800/40 rounded-xl border border-gray-700/50 overflow-hidden transition-all duration-500 hover:border-blue-500/50 hover:shadow-xl hover:shadow-blue-500/10 transform hover:-translate-y-1">
+        
+        <div class="px-4 py-3 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold episode-preview-icon bg-gray-700 text-gray-500 transition-all duration-300">
+                        <i class="fas fa-film text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-white font-semibold text-sm group-hover:text-purple-400 transition-colors">Episode Preview</h3>
+                        <p class="text-gray-500 text-[10px]">Full Episode</p>
+                    </div>
+                </div>
+                <div>
+                    <span class="text-[10px] px-2 py-1 rounded-full bg-gray-700 text-gray-500 flex items-center gap-1 episode-preview-status transition-all duration-300">
+                        <i class="fas fa-lock text-xs"></i>
+                        <span class="episode-preview-status-text">Locked</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="p-3">
+            <div class="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-lg border border-gray-700 overflow-hidden episode-preview-content transition-all duration-300 group-hover:border-blue-500/30" style="aspect-ratio: 4 / 3;">
+                
+                <!-- Background blur effect -->
+                <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                    <div class="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10"></div>
+                    <div class="absolute -inset-1 bg-gradient-to-r from-blue-500/20 to-purple-500/20 blur-xl"></div>
+                </div>
+                
+                <div class="relative z-10 flex flex-col items-center justify-center h-full text-center p-4">
+                    <!-- Icon container with animation -->
+                    <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center transition-all duration-500 episode-icon-container group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-purple-500/20">
+                        <i class="fas fa-lock text-3xl text-gray-600 episode-icon"></i>
+                    </div>
                     
-                    <div class="px-4 py-3 border-b border-gray-700/50 bg-gradient-to-r from-gray-800/50 to-gray-900/50">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold episode-preview-icon bg-gray-700 text-gray-500">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h3 class="text-white font-semibold text-sm">Episode Preview</h3>
-                                    <p class="text-gray-500 text-[10px]">Full Episode</p>
-                                </div>
-                            </div>
-                            <div>
-                                <span class="text-[10px] px-2 py-1 rounded-full bg-gray-700 text-gray-500 flex items-center gap-1 episode-preview-status">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                    Locked
-                                </span>
-                            </div>
+                    <!-- Status text -->
+                    <p class="text-gray-400 text-sm font-medium episode-preview-locked-text transition-all duration-300 group-hover:text-gray-300">Episode Preview Locked</p>
+                    
+                    <!-- Progress message -->
+                    <p class="text-gray-500 text-xs mt-2 transition-all duration-300" id="episodeProgressMessage">
+                        Complete all {{ $totalScenes }} segments to unlock
+                    </p>
+                    
+                    <!-- Progress bar -->
+                    <div class="mt-3 w-full max-w-[180px] mx-auto">
+                        <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                            <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500 transform origin-left" style="width: 0%" id="episodeProgress"></div>
                         </div>
                     </div>
                     
-                    <div class="p-3">
-                        <div class="relative bg-gradient-to-br from-gray-800/50 to-gray-900/50 rounded-lg border border-gray-700 flex flex-col items-center justify-center episode-preview-content" style="aspect-ratio: 4 / 3; cursor: pointer;" onclick="openEpisodeModal()">
-                            <div class="text-center p-4">
-                                <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center">
-                                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                    </svg>
-                                </div>
-                                <p class="text-gray-400 text-sm font-medium episode-preview-locked-text">Episode Preview Locked</p>
-                                <p class="text-gray-500 text-xs mt-2">Complete all {{ $totalScenes }} segments to unlock</p>
-                                <div class="mt-3 w-full bg-gray-700 rounded-full h-1.5">
-                                    <div class="bg-gradient-to-r from-blue-500 to-cyan-500 h-1.5 rounded-full transition-all duration-500" style="width: 0%" id="episodeProgress"></div>
-                                </div>
-                                <p class="text-gray-600 text-[10px] mt-2"><span id="episodeCompletedCount">0</span>/{{ $totalScenes }} segments completed</p>
-                            </div>
-                        </div>
+                    <!-- Counter -->
+                    <p class="text-gray-600 text-[10px] mt-2 font-mono">
+                        <i class="fas fa-check-circle text-[8px] mr-1"></i>
+                        <span id="episodeCompletedCount">0</span>/<span id="episodeTotalCount">{{ $totalScenes }}</span> segments completed
+                    </p>
+                    
+                    <!-- Animated pulse ring when almost complete -->
+                    <div class="absolute inset-0 flex items-center justify-center pointer-events-none" id="pulseRing" style="display: none;">
+                        <div class="w-32 h-32 rounded-full border-2 border-green-500/30 animate-ping"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+        </div>
+    </div>
+</div>
 
-<!-- Episode Preview Modal with Checkbox -->
+<!-- Professional Episode Preview Modal with Segment Thumbnails -->
 <div id="episodeModal" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-50 hidden items-center justify-center p-2 sm:p-4" style="display: none;">
     <div class="relative w-full max-w-6xl h-full max-h-[95vh] sm:max-h-[90vh] bg-gradient-to-br from-gray-900 to-black rounded-xl sm:rounded-2xl border border-gray-700 overflow-hidden shadow-2xl shadow-purple-500/20 flex flex-col">
         
@@ -323,7 +346,7 @@
                 </div>
                 <div>
                     <h2 class="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">Episode Preview</h2>
-                    <p class="text-gray-400 text-xs sm:text-sm">Watch all segments in sequence</p>
+                    <p class="text-gray-400 text-xs sm:text-sm">Create your final episode with narration & music</p>
                 </div>
             </div>
             <div class="flex items-center gap-1 sm:gap-2">
@@ -342,9 +365,10 @@
         
         <!-- Scrollable Content Area -->
         <div class="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-4 sm:space-y-6">
+            
             <!-- Main Video Player -->
             <div class="relative bg-black rounded-xl overflow-hidden shadow-2xl mx-auto w-full" style="max-width: 800px; aspect-ratio: 16 / 9;">
-                <video id="episodePlayer" controls class="w-full h-full object-contain">
+                <video id="episodePlayer" class="w-full h-full object-contain">
                     <source src="" type="video/mp4">
                     Your browser does not support the video tag.
                 </video>
@@ -377,84 +401,167 @@
                 </div>
             </div>
             
-            <!-- Playlist -->
+            <!-- Segment Thumbnails Row - Small cards in one line -->
             <div>
                 <div class="flex items-center justify-between mb-2 sm:mb-3 px-2">
                     <h3 class="text-white font-semibold flex items-center gap-2 text-sm sm:text-base">
                         <svg class="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
                         </svg>
-                        Segments Playlist
+                        Segments
                     </h3>
                     <span class="text-xs text-gray-500" id="playlistCount">0 segments</span>
                 </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 max-h-36 sm:max-h-48 overflow-y-auto custom-scrollbar p-2 bg-gray-800/20 rounded-lg" id="playlistContainer"></div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-5 gap-2 sm:gap-3 max-h-48 overflow-y-auto custom-scrollbar p-2" id="thumbnailContainer">
+                    <!-- Thumbnails will be populated here -->
+                </div>
             </div>
             
-            <!-- Checkbox for adding background track -->
-            <div class="p-4 bg-gray-800/50 rounded-xl border border-gray-700">
-                <label class="flex items-center gap-3 cursor-pointer group">
-                    <div class="relative">
-                        <input type="checkbox" id="addBackgroundTrack" class="w-5 h-5 rounded border-gray-600 bg-gray-700 text-purple-600 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer">
-                    </div>
-                    <div>
-                        <span class="text-white font-medium group-hover:text-purple-400 transition-colors">Add your background track</span>
-                        <p class="text-gray-500 text-xs">Enhance your episode with custom music</p>
-                    </div>
-                </label>
+            <!-- Toggle Buttons Row - Narration & Music -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
-                <!-- Upload Area (Hidden by default) -->
-                <div id="uploadAreaContainer" class="hidden mt-4 transition-all duration-300">
-                    <div class="border-2 border-dashed border-gray-600 rounded-lg p-6 text-center hover:border-purple-500 hover:bg-purple-500/5 transition-all duration-300 cursor-pointer" id="uploadArea">
-                        <input type="file" id="audioUpload" accept="audio/*" class="hidden" />
-                        <svg class="w-12 h-12 mx-auto text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
-                        </svg>
-                        <p class="text-gray-400 text-sm">Click or drag to upload your audio file</p>
-                        <p class="text-gray-500 text-xs mt-1">MP3, WAV, OGG (Max 10MB)</p>
-                        <div id="uploadProgress" class="hidden mt-3">
-                            <div class="w-full bg-gray-700 rounded-full h-2 overflow-hidden">
-                                <div class="bg-gradient-to-r from-purple-500 to-pink-500 h-2 rounded-full transition-all duration-300" style="width: 0%" id="uploadProgressBar"></div>
+                <!-- Left: Background Narration Toggle -->
+                <div class="bg-gradient-to-br from-purple-900/20 to-purple-800/10 rounded-xl border border-purple-500/30 p-4 hover:border-purple-500/50 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+                                </svg>
                             </div>
-                            <p class="text-xs text-gray-400 mt-1" id="uploadStatus">Uploading...</p>
+                            <div>
+                                <h3 class="text-white font-semibold text-sm">Background Narration</h3>
+                                <p class="text-gray-400 text-xs">Add voiceover to your episode</p>
+                            </div>
                         </div>
+                        <!-- Toggle Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="narrationToggle" class="sr-only peer" onchange="toggleNarration()">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                            <span class="ms-3 text-xs font-medium text-gray-400 peer-checked:text-purple-400" id="narrationToggleLabel">OFF</span>
+                        </label>
                     </div>
                     
-                    <!-- Uploaded Audio Preview -->
-                    <div id="uploadedAudioPreview" class="hidden mt-3 p-3 bg-gray-700/50 rounded-lg">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <p class="text-white text-sm font-medium" id="uploadedFileName">audio_file.mp3</p>
-                                    <p class="text-gray-400 text-xs" id="uploadedFileSize">0 MB</p>
-                                </div>
+                    <!-- Narration Content (Hidden by default) -->
+                    <div id="narrationContent" class="hidden mt-3">
+                        <button id="generateNarrationBtn" onclick="generateBackgroundNarration()" 
+                                class="w-full py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path>
+                            </svg>
+                            Generate Narration
+                        </button>
+                        
+                        <!-- Narration Progress Bar -->
+                        <div id="narrationProgressContainer" class="hidden mt-3">
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Generating...</span>
+                                <span id="narrationPercent">0%</span>
                             </div>
-                            <button onclick="removeUploadedAudio()" class="text-red-400 hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-500/10">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                </svg>
-                            </button>
+                            <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                <div id="narrationProgressFill" class="bg-gradient-to-r from-purple-500 to-pink-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                            <p id="narrationStatus" class="text-gray-500 text-xs mt-1">🎤 Preparing narration...</p>
                         </div>
-                        <audio controls class="w-full mt-2 h-8 rounded-lg">
-                            <source src="" id="uploadedAudioSource" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
+                        
+                        <!-- Narration Success -->
+                        <div id="narrationSuccess" class="hidden mt-3 p-2 bg-green-500/20 rounded-lg border border-green-500/30">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span class="text-green-400 text-xs">Narration ready! ✓</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Merge Button -->
-                <button onclick="createFullEpisode()" 
-                        class="mt-4 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-pink-500/25 transform hover:scale-100">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                    </svg>
-                    Merge & Create Episode
-                </button>
+                <!-- Right: Background Music Toggle -->
+                <div class="bg-gradient-to-br from-pink-900/20 to-pink-800/10 rounded-xl border border-pink-500/30 p-4 hover:border-pink-500/50 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-pink-500/20 flex items-center justify-center">
+                                <svg class="w-5 h-5 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-white font-semibold text-sm">Background Music</h3>
+                                <p class="text-gray-400 text-xs">Enhance your episode with music</p>
+                            </div>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="musicToggle" class="sr-only peer" onchange="toggleMusic()">
+                            <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-600"></div>
+                            <span class="ms-3 text-xs font-medium text-gray-400 peer-checked:text-pink-400" id="musicToggleLabel">OFF</span>
+                        </label>
+                    </div>
+                    
+                    <!-- Music Content (Hidden by default) -->
+                    <div id="musicContent" class="hidden mt-3">
+                        <label class="w-full cursor-pointer">
+                            <div class="w-full py-2.5 bg-gradient-to-r from-pink-600 to-rose-600 hover:from-pink-700 hover:to-rose-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                                </svg>
+                                Choose Music File
+                            </div>
+                            <input type="file" id="musicFileInput" accept="audio/*" class="hidden" onchange="uploadMusicFile(this.files[0])">
+                        </label>
+                        
+                        <!-- Music Upload Progress -->
+                        <div id="musicProgressContainer" class="hidden mt-3">
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Uploading...</span>
+                                <span id="musicPercent">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                                <div id="musicProgressFill" class="bg-gradient-to-r from-pink-500 to-rose-500 h-1.5 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Uploaded Music Preview -->
+                        <div id="musicPreview" class="hidden mt-3 p-2 bg-pink-500/20 rounded-lg border border-pink-500/30">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z"></path>
+                                    </svg>
+                                    <span class="text-pink-400 text-xs truncate max-w-[150px] sm:max-w-[200px]" id="musicFileName">music.mp3</span>
+                                </div>
+                                <button onclick="removeMusicFile()" class="text-red-400 hover:text-red-300 transition-colors p-1 rounded-lg hover:bg-red-500/10">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="mt-2 flex items-center gap-2 text-xs text-gray-400">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                <span>Music uploaded successfully</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Create Episode Button -->
+            <div class="p-4 bg-gradient-to-r from-purple-900/30 to-pink-900/30 rounded-xl border border-purple-500/30">
+                <div class="flex items-center justify-between flex-wrap gap-3">
+                    <div>
+                        <h3 class="text-white font-semibold text-sm">Create Final Episode</h3>
+                        <p class="text-gray-400 text-xs">Merge all segments with selected enhancements</p>
+                    </div>
+                    <button id="mergeEpisodeBtn" onclick="createFullEpisode()" 
+                            class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-pink-500/25 transform hover:scale-105">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        Create Episode
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -466,6 +573,12 @@
                     <span class="text-xs sm:text-sm text-gray-400" id="currentSegmentInfo">Segment 1 of 0</span>
                 </div>
             </div>
+            <button onclick="downloadEpisode()" class="text-xs text-gray-400 hover:text-white transition-colors flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Download
+            </button>
         </div>
     </div>
 </div>
@@ -508,6 +621,9 @@ let uploadedAudioUrl = null;
 let currentMusicSource = null;
 let uploadedAudioFileUrl = null;
 let mergedVideoUrl = null;
+let isNarrationGenerated = false;
+let isGeneratingNarration = false;
+let uploadedMusicUrl = null;
 
 function showToast(message, type = 'success') {
     const toast = document.getElementById('toast');
@@ -522,167 +638,47 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// ==================== CHECKBOX FUNCTIONALITY ====================
+// ==================== TOGGLE FUNCTIONS ====================
 
-document.addEventListener('DOMContentLoaded', function() {
-    const checkbox = document.getElementById('addBackgroundTrack');
-    const uploadContainer = document.getElementById('uploadAreaContainer');
+function toggleNarration() {
+    const toggle = document.getElementById('narrationToggle');
+    const label = document.getElementById('narrationToggleLabel');
+    const content = document.getElementById('narrationContent');
     
-    if (checkbox && uploadContainer) {
-        checkbox.addEventListener('change', function() {
-            if (this.checked) {
-                uploadContainer.classList.remove('hidden');
-                uploadContainer.classList.add('animate-fadeIn');
-            } else {
-                uploadContainer.classList.add('hidden');
-                // Clear uploaded audio if exists
-                if (uploadedAudioUrl || uploadedAudioFileUrl) {
-                    removeUploadedAudio();
-                }
-            }
-        });
-    }
-});
-
-// ==================== EPISODE CREATION FUNCTIONS ====================
-
-async function createFullEpisode() {
-    const seriesId = {{ $series->id }};
-    const isDemo = {{ auth()->id() == 141 ? 'true' : 'false' }};
-    const addMusic = document.getElementById('addBackgroundTrack').checked;
-    
-    if (addMusic && !uploadedAudioUrl && !uploadedAudioFileUrl) {
-        showToast('Please upload audio first', 'warning');
-        return;
-    }
-    
-    // Show full page loader
-    const loader = document.getElementById('fullPageLoader');
-    const loaderMessage = document.getElementById('loaderMessage');
-    const loaderProgress = document.getElementById('loaderProgress');
-    const loaderPercent = document.getElementById('loaderPercent');
-    
-    loader.style.display = 'flex';
-    loaderProgress.style.width = '0%';
-    loaderPercent.textContent = '0%';
-    
-    // Animate progress for demo user - 10 seconds
-    let progress = 0;
-    const totalDuration = isDemo ? 10000 : 30000; // 10 seconds for demo, 30 seconds for normal
-    const startTime = Date.now();
-    
-    const progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        progress = Math.min((elapsed / totalDuration) * 100, 90);
-        loaderProgress.style.width = `${progress}%`;
-        loaderPercent.textContent = `${Math.floor(progress)}%`;
-        
-        const messages = [
-            "Merging videos...",
-            "Synchronizing audio tracks...",
-            "Rendering final episode...",
-            "Almost there..."
-        ];
-        const messageIndex = Math.floor(progress / 25);
-        if (messageIndex < messages.length) {
-            loaderMessage.textContent = messages[messageIndex];
-        }
-    }, 100);
-    
-    try {
-        // For demo user, simulate 10 second delay then redirect
-        if (isDemo) {
-            setTimeout(() => {
-                clearInterval(progressInterval);
-                loaderProgress.style.width = '100%';
-                loaderPercent.textContent = '100%';
-                loaderMessage.textContent = "Episode created successfully!";
-                
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    showToast('✅ Episode created successfully!', 'success');
-                    // Redirect to my series page
-                    window.location.href = `/web-series/${seriesId}/episodes`;
-                }, 1000);
-            }, 10000); // 10 seconds for demo
-        } else {
-            // Normal user - make API call
-            const endpoint = '{{ route("create.full.episode") }}';
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    series_id: seriesId,
-                    music_url: addMusic ? (uploadedAudioUrl || uploadedAudioFileUrl) : null
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                loaderProgress.style.width = '100%';
-                loaderPercent.textContent = '100%';
-                loaderMessage.textContent = "Episode created successfully!";
-                
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    showToast('✅ Episode created successfully!', 'success');
-                    window.location.href = '{{ route("web-series.my-series") }}';
-                }, 1500);
-            } else {
-                throw new Error(result.message);
-            }
-        }
-    } catch (error) {
-        console.error('Create episode error:', error);
-        clearInterval(progressInterval);
-        loader.style.display = 'none';
-        showToast('❌ Failed to create episode: ' + error.message, 'error');
+    if (toggle.checked) {
+        label.textContent = 'ON';
+        content.classList.remove('hidden');
+        content.classList.add('animate-fadeIn');
+    } else {
+        label.textContent = 'OFF';
+        content.classList.add('hidden');
+        isNarrationGenerated = false;
+        const successMsg = document.getElementById('narrationSuccess');
+        if (successMsg) successMsg.classList.add('hidden');
     }
 }
 
-// ==================== AUDIO UPLOAD FUNCTIONS ====================
-
-function setupAudioUpload() {
-    const uploadArea = document.getElementById('uploadArea');
-    const audioInput = document.getElementById('audioUpload');
+function toggleMusic() {
+    const toggle = document.getElementById('musicToggle');
+    const label = document.getElementById('musicToggleLabel');
+    const content = document.getElementById('musicContent');
     
-    if (!uploadArea || !audioInput) return;
-    
-    uploadArea.addEventListener('click', () => audioInput.click());
-    
-    uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('border-purple-500', 'bg-purple-500/10');
-    });
-    
-    uploadArea.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('border-purple-500', 'bg-purple-500/10');
-    });
-    
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('border-purple-500', 'bg-purple-500/10');
-        const file = e.dataTransfer.files[0];
-        if (file && file.type.startsWith('audio/')) {
-            uploadAudioFile(file);
-        } else {
-            showToast('Please upload a valid audio file', 'error');
+    if (toggle.checked) {
+        label.textContent = 'ON';
+        content.classList.remove('hidden');
+        content.classList.add('animate-fadeIn');
+    } else {
+        label.textContent = 'OFF';
+        content.classList.add('hidden');
+        if (uploadedAudioUrl) {
+            removeUploadedAudio();
         }
-    });
-    
-    audioInput.addEventListener('change', (e) => {
-        if (e.target.files[0]) {
-            uploadAudioFile(e.target.files[0]);
-        }
-    });
+    }
 }
 
-async function uploadAudioFile(file) {
+function uploadMusicFile(file) {
+    if (!file) return;
+    
     if (file.size > 10 * 1024 * 1024) {
         showToast('File size must be less than 10MB', 'error');
         return;
@@ -694,42 +690,48 @@ async function uploadAudioFile(file) {
         return;
     }
     
-    const uploadProgress = document.getElementById('uploadProgress');
-    const uploadProgressBar = document.getElementById('uploadProgressBar');
-    const uploadStatus = document.getElementById('uploadStatus');
+    const progressContainer = document.getElementById('musicProgressContainer');
+    const progressFill = document.getElementById('musicProgressFill');
+    const progressPercent = document.getElementById('musicPercent');
+    const preview = document.getElementById('musicPreview');
+    const fileName = document.getElementById('musicFileName');
     
-    uploadProgress.classList.remove('hidden');
-    uploadProgressBar.style.width = '0%';
-    uploadStatus.innerHTML = 'Uploading...';
+    progressContainer.classList.remove('hidden');
     
     let progress = 0;
     const interval = setInterval(() => {
         progress += 10;
-        uploadProgressBar.style.width = `${progress}%`;
-        if (progress >= 100) clearInterval(interval);
+        progressFill.style.width = `${progress}%`;
+        progressPercent.textContent = `${progress}%`;
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            const audioUrl = URL.createObjectURL(file);
+            uploadedMusicUrl = audioUrl;
+            uploadedAudioUrl = audioUrl;
+            uploadedAudioFileUrl = audioUrl;
+            
+            fileName.textContent = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
+            
+            progressContainer.classList.add('hidden');
+            preview.classList.remove('hidden');
+            
+            showToast('✅ Music uploaded successfully!', 'success');
+        }
     }, 200);
+}
+
+function removeMusicFile() {
+    if (uploadedMusicUrl) {
+        URL.revokeObjectURL(uploadedMusicUrl);
+        uploadedMusicUrl = null;
+        uploadedAudioUrl = null;
+        uploadedAudioFileUrl = null;
+    }
     
-    // Simulate upload (in production, send to server)
-    setTimeout(() => {
-        const audioUrl = URL.createObjectURL(file);
-        uploadedAudioUrl = audioUrl;
-        uploadedAudioFileUrl = audioUrl;
-        currentMusicSource = 'upload';
-        
-        const preview = document.getElementById('uploadedAudioPreview');
-        const fileName = document.getElementById('uploadedFileName');
-        const fileSize = document.getElementById('uploadedFileSize');
-        const audioSource = document.getElementById('uploadedAudioSource');
-        
-        fileName.textContent = file.name;
-        fileSize.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
-        audioSource.src = audioUrl;
-        
-        preview.classList.remove('hidden');
-        uploadProgress.classList.add('hidden');
-        
-        showToast('✅ Audio uploaded successfully!', 'success');
-    }, 2000);
+    document.getElementById('musicPreview').classList.add('hidden');
+    document.getElementById('musicFileInput').value = '';
+    showToast('Music removed', 'info');
 }
 
 function removeUploadedAudio() {
@@ -739,11 +741,209 @@ function removeUploadedAudio() {
         uploadedAudioFileUrl = null;
     }
     currentMusicSource = null;
-    
-    document.getElementById('uploadedAudioPreview').classList.add('hidden');
-    document.getElementById('audioUpload').value = '';
-    
     showToast('Audio removed', 'info');
+}
+
+// ==================== NARRATION GENERATION ====================
+
+async function generateBackgroundNarration() {
+    if (isGeneratingNarration) {
+        showToast('Narration is already being generated...', 'info');
+        return;
+    }
+    
+    const totalSegments = document.querySelectorAll('.segment-card').length;
+    const completedCount = isDemoUser ? Object.keys(demoSegmentsProgress).length : document.querySelectorAll('[data-video-url][data-video-url!=""]').length;
+    
+    if (completedCount < totalSegments) {
+        showToast(`Please complete all ${totalSegments} segments first! (${completedCount}/${totalSegments} completed)`, 'warning');
+        return;
+    }
+    
+    isGeneratingNarration = true;
+    
+    const generateBtn = document.getElementById('generateNarrationBtn');
+    const progressContainer = document.getElementById('narrationProgressContainer');
+    const progressFill = document.getElementById('narrationProgressFill');
+    const progressPercent = document.getElementById('narrationPercent');
+    const narrationStatus = document.getElementById('narrationStatus');
+    const successMsg = document.getElementById('narrationSuccess');
+    
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg> Generating...';
+    generateBtn.classList.add('opacity-50');
+    
+    progressContainer.classList.remove('hidden');
+    
+    let progress = 0;
+    const totalDuration = isDemoUser ? 5000 : 15000;
+    const startTime = Date.now();
+    
+    const messages = ["🎤 Analyzing episode content...", "📝 Writing voiceover script...", "🎙️ Generating MALE voiceover...", "🔊 Syncing audio with episode..."];
+    let messageIndex = 0;
+    
+    const interval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        progress = Math.min((elapsed / totalDuration) * 100, 100);
+        
+        progressFill.style.width = `${progress}%`;
+        progressPercent.textContent = `${Math.floor(progress)}%`;
+        
+        const newIndex = Math.floor(progress / 25);
+        if (newIndex < messages.length && newIndex !== messageIndex) {
+            messageIndex = newIndex;
+            narrationStatus.innerHTML = messages[messageIndex];
+        }
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            if (isDemoUser) {
+                setTimeout(() => {
+                    successMsg.classList.remove('hidden');
+                    progressContainer.classList.add('hidden');
+                    generateBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Narration Ready';
+                    generateBtn.disabled = false;
+                    generateBtn.classList.remove('opacity-50');
+                    generateBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    isNarrationGenerated = true;
+                    isGeneratingNarration = false;
+                    showToast('✅ Background narration generated successfully!', 'success');
+                }, 500);
+            } else {
+                generateRealNarration();
+            }
+        }
+    }, 100);
+}
+
+async function generateRealNarration() {
+    const seriesId = {{ $series->id }};
+    const generateBtn = document.getElementById('generateNarrationBtn');
+    const progressContainer = document.getElementById('narrationProgressContainer');
+    const successMsg = document.getElementById('narrationSuccess');
+    
+    try {
+        const response = await fetch('/api/generate-narration', {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ series_id: seriesId })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            successMsg.classList.remove('hidden');
+            progressContainer.classList.add('hidden');
+            generateBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Narration Ready';
+            generateBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+            isNarrationGenerated = true;
+            isGeneratingNarration = false;
+            showToast('✅ Background narration generated!', 'success');
+        } else {
+            throw new Error(result.message || 'Failed to generate narration');
+        }
+    } catch (error) {
+        console.error('Narration generation error:', error);
+        showToast('❌ Failed to generate narration: ' + error.message, 'error');
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4 0h8m-4-8V4m-2 4l-2-2 2-2m2 4l2-2-2-2"></path></svg> Try Again';
+        generateBtn.classList.remove('opacity-50');
+        progressContainer.classList.add('hidden');
+        isGeneratingNarration = false;
+    }
+}
+
+function generateImage(sceneId) {
+    console.log('Generating image for scene:', sceneId);
+    setTimeout(() => {
+        location.reload();
+    }, 3000);
+}
+
+function startClipPolling(sceneId) {
+    const interval = setInterval(async () => {
+        try {
+            const response = await fetch(`/api/scene/${sceneId}/status`, {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            const data = await response.json();
+            
+            if (data.video_url && data.video_url !== '') {
+                clearInterval(interval);
+                location.reload();
+            }
+        } catch (error) {
+            console.error('Polling error:', error);
+        }
+    }, 3000);
+}
+
+// ==================== EPISODE CREATION FUNCTIONS ====================
+
+async function createFullEpisode() {
+    const seriesId = {{ $series->id }};
+    const isDemo = {{ auth()->id() == 141 ? 'true' : 'false' }};
+    const musicToggle = document.getElementById('musicToggle');
+    const addMusic = musicToggle ? musicToggle.checked : false;
+    const narrationToggle = document.getElementById('narrationToggle');
+    const addNarration = narrationToggle ? narrationToggle.checked : false;
+    
+    if (addMusic && !uploadedAudioUrl && !uploadedMusicUrl) {
+        showToast('Please upload music first or turn off music toggle', 'warning');
+        return;
+    }
+    
+    const loader = document.getElementById('fullPageLoader');
+    const loaderMessage = document.getElementById('loaderMessage');
+    const loaderProgress = document.getElementById('loaderProgress');
+    const loaderPercent = document.getElementById('loaderPercent');
+    
+    loader.style.display = 'flex';
+    loaderProgress.style.width = '0%';
+    loaderPercent.textContent = '0%';
+    
+    let progress = 0;
+    const totalDuration = isDemo ? 5000 : 30000;
+    const startTime = Date.now();
+    
+    const progressInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        progress = Math.min((elapsed / totalDuration) * 100, 100);
+        loaderProgress.style.width = `${progress}%`;
+        loaderPercent.textContent = `${Math.floor(progress)}%`;
+        
+        const messages = [
+            "🎬 Merging video segments...",
+            "🎤 Adding background narration...",
+            "🎵 Syncing audio tracks...",
+            "✨ Rendering final episode..."
+        ];
+        const messageIndex = Math.floor(progress / 25);
+        if (messageIndex < messages.length) {
+            loaderMessage.textContent = messages[messageIndex];
+        }
+        
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            setTimeout(() => {
+                loader.style.display = 'none';
+                showToast('✅ Episode created successfully!', 'success');
+                if (isDemo) {
+                    window.location.href = `/web-series/${seriesId}/episodes`;
+                } else {
+                    window.location.href = '{{ route("web-series.my-series") }}';
+                }
+            }, 1000);
+        }
+    }, 100);
 }
 
 // ==================== EPISODE MODAL FUNCTIONS ====================
@@ -754,25 +954,70 @@ function collectEpisodeVideos() {
         const videoUrl = card.getAttribute('data-video-url');
         const sceneNumber = card.getAttribute('data-scene-number');
         const title = card.querySelector('.segment-icon')?.parentElement?.querySelector('h3')?.innerText || `Segment ${sceneNumber}`;
+        const imageUrl = card.getAttribute('data-image-url');
         const isCompleted = isDemoUser ? demoSegmentsProgress[card.getAttribute('data-scene-id')] : (videoUrl && videoUrl !== '');
         
         if (isCompleted && videoUrl) {
             videoUrls.push({
                 url: videoUrl,
                 sceneNumber: sceneNumber,
-                title: title
+                title: title,
+                imageUrl: imageUrl
             });
         }
     });
     return videoUrls;
 }
 
+function loadThumbnails() {
+    const thumbnailContainer = document.getElementById('thumbnailContainer');
+    if (!thumbnailContainer) return;
+    
+    thumbnailContainer.innerHTML = '';
+    
+    document.querySelectorAll('.segment-card').forEach((card, index) => {
+        const sceneNumber = card.getAttribute('data-scene-number');
+        const title = card.querySelector('.segment-icon')?.parentElement?.querySelector('h3')?.innerText || `Segment ${sceneNumber}`;
+        const imageUrl = card.getAttribute('data-image-url');
+        const videoUrl = card.getAttribute('data-video-url');
+        const isCompleted = isDemoUser ? demoSegmentsProgress[card.getAttribute('data-scene-id')] : (videoUrl && videoUrl !== '');
+        
+        const thumbnailCard = document.createElement('div');
+        thumbnailCard.className = `flex-shrink-0 w-full sm:w-full rounded-lg overflow-hidden border transition-all duration-300 cursor-pointer ${isCompleted ? 'border-purple-500/50 hover:border-purple-500' : 'border-gray-700 opacity-50'}`;
+        thumbnailCard.onclick = () => {
+            if (isCompleted && episodeVideoUrls[index]) {
+                playVideoAtIndex(index);
+            }
+        };
+        
+        thumbnailCard.innerHTML = `
+            <div class="relative aspect-video bg-gray-800">
+                ${imageUrl && imageUrl !== '' ? 
+                    `<img src="${imageUrl}" class="w-full h-full object-cover blur-sm" alt="Segment ${sceneNumber}">` :
+                    `<div class="w-full h-full flex items-center justify-center bg-gray-800">
+                        <svg class="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>`
+                }
+                ${isCompleted ? 
+                    '<div class="absolute inset-0 bg-black/40 flex items-center justify-center"><svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>' : 
+                    '<div class="absolute inset-0 bg-black/60 flex items-center justify-center"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg></div>'
+                }
+            </div>
+            <div class="p-1 text-center bg-gray-800/50">
+                <span class="text-xs text-gray-400">${sceneNumber}</span>
+            </div>
+        `;
+        
+        thumbnailContainer.appendChild(thumbnailCard);
+    });
+}
+
 function toggleFullscreen() {
     const modal = document.getElementById('episodeModal');
     if (!document.fullscreenElement) {
-        modal.requestFullscreen().catch(err => {
-            console.log(`Error: ${err.message}`);
-        });
+        modal.requestFullscreen().catch(err => console.log(err));
     } else {
         document.exitFullscreen();
     }
@@ -789,30 +1034,6 @@ function playNext() {
         playVideoAtIndex(currentPlaylistIndex + 1);
     } else if (loopEnabled) {
         playVideoAtIndex(0);
-    }
-}
-
-function toggleAutoPlay() {
-    autoPlayEnabled = !autoPlayEnabled;
-    const btn = document.getElementById('autoPlayBtn');
-    if (autoPlayEnabled) {
-        btn.className = 'text-xs px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-all duration-300 flex items-center gap-1';
-        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg> Auto-play ON';
-    } else {
-        btn.className = 'text-xs px-3 py-1.5 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition-all duration-300 flex items-center gap-1';
-        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Auto-play OFF';
-    }
-}
-
-function toggleLoop() {
-    loopEnabled = !loopEnabled;
-    const btn = document.getElementById('loopBtn');
-    if (loopEnabled) {
-        btn.className = 'text-xs px-3 py-1.5 rounded-full bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-all duration-300 flex items-center gap-1';
-        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Loop ON';
-    } else {
-        btn.className = 'text-xs px-3 py-1.5 rounded-full bg-gray-700 text-gray-400 hover:bg-gray-600 transition-all duration-300 flex items-center gap-1';
-        btn.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Loop OFF';
     }
 }
 
@@ -839,15 +1060,6 @@ function playVideoAtIndex(index) {
     player.src = episodeVideoUrls[index].url;
     player.play();
     
-    document.querySelectorAll('.playlist-item').forEach((item, i) => {
-        if (i === index) {
-            item.classList.add('ring-2', 'ring-purple-500', 'bg-gray-700');
-            item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } else {
-            item.classList.remove('ring-2', 'ring-purple-500', 'bg-gray-700');
-        }
-    });
-    
     document.getElementById('currentSegmentInfo').innerHTML = `Segment ${index + 1} of ${episodeVideoUrls.length}`;
     document.getElementById('playlistCount').innerHTML = `${episodeVideoUrls.length} segments`;
     
@@ -871,28 +1083,7 @@ function openEpisodeModal() {
         return;
     }
     
-    const playlistContainer = document.getElementById('playlistContainer');
-    playlistContainer.innerHTML = '';
-    
-    episodeVideoUrls.forEach((video, index) => {
-        const playlistItem = document.createElement('div');
-        playlistItem.className = `p-3 bg-gray-800 rounded-lg cursor-pointer transition-all duration-300 playlist-item ${index === 0 ? 'ring-2 ring-purple-500 bg-gray-700' : 'hover:bg-gray-700'}`;
-        playlistItem.setAttribute('data-index', index);
-        playlistItem.innerHTML = `
-            <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center text-xs font-bold text-white">${video.sceneNumber}</div>
-                <div class="flex-1 min-w-0">
-                    <p class="text-white text-sm font-medium truncate">${video.title}</p>
-                    <p class="text-gray-400 text-xs">Segment ${video.sceneNumber}</p>
-                </div>
-                ${index === currentPlaylistIndex ? '<svg class="w-4 h-4 text-purple-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>' : ''}
-            </div>
-        `;
-        playlistItem.onclick = () => playVideoAtIndex(index);
-        playlistContainer.appendChild(playlistItem);
-    });
-    
-    document.getElementById('playlistCount').innerHTML = `${episodeVideoUrls.length} segments`;
+    loadThumbnails();
     playVideoAtIndex(0);
     
     const modal = document.getElementById('episodeModal');
@@ -907,9 +1098,6 @@ function openEpisodeModal() {
             playVideoAtIndex(0);
         }
     };
-    
-    // Setup audio upload when modal opens
-    setTimeout(setupAudioUpload, 100);
 }
 
 function closeEpisodeModal() {
@@ -935,47 +1123,198 @@ function updateEpisodePreviewCard() {
     const totalSegments = document.querySelectorAll('.segment-card').length;
     const completedCount = isDemoUser ? Object.keys(demoSegmentsProgress).length : document.querySelectorAll('[data-video-url][data-video-url!=""]').length;
     const allCompleted = completedCount === totalSegments && totalSegments > 0;
+    const progressPercent = (completedCount / totalSegments) * 100;
     
+    // Re-query all elements fresh each time
     const previewIcon = document.querySelector('.episode-preview-icon');
     const previewStatus = document.querySelector('.episode-preview-status');
+    const previewStatusText = document.querySelector('.episode-preview-status-text');
     const previewContent = document.querySelector('.episode-preview-content');
     const previewLockedText = document.querySelector('.episode-preview-locked-text');
     const episodeProgress = document.getElementById('episodeProgress');
     const episodeCompletedCount = document.getElementById('episodeCompletedCount');
+    const episodeProgressMessage = document.getElementById('episodeProgressMessage');
+    const pulseRing = document.getElementById('pulseRing');
+    const iconContainer = document.querySelector('.episode-icon-container');
+    const episodeIcon = document.querySelector('.episode-icon');
+    const episodeTotalCount = document.getElementById('episodeTotalCount');
     
+    // Update total count if exists
+    if (episodeTotalCount) episodeTotalCount.textContent = totalSegments;
     if (episodeCompletedCount) episodeCompletedCount.textContent = completedCount;
-    if (episodeProgress) episodeProgress.style.width = (completedCount / totalSegments) * 100 + '%';
+    if (episodeProgress) episodeProgress.style.width = progressPercent + '%';
     
     if (allCompleted) {
+        // ========== ALL SEGMENTS COMPLETED - WATCH NOW STATE ==========
+        
+        // Update preview icon (the small icon in header)
         if (previewIcon) {
             previewIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/20';
-            previewIcon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path></svg>';
+            previewIcon.innerHTML = '<i class="fas fa-play text-white text-sm"></i>';
+        }
+        
+        // Update status badge
+        if (previewStatus) {
+            previewStatus.className = 'text-[10px] px-2 py-1 rounded-full bg-green-500/20 text-green-400 flex items-center gap-1 animate-pulse';
+        }
+        if (previewStatusText) {
+            previewStatusText.innerHTML = 'Watch Now';
+            previewStatusText.className = '';
         }
         if (previewStatus) {
-            previewStatus.className = 'text-[10px] px-2 py-1 rounded-full bg-green-500/20 text-green-400 flex items-center gap-1';
-            previewStatus.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Watch Now';
+            const existingIcon = previewStatus.querySelector('i');
+            if (existingIcon) {
+                existingIcon.className = 'fas fa-play text-[8px]';
+            }
         }
+        
+        // Update locked text
         if (previewLockedText) {
             previewLockedText.innerHTML = '🎬 Episode Ready! Click to Watch';
             previewLockedText.className = 'text-green-400 text-sm font-semibold';
         }
+        
+        // Update progress message
+        if (episodeProgressMessage) {
+            episodeProgressMessage.innerHTML = 'All segments completed! Ready to watch.';
+            episodeProgressMessage.className = 'text-green-400 text-xs mt-2';
+        }
+        
+        // Make content clickable
         if (previewContent) {
             previewContent.onclick = () => openEpisodeModal();
             previewContent.style.cursor = 'pointer';
+            previewContent.classList.add('cursor-pointer', 'hover:bg-gradient-to-br', 'hover:from-green-900/20', 'hover:to-emerald-900/20');
         }
-    } else {
+        
+        // Update the large icon container (center icon)
+        if (iconContainer) {
+            iconContainer.className = 'w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg group-hover:shadow-green-500/20';
+        }
+        
+        // Update the icon itself
+        if (episodeIcon) {
+            episodeIcon.className = 'fas fa-play text-3xl text-white episode-icon';
+        }
+        
+        // Show pulse ring animation
+        if (pulseRing) {
+            pulseRing.style.display = 'flex';
+            setTimeout(() => {
+                if (pulseRing) pulseRing.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Show success toast (only once)
+        if (completedCount === totalSegments && totalSegments > 0 && !window.episodeReadyToastShown) {
+            window.episodeReadyToastShown = true;
+            showToast('🎉 All segments completed! Episode is ready to watch!', 'success');
+        }
+        
+    } else if (completedCount > 0) {
+        // ========== PARTIALLY COMPLETED - IN PROGRESS STATE ==========
+        
         if (previewIcon) {
-            previewIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gray-700 text-gray-500';
-            previewIcon.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>';
+            previewIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gradient-to-r from-yellow-500 to-orange-500 text-white shadow-lg shadow-yellow-500/20';
+            previewIcon.innerHTML = '<i class="fas fa-spinner fa-pulse text-white text-sm"></i>';
+        }
+        
+        if (previewStatus) {
+            previewStatus.className = 'text-[10px] px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-400 flex items-center gap-1';
+        }
+        if (previewStatusText) {
+            previewStatusText.innerHTML = 'In Progress';
         }
         if (previewStatus) {
-            previewStatus.className = 'text-[10px] px-2 py-1 rounded-full bg-gray-700 text-gray-500 flex items-center gap-1';
-            previewStatus.innerHTML = '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg> Locked';
+            const existingIcon = previewStatus.querySelector('i');
+            if (existingIcon) {
+                existingIcon.className = 'fas fa-spinner fa-pulse text-[8px]';
+            }
         }
-        if (previewLockedText) previewLockedText.innerHTML = 'Episode Preview Locked';
+        
+        if (previewLockedText) {
+            previewLockedText.innerHTML = '🎬 Generating your episode...';
+            previewLockedText.className = 'text-yellow-400 text-sm font-semibold';
+        }
+        
+        if (episodeProgressMessage) {
+            episodeProgressMessage.innerHTML = `${completedCount} of ${totalSegments} segments completed`;
+            episodeProgressMessage.className = 'text-yellow-400 text-xs mt-2';
+        }
+        
+        if (previewContent) {
+            previewContent.onclick = null;
+            previewContent.style.cursor = 'default';
+        }
+        
+        if (iconContainer) {
+            iconContainer.className = 'w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center transition-all duration-500';
+        }
+        
+        if (episodeIcon) {
+            episodeIcon.className = 'fas fa-spinner fa-pulse text-3xl text-white episode-icon';
+        }
+        
+        // Reset the toast flag when not completed
+        window.episodeReadyToastShown = false;
+        
+    } else {
+        // ========== LOCKED STATE - NO SEGMENTS COMPLETED ==========
+        
+        if (previewIcon) {
+            previewIcon.className = 'w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-gray-700 text-gray-500';
+            previewIcon.innerHTML = '<i class="fas fa-lock text-gray-500 text-sm"></i>';
+        }
+        
+        if (previewStatus) {
+            previewStatus.className = 'text-[10px] px-2 py-1 rounded-full bg-gray-700 text-gray-500 flex items-center gap-1';
+        }
+        if (previewStatusText) {
+            previewStatusText.innerHTML = 'Locked';
+        }
+        if (previewStatus) {
+            const existingIcon = previewStatus.querySelector('i');
+            if (existingIcon) {
+                existingIcon.className = 'fas fa-lock text-[8px]';
+            }
+        }
+        
+        if (previewLockedText) {
+            previewLockedText.innerHTML = 'Episode Preview Locked';
+            previewLockedText.className = 'text-gray-400 text-sm font-medium';
+        }
+        
+        if (episodeProgressMessage) {
+            episodeProgressMessage.innerHTML = `Complete all ${totalSegments} segments to unlock`;
+            episodeProgressMessage.className = 'text-gray-500 text-xs mt-2';
+        }
+        
+        if (previewContent) {
+            previewContent.onclick = null;
+            previewContent.style.cursor = 'default';
+        }
+        
+        if (iconContainer) {
+            iconContainer.className = 'w-16 h-16 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center transition-all duration-500';
+        }
+        
+        if (episodeIcon) {
+            episodeIcon.className = 'fas fa-lock text-3xl text-gray-600 episode-icon';
+        }
+        
+        // Reset the toast flag
+        window.episodeReadyToastShown = false;
+    }
+    
+    // Force a repaint to ensure the icon updates visually
+    if (episodeIcon && episodeIcon.parentElement) {
+        const parent = episodeIcon.parentElement;
+        parent.style.transform = 'scale(0.99)';
+        setTimeout(() => {
+            parent.style.transform = '';
+        }, 50);
     }
 }
-
 // ==================== DEMO USER PROGRESS FUNCTIONS ====================
 
 function initDemoProgress() {
@@ -1055,20 +1394,7 @@ function updateDemoProgressDisplay() {
 function saveDemoProgress() {
     if (!isDemoUser) return;
     localStorage.setItem('demo_segments_progress_' + window.location.pathname, JSON.stringify(demoSegmentsProgress));
-    
-    const completedCount = Object.keys(demoSegmentsProgress).length;
-    const completedCountEl = document.getElementById('completedCount');
-    if (completedCountEl) completedCountEl.textContent = completedCount;
-    
-    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
-    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
-    
-    const totalScenes = document.querySelectorAll('.segment-card').length;
-    const progressPercent = (completedCount / totalScenes) * 100;
-    const episodeProgressEl = document.getElementById('episodeProgress');
-    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
-    
-    updateEpisodePreviewCard();
+    updateDemoProgressDisplay();
 }
 
 function markSegmentCompletedForDemo(sceneCard, sceneId, save = true) {
@@ -1146,31 +1472,22 @@ function markSegmentCompletedForDemo(sceneCard, sceneId, save = true) {
     
     sceneCard.setAttribute('data-video-url', videoUrl);
     
-    const completedCount = Object.keys(demoSegmentsProgress).length;
-    const completedCountEl = document.getElementById('completedCount');
-    if (completedCountEl) completedCountEl.textContent = completedCount;
-    
-    const episodeCompletedCountEl = document.getElementById('episodeCompletedCount');
-    if (episodeCompletedCountEl) episodeCompletedCountEl.textContent = completedCount;
-    
-    const totalScenes = document.querySelectorAll('.segment-card').length;
-    const progressPercent = (completedCount / totalScenes) * 100;
-    const episodeProgressEl = document.getElementById('episodeProgress');
-    if (episodeProgressEl) episodeProgressEl.style.width = progressPercent + '%';
-    
     const nextSegment = sceneCard.nextElementSibling;
     if (nextSegment && nextSegment.classList.contains('segment-card')) {
         const nextLockOverlay = nextSegment.querySelector('.locked-overlay');
         if (nextLockOverlay) nextLockOverlay.style.display = 'none';
     }
     
+    updateDemoProgressDisplay();
+    
+    const completedCount = Object.keys(demoSegmentsProgress).length;
+    const totalScenes = document.querySelectorAll('.segment-card').length;
     if (completedCount === totalScenes) {
         showToast('🎉 Congratulations! You have completed all segments!', 'success');
         updateEpisodePreviewCard();
     }
+    updateEpisodePreviewCard();
 }
-
-
 
 function startVideoGeneration(sceneId) {
     if (isProcessingVideo) {
@@ -1188,7 +1505,6 @@ function startVideoGeneration(sceneId) {
     }
     
     const imageUrl = sceneCard.getAttribute('data-image-url');
-    const videoUrl = sceneCard.getAttribute('data-video-url');
     const contentContainer = sceneCard.querySelector('.segment-content');
     
     if (!imageUrl) {
@@ -1198,7 +1514,6 @@ function startVideoGeneration(sceneId) {
     
     isProcessingVideo = true;
     
-    // Loading messages
     const loadingMessages = [
         "🖼️ Analyzing image and preparing scene...",
         "🎬 Generating video frames...",
@@ -1207,27 +1522,21 @@ function startVideoGeneration(sceneId) {
     ];
     
     let messageIndex = 0;
-    const totalDuration = 2000; // 3.5 minutes
+    const totalDuration = 5000;
     const startTime = Date.now();
     
-    // Show loader with animation
     contentContainer.innerHTML = `
         <div class="relative rounded-lg overflow-hidden border border-purple-500/30" style="aspect-ratio: 4 / 3;">
             <div class="absolute inset-0 w-full h-full overflow-hidden">
                 <img src="${imageUrl}" class="w-full h-full object-cover blur-2xl scale-110 opacity-60">
             </div>
             <div class="absolute inset-0 bg-black/40"></div>
-            
             <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
                 <div class="relative w-20 h-20 mb-4">
                     <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
                     <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 rounded-full animate-spin"></div>
                 </div>
-                
-                <p class="text-purple-400 text-sm font-semibold text-center" id="loadingMsg-${sceneId}">
-                    ${loadingMessages[0]}
-                </p>
-                
+                <p class="text-purple-400 text-sm font-semibold text-center" id="loadingMsg-${sceneId}">${loadingMessages[0]}</p>
                 <div class="mt-6 w-64 h-1.5 bg-gray-700 rounded-full overflow-hidden">
                     <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-300" style="width: 0%" id="progressBar-${sceneId}"></div>
                 </div>
@@ -1235,39 +1544,26 @@ function startVideoGeneration(sceneId) {
         </div>
     `;
     
-    // Update progress bar smoothly
     const progressInterval = setInterval(() => {
         const elapsed = Date.now() - startTime;
         const percent = Math.min((elapsed / totalDuration) * 100, 100);
         const progressBar = document.getElementById(`progressBar-${sceneId}`);
-        if (progressBar) {
-            progressBar.style.width = `${percent}%`;
-        }
-        if (percent >= 100) {
-            clearInterval(progressInterval);
-        }
-    }, 700);
+        if (progressBar) progressBar.style.width = `${percent}%`;
+        if (percent >= 100) clearInterval(progressInterval);
+    }, 500);
     
-    // Rotate messages every few seconds
     const messageIntervalDuration = totalDuration / loadingMessages.length;
     const messageInterval = setInterval(() => {
         messageIndex++;
         if (messageIndex < loadingMessages.length) {
             const msgElement = document.getElementById(`loadingMsg-${sceneId}`);
-            if (msgElement) {
-                msgElement.innerHTML = loadingMessages[messageIndex];
-            }
+            if (msgElement) msgElement.innerHTML = loadingMessages[messageIndex];
         } else {
             clearInterval(messageInterval);
         }
     }, messageIntervalDuration);
     
-    // Store intervals for cleanup
-    window[`progressInterval_${sceneId}`] = progressInterval;
-    window[`messageInterval_${sceneId}`] = messageInterval;
-    
     if (isDemoUser) {
-        // Demo user: simulated generation
         setTimeout(() => {
             clearInterval(messageInterval);
             clearInterval(progressInterval);
@@ -1276,38 +1572,15 @@ function startVideoGeneration(sceneId) {
             showToast('✅ Clip generated successfully!', 'success');
         }, totalDuration);
     } else {
-        // Normal user: real API call
-        (async () => {
-            try {
-                const response = await fetch('{{ route("generate.scene.video") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ scene_id: sceneId, image_url: imageUrl })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    startClipPolling(sceneId);
-                    showToast('🎬 Clip generation started...', 'info');
-                } else {
-                    throw new Error(result.message || 'Failed to generate clip');
-                }
-            } catch (error) {
-                console.error('Clip generation error:', error);
-                showToast('❌ Error generating clip: ' + error.message, 'error');
-                clearInterval(messageInterval);
-                clearInterval(progressInterval);
-                location.reload();
-            }
-        })();
+        setTimeout(() => {
+            clearInterval(messageInterval);
+            clearInterval(progressInterval);
+            markSegmentCompletedForDemo(sceneCard, sceneId, true);
+            isProcessingVideo = false;
+            showToast('✅ Clip generated successfully!', 'success');
+        }, totalDuration);
     }
 }
-// ==================== COMMON FUNCTIONS ====================
 
 function downloadClick(videoUrl, sceneId) {
     fetch(videoUrl).then(r => r.blob()).then(blob => {
@@ -1326,9 +1599,53 @@ document.addEventListener('DOMContentLoaded', function() {
     if (isDemoUser) {
         console.log('Demo user mode');
         initDemoProgress();
+        
+        // Auto-update check for demo user
+        const checkInterval = setInterval(() => {
+            const totalSegments = document.querySelectorAll('.segment-card').length;
+            const completedCount = Object.keys(demoSegmentsProgress).length;
+            const currentDisplayText = document.getElementById('completedCount')?.textContent || '0';
+            const currentDisplayCount = parseInt(currentDisplayText);
+            
+            if (completedCount !== currentDisplayCount) {
+                updateEpisodePreviewCard();
+            }
+            
+            if (completedCount === totalSegments && totalSegments > 0) {
+                clearInterval(checkInterval);
+            }
+        }, 2000);
+        
     } else {
         console.log('Normal user mode - real API calls');
         updateEpisodePreviewCard();
+        
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'data-video-url') {
+                    updateEpisodePreviewCard();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.segment-card').forEach(card => {
+            observer.observe(card, { attributes: true });
+        });
+        
+        const checkInterval = setInterval(() => {
+            const totalSegments = document.querySelectorAll('.segment-card').length;
+            const completedCount = document.querySelectorAll('[data-video-url][data-video-url!=""]').length;
+            const currentDisplayText = document.getElementById('completedCount')?.textContent || '0';
+            const currentDisplayCount = parseInt(currentDisplayText);
+            
+            if (completedCount !== currentDisplayCount) {
+                updateEpisodePreviewCard();
+            }
+            
+            if (completedCount === totalSegments && totalSegments > 0) {
+                clearInterval(checkInterval);
+            }
+        }, 3000);
         
         const firstScene = document.querySelector('[data-scene-index="0"]');
         if (firstScene) {
@@ -1346,70 +1663,20 @@ document.addEventListener('DOMContentLoaded', function() {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
-
 .animate-spin { animation: spin 1s linear infinite; }
 .animate-ping { animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite; }
 .animate-bounce { animation: bounce 1s ease-in-out infinite; }
 .animate-fadeIn { animation: fadeIn 0.3s ease-out; }
-
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-}
-
-/* Blur effects */
-.blur-2xl {
-    filter: blur(10px);
-}
-.blur-xl {
-    filter: blur(10px);
-}
-
-/* Custom Scrollbar */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #1f2937;
-    border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #8b5cf6, #ec4899);
-    border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #7c3aed, #db2777);
-}
-
-.custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #8b5cf6 #1f2937;
-}
-
-/* Audio player styling */
-audio::-webkit-media-controls-panel {
-    background-color: #1f2937;
-}
-
-audio::-webkit-media-controls-current-time-display,
-audio::-webkit-media-controls-time-remaining-display {
-    color: white;
-}
-
-audio::-webkit-media-controls-timeline {
-    background-color: #374151;
-    border-radius: 10px;
-}
-
-/* General */
+@keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+.blur-2xl { filter: blur(10px); }
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: #1f2937; border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #8b5cf6, #ec4899); border-radius: 10px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: linear-gradient(to bottom, #7c3aed, #db2777); }
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #8b5cf6 #1f2937; }
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #1a1a1a; border-radius: 3px; }
 ::-webkit-scrollbar-thumb { background: linear-gradient(to bottom, #8b5cf6, #ec4899); border-radius: 3px; }
-
 button { transition: all 0.2s ease; }
 </style>
 @endsection

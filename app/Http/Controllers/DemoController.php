@@ -28,6 +28,21 @@ class DemoController extends Controller
     {
         return Auth::id();
     }
+      public function getDashboardStats()
+    {
+        Log::info('DemoController: getDashboardStats called');
+        
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'total_series' => 3,
+                'total_episodes' => 15,
+                'available_credits' => 999,
+                'completion_rate' => 75,
+                'completed_series' => 2
+            ]
+        ]);
+    }
 
     /**
      * Get pre-defined demo concept based on prompt (no API call)
@@ -37,11 +52,11 @@ class DemoController extends Controller
     {
         // 3 Main Concepts
         $concepts = [
-            'cat and dog' => "In the neon-drenched sprawl of Neo-Tokyo, a rogue cybernetic wolfhound named K9-7 and a sly feline hacker known as Whisk3r must unite to stop a rogue AI from deleting all organic life. Their unlikely alliance is tested as they navigate through digital landscapes, dodging corporate security drones and uncovering a conspiracy that threatens to erase the boundary between man and machine.",
+            'power, desire' => "In the elite and glamorous underworld of San Francisco, SHADOW DEAL follows four lives forever bound by power, desire, loyalty, and betrayal. Peter is a mysterious and dangerous man who moves through the shadows like he owns them — calculating, fearless, and always one step ahead. But tonight, someone is watching him. Lizz is a stunning and wealthy woman who appears to have everything the world can offer. Yet she sits alone in her luxury penthouse, waiting for one message, one call, that will shatter everything she thought she knew. Jeff is the sharpest mind in the room — the only one who sees through the beautiful lies and asks the questions no one else dares to ask. And Jenn has seen too much, knows too much — and in this world, that makes her the most dangerous person of all. In SHADOW DEAL, greed and love look exactly the same. Loyalty and betrayal wear the same face. And when the truth finally rises from the shadows, no one will be safe, no one will be ready, and nothing will ever be the same again.",
             
-            'dog and cat' => "In the mystical kingdom of Aethelgard, a young orphan named Elara discovers she is the last descendant of the ancient Dragon Riders. With her newly hatched dragon companion, Ember, she must unite the fractured kingdoms against the Shadow Lord who seeks to plunge the world into eternal darkness. Along the way, she befriends a rogue knight seeking redemption and an elf princess fleeing an arranged marriage.",
+            'dog and cat' => "In the elite and glamorous underworld of San Francisco, SHADOW DEAL follows four lives forever bound by power, desire, loyalty, and betrayal. Peter is a mysterious and dangerous man who moves through the shadows like he owns them — calculating, fearless, and always one step ahead. But tonight, someone is watching him. Lizz is a stunning and wealthy woman who appears to have everything the world can offer. Yet she sits alone in her luxury penthouse, waiting for one message, one call, that will shatter everything she thought she knew. Jeff is the sharpest mind in the room — the only one who sees through the beautiful lies and asks the questions no one else dares to ask. And Jenn has seen too much, knows too much — and in this world, that makes her the most dangerous person of all. In SHADOW DEAL, greed and love look exactly the same. Loyalty and betrayal wear the same face. And when the truth finally rises from the shadows, no one will be safe, no one will be ready, and nothing will ever be the same again.",
             
-            'space' => "Captain Marcus Drake and the crew of the starship Horizon are Earth's last hope. When a mysterious alien artifact is discovered on Mars, it triggers a countdown that could destroy the solar system. Racing against time, they must decode ancient alien technology, survive treacherous space battles, and make the ultimate sacrifice to save humanity."
+            'space' => "In the elite and glamorous underworld of San Francisco, SHADOW DEAL follows four lives forever bound by power, desire, loyalty, and betrayal. Peter is a mysterious and dangerous man who moves through the shadows like he owns them — calculating, fearless, and always one step ahead. But tonight, someone is watching him. Lizz is a stunning and wealthy woman who appears to have everything the world can offer. Yet she sits alone in her luxury penthouse, waiting for one message, one call, that will shatter everything she thought she knew. Jeff is the sharpest mind in the room — the only one who sees through the beautiful lies and asks the questions no one else dares to ask. And Jenn has seen too much, knows too much — and in this world, that makes her the most dangerous person of all. In SHADOW DEAL, greed and love look exactly the same. Loyalty and betrayal wear the same face. And when the truth finally rises from the shadows, no one will be safe, no one will be ready, and nothing will ever be the same again."
         ];
         
         // If prompt is provided, try to match with keywords
@@ -84,7 +99,7 @@ class DemoController extends Controller
     public function getConceptTitle($prompt = null)
     {
         $titles = [
-            'cat and dog' => 'Neo-Tokyo Chronicles: Digital Rebellion',
+            'cat and dog' => 'The elite and glamorous underworld of San Francisco',
             'dog and cat' => 'The Dragon Riders of Aethelgard',
             'space' => 'Horizon: The Final Frontier'
         ];
@@ -131,41 +146,41 @@ class DemoController extends Controller
         
         // Scene sets for different themes
         $sceneSets = [
-            'cat and dog' => [
+            'power, desire' => [
                 1 => [
-                    'title' => 'The Neon Marketplace',
+                    'title' => 'Where Loyalty Dies in the Dark',
                     'description' => 'K9-7 patrols the bustling neon marketplace, his cybernetic eyes scanning for threats. Holographic advertisements flicker above as drones zip through the crowded streets.',
                     'image_prompt' => 'A futuristic neon-lit marketplace in Neo-Tokyo with holographic advertisements and flying drones, cyberpunk aesthetic, purple and pink neon lights',
                     'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'video_url' => '/demo/video/sample1.mp4'
                 ],
                 2 => [
-                    'title' => 'The Rooftop Chase',
+                    'title' => 'Power, Lies, and the Price of Knowing Too Much',
                     'description' => 'A thrilling chase across the skyline as K9-7 pursues Whisk3r. They leap between buildings, dodging holographic billboards and security drones.',
                     'image_prompt' => 'A cybernetic wolfhound chasing a feline hacker across neon-lit rooftops with city lights below, dynamic action pose, cinematic lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-2.png',
+                    'video_url' => '/demo/video/sample2.mp4'
                 ],
                 3 => [
-                    'title' => 'The Underground Lair',
+                    'title' => 'In a World of Secrets, Trust Is Fatal',
                     'description' => 'Whisk3r reveals her hidden underground lair filled with advanced hacking equipment. Monitors display surveillance feeds from across the city.',
                     'image_prompt' => 'A secret underground hacker lair filled with monitors and advanced technology, cyberpunk aesthetic, blue neon lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-3.png',
+                    'video_url' => '/demo/video/sample3.mp4'
                 ],
                 4 => [
-                    'title' => 'The Alliance',
+                    'title' => 'Everyone Has Something to Lose',
                     'description' => 'Unlikely allies join forces. K9-7 and Whisk3r shake hands, agreeing to work together to stop the rogue AI threatening their city.',
                     'image_prompt' => 'A cybernetic wolfhound and a feline hacker shaking hands in a neon-lit room, partnership moment, warm lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-4.png',
+                    'video_url' => '/demo/video/sample4.mp4'
                 ],
                 5 => [
-                    'title' => 'The Final Confrontation',
+                    'title' => 'When Truth Comes Out, Blood Follows',
                     'description' => 'The ultimate battle against the rogue AI. K9-7 and Whisk3r combine their skills to upload the virus and save Neo-Tokyo from digital destruction.',
                     'image_prompt' => 'Epic battle scene with neon lights and digital effects against a rogue AI, heroic pose, dramatic lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-5.png',
+                    'video_url' => '/demo/video/sample5.mp4'
                 ]
             ],
             'dog and cat' => [
@@ -174,35 +189,35 @@ class DemoController extends Controller
                     'description' => 'In the ancient library of Aethelgard, Elara discovers a dusty scroll that reveals her true destiny as the last Dragon Rider.',
                     'image_prompt' => 'A young woman discovering an ancient prophecy scroll in a mystical library, magical lighting, fantasy art style',
                     'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'video_url' => '/demo/video/sample1.mp4'
                 ],
                 2 => [
                     'title' => 'The Dragon\'s Egg',
                     'description' => 'Deep within the Crystal Caves, Elara finds a glowing dragon egg that hatches, revealing her companion Ember.',
                     'image_prompt' => 'A glowing dragon egg hatching in a crystal cave, magical energy surrounding it, fantasy artwork',
-                    'image_url' => '/demo/images//image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images//image-2.png',
+                    'video_url' => '/demo/video/sample2.mp4'
                 ],
                 3 => [
                     'title' => 'The Shadow Lord\'s Attack',
                     'description' => 'Dark forces attack the kingdom, forcing Elara and Ember to flee with the help of a rogue knight.',
                     'image_prompt' => 'Dark shadow creatures attacking a fantasy kingdom, epic battle scene, dramatic lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-3.png',
+                    'video_url' => '/demo/video/sample3.mp4'
                 ],
                 4 => [
                     'title' => 'The Unlikely Alliance',
                     'description' => 'Elara, Ember, Sir Cedric the knight, and Princess Aria the elf join forces to defeat the Shadow Lord.',
                     'image_prompt' => 'A diverse group of fantasy heroes standing together, determined expressions, epic fantasy art',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-4.png',
+                    'video_url' => '/demo/video/sample4.mp4'
                 ],
                 5 => [
                     'title' => 'The Final Battle',
                     'description' => 'The ultimate showdown against the Shadow Lord. Elara and Ember unleash the ancient Dragon Riders\' power.',
                     'image_prompt' => 'Epic final battle between dragon riders and dark lord, magical explosions, heroic fantasy art',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-5.png',
+                    'video_url' => '/demo/video/sample5.mp4'
                 ]
             ],
             'space' => [
@@ -211,35 +226,35 @@ class DemoController extends Controller
                     'description' => 'On a routine mission to Mars, Captain Drake and his crew discover a mysterious alien artifact buried beneath the surface.',
                     'image_prompt' => 'Astronauts discovering an alien artifact on Mars, dramatic lighting, sci-fi aesthetic',
                     'image_url' => '/demo/images/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'video_url' => '/demo/video/sample1.mp4'
                 ],
                 2 => [
                     'title' => 'The Countdown Begins',
                     'description' => 'The artifact activates, triggering a countdown that could destroy the solar system. The crew must act fast.',
                     'image_prompt' => 'A glowing alien artifact with holographic countdown display, tense atmosphere, sci-fi',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-2.png',
+                    'video_url' => '/demo/video/sample2.mp4'
                 ],
                 3 => [
                     'title' => 'Through the Asteroid Field',
                     'description' => 'The Horizon navigates through a dangerous asteroid field to reach the ancient alien temple on Jupiter\'s moon.',
                     'image_prompt' => 'Spaceship flying through dangerous asteroid field, epic space scene, cinematic lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-3.png',
+                    'video_url' => '/demo/video/sample3.mp4'
                 ],
                 4 => [
                     'title' => 'The Alien Revelation',
                     'description' => 'Inside the temple, the crew discovers the true purpose of the artifact - it\'s a test for humanity.',
                     'image_prompt' => 'Ancient alien temple interior with mysterious technology, atmospheric lighting, sci-fi',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-4.png',
+                    'video_url' => '/demo/video/sample4.mp4'
                 ],
                 5 => [
                     'title' => 'The Ultimate Sacrifice',
                     'description' => 'Captain Drake makes the ultimate sacrifice to save humanity, becoming a legend among the stars.',
                     'image_prompt' => 'Heroic captain making sacrifice to save Earth, dramatic space scene, emotional lighting',
-                    'image_url' => '/demo/images/image-1.png',
-                    'video_url' => '/demo/video/video.mp4'
+                    'image_url' => '/demo/images/image-5.png',
+                    'video_url' => '/demo/video/sample5.mp4'
                 ]
             ]
         ];
@@ -251,35 +266,35 @@ class DemoController extends Controller
                 'description' => 'Our hero embarks on an epic journey that will change their life forever.',
                 'image_prompt' => 'A hero beginning their journey, dramatic sunrise, cinematic composition',
                 'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/videos/video.mp4'
+                'video_url' => '/demo/video/sample1.mp4'
             ],
             2 => [
                 'title' => 'The Challenge',
                 'description' => 'Obstacles arise that test our hero\'s courage and determination.',
                 'image_prompt' => 'Hero facing a difficult challenge, intense moment, dramatic lighting',
-                'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/videos/video.mp4'
+                'image_url' => '/demo/images/image-2.png',
+                'video_url' => '/demo/video/sample2.mp4'
             ],
             3 => [
                 'title' => 'The Turning Point',
                 'description' => 'Everything changes in this pivotal moment of the story.',
                 'image_prompt' => 'A dramatic turning point moment, emotional scene, cinematic quality',
-                'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/video/video.mp4'
+                'image_url' => '/demo/images/image-3.png',
+                'video_url' => '/demo/video/sample3.mp4'
             ],
             4 => [
                 'title' => 'The Triumph',
                 'description' => 'Our hero overcomes the odds and achieves victory.',
                 'image_prompt' => 'Hero achieving victory, triumphant moment, glorious lighting',
-                'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/video/video.mp4'
+                'image_url' => '/demo/images/image-4.png',
+                'video_url' => '/demo/video/sample4.mp4'
             ],
             5 => [
                 'title' => 'The New Beginning',
                 'description' => 'A new chapter begins as the story reaches its conclusion.',
                 'image_prompt' => 'A new beginning, hopeful scene, beautiful sunset',
-                'image_url' => '/demo/images/image-1.png',
-                'video_url' => '/demo/videos//video.mp4'
+                'image_url' => '/demo/images/image-5.png',
+                'video_url' => '/demo/video/sample5.mp4'
             ]
         ];
         
@@ -361,39 +376,38 @@ class DemoController extends Controller
      * Get pre-defined demo video for a specific episode from local storage
      */
     public function getDemoVideo($episodeNumber)
-    {
-        // Use local videos from public directory
-        $demoVideos = [
-            1 => asset('demo/video/episode_1.mp4'),
-            2 => asset('demo/video/episode_2.mp4'),
-            3 => asset('demo/video/episode_3.mp4'),
-            4 => asset('demo/video/episode_4.mp4'),
-            5 => asset('demo/video/episode_5.mp4'),
-        ];
-        
-        // Fallback video if episode number not found
-        $videoUrl = $demoVideos[$episodeNumber] ?? $demoVideos[1];
-        
-        // Check if the video file actually exists
-        $videoPath = public_path('demo/video/episode_' . $episodeNumber . '.mp4');
-        if (!file_exists($videoPath) && $episodeNumber <= 5) {
-            $videoUrl = asset('demo/video/episode_1.mp4');
-        }
-        
-        // For AJAX requests from the modal
+{
+    $videoPath = 'demo/video/episode_1.mp4';
+    $fullPath = public_path($videoPath);
+    
+    // Check if video exists
+    if (!file_exists($fullPath)) {
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
-                'success' => true,
-                'video_url' => $videoUrl
-            ]);
+                'success' => false,
+                'message' => 'Demo video not found.'
+            ], 404);
         }
-        
-        // For direct access - return the video file directly
-        return response()->file(public_path(str_replace(url('/'), '', $videoUrl)), [
-            'Content-Type' => 'video/mp4',
-            'Content-Disposition' => 'inline'
+        abort(404, 'Demo video not found');
+    }
+    
+    $videoUrl = asset($videoPath);
+    
+    // For AJAX requests
+    if (request()->wantsJson() || request()->ajax()) {
+        return response()->json([
+            'success' => true,
+            'video_url' => $videoUrl,
+            'episode_number' => $episodeNumber
         ]);
     }
+    
+    // For direct access
+    return response()->file($fullPath, [
+        'Content-Type' => 'video/mp4',
+        'Content-Disposition' => 'inline'
+    ]);
+}
 
     /**
      * Create demo series for demo user

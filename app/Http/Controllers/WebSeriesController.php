@@ -27,10 +27,29 @@ class WebSeriesController extends Controller
         $this->modelsLabService = $modelsLabService;
     }
     
-     private function isDemoUser()
-    {
-        return Auth::check() && Auth::user()->demo_mode == true;
+    private function isDemoUser()
+{
+    if (!Auth::check()) {
+        return false;
     }
+    
+    $user = Auth::user();
+    $demoMode = $user->demo_mode;
+    
+    // Handle different possible values
+    // Check if demo_mode is true, 'true', 1, '1', or 'yes'
+    $isDemo = in_array($demoMode, [true, 1, '1', 'true', 'yes'], true);
+    
+    // Log for debugging
+    Log::info('isDemoUser check', [
+        'user_id' => $user->id,
+        'demo_mode_raw' => $demoMode,
+        'demo_mode_type' => gettype($demoMode),
+        'result' => $isDemo
+    ]);
+    
+    return $isDemo;
+}
     
     private function getDemoController()
 {
@@ -75,21 +94,58 @@ class WebSeriesController extends Controller
     
     public function generateEpisode1Concept(Request $request, $id)
 {
+    // Log: Method called
+    Log::info('generateEpisode1Concept called', [
+        'series_id' => $id,
+        'user_id' => auth()->id(),
+        'is_demo_user' => $this->isDemoUser(),
+        'request_data' => $request->all()
+    ]);
+    
     if ($this->isDemoUser()) {
+        Log::info('Demo user detected, delegating to DemoController', ['series_id' => $id]);
         $demoController = $this->getDemoController();
         return $demoController->generateConcept($request, $id);
     }
     
     try {
+        // Log: Validation start
+        Log::debug('Validating request for generateEpisode1Concept');
+        
         $request->validate([
             'prompt' => 'required|string|min:10|max:500',
             'episode_number' => 'nullable|integer|min:1'
         ]);
+        
+        // Log: Validation passed
+        Log::debug('Validation passed for generateEpisode1Concept');
 
+        // Log: Fetching series
+        Log::debug('Fetching series from database', ['series_id' => $id]);
+        
         $series = WebSeries::where('user_id', auth()->id())->with('category')->findOrFail($id);
+        
+        Log::info('Series found', [
+            'series_id' => $series->id,
+            'series_name' => $series->project_name,
+            'category_id' => $series->category_id
+        ]);
         
         // Get episode number from request or default to next available
         $episodeNumber = $request->episode_number ?? ($series->episodes()->max('episode_number') + 1);
+        
+        Log::debug('Episode number determined', [
+            'requested_episode' => $request->episode_number,
+            'final_episode_number' => $episodeNumber,
+            'max_existing_episode' => $series->episodes()->max('episode_number')
+        ]);
+        
+        // Log: Generating concept via service
+        Log::info('Calling ModelsLabService to generate concept', [
+            'prompt_length' => strlen($request->prompt),
+            'category_id' => $series->category_id,
+            'project_name' => $series->project_name
+        ]);
         
         $concept = $this->modelsLabService->generateConcept(
             $request->prompt, 
@@ -97,21 +153,45 @@ class WebSeriesController extends Controller
             $series->project_name
         );
         
+        Log::info('Concept generated successfully', [
+            'concept_length' => strlen($concept),
+            'concept_preview' => substr($concept, 0, 100) . '...'
+        ]);
+        
         // Check if episode already exists with this number
+        Log::debug('Checking if episode already exists', [
+            'series_id' => $series->id,
+            'episode_number' => $episodeNumber
+        ]);
+        
         $episode = Episode::where('web_series_id', $series->id)
             ->where('episode_number', $episodeNumber)
             ->first();
         
         if ($episode) {
             // Update existing episode
+            Log::info('Updating existing episode', [
+                'episode_id' => $episode->id,
+                'episode_number' => $episodeNumber,
+                'old_title' => $episode->title
+            ]);
+            
             $episode->update([
                 'title' => 'Episode ' . $episodeNumber,
                 'prompt' => $request->prompt,
                 'concept' => $concept,
                 'status' => 'concept_ready'
             ]);
+            
+            Log::info('Episode updated successfully', ['episode_id' => $episode->id]);
         } else {
             // Create new episode
+            Log::info('Creating new episode', [
+                'series_id' => $series->id,
+                'episode_number' => $episodeNumber,
+                'user_id' => auth()->id()
+            ]);
+            
             $episode = Episode::create([
                 'web_series_id' => $series->id,
                 'user_id' => auth()->id(),
@@ -122,11 +202,27 @@ class WebSeriesController extends Controller
                 'status' => 'concept_ready',
                 'total_scenes' => 0
             ]);
+            
+            Log::info('Episode created successfully', [
+                'episode_id' => $episode->id,
+                'episode_number' => $episodeNumber
+            ]);
         }
+        
+        // Update series
+        Log::debug('Updating series with generated concept', ['series_id' => $series->id]);
         
         $series->update([
             'concept' => $concept,
             'status' => 'concept_generated'
+        ]);
+        
+        Log::info('Series updated successfully', ['series_id' => $series->id]);
+
+        // Log: Success response
+        Log::info('generateEpisode1Concept completed successfully', [
+            'episode_id' => $episode->id,
+            'episode_number' => $episodeNumber
         ]);
 
         return response()->json([
@@ -137,8 +233,43 @@ class WebSeriesController extends Controller
             'message' => 'Concept generated for Episode ' . $episodeNumber . '!'
         ]);
 
+    } catch (\Illuminate\Validation\ValidationException $e) {
+        // Log: Validation error
+        Log::warning('Validation failed in generateEpisode1Concept', [
+            'errors' => $e->errors(),
+            'request_data' => $request->all()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation failed: ' . $e->getMessage(),
+            'errors' => $e->errors()
+        ], 422);
+        
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        // Log: Series not found
+        Log::error('Series not found in generateEpisode1Concept', [
+            'series_id' => $id,
+            'user_id' => auth()->id(),
+            'error' => $e->getMessage()
+        ]);
+        
+        return response()->json([
+            'success' => false,
+            'message' => 'Series not found or you do not have permission to access it'
+        ], 404);
+        
     } catch (\Exception $e) {
-        Log::error('Generate concept error: ' . $e->getMessage());
+        // Log: General error
+        Log::error('Unexpected error in generateEpisode1Concept', [
+            'series_id' => $id,
+            'user_id' => auth()->id(),
+            'error_message' => $e->getMessage(),
+            'error_file' => $e->getFile(),
+            'error_line' => $e->getLine(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
         return response()->json([
             'success' => false,
             'message' => 'Failed to generate concept: ' . $e->getMessage()
@@ -686,15 +817,20 @@ public function storeEpisode(Request $request, $seriesId)
             ->with('success', 'Episode deleted successfully!');
     }
     
-    public function dashboard()
-    {
-        if ($this->isDemoUser()) {
-            $demoController = $this->getDemoController();
-            return $demoController->getDashboardView();
-        }
-        
+    /**
+ * Display the user dashboard
+ */
+public function dashboard()
+{
+    if ($this->isDemoUser()) {
+        $demoController = $this->getDemoController();
+        return $demoController->getDashboardView();
+    }
+    
+    try {
         $userId = auth()->id();
         
+        // Get user's series statistics
         $mySeriesCount = WebSeries::where('user_id', $userId)->count();
         $myEpisodesCount = Episode::whereHas('webSeries', function($q) use ($userId) {
             $q->where('user_id', $userId);
@@ -705,21 +841,29 @@ public function storeEpisode(Request $request, $seriesId)
         $completedSeries = WebSeries::where('user_id', $userId)
             ->where('status', 'completed')->count();
         
+        // Calculate completion rate
         $completionRate = $mySeriesCount > 0 ? round(($completedSeries / $mySeriesCount) * 100) : 0;
         
+        // Get available credits
+        $availableCredits = auth()->user()->credits ?? 0;
+        
+        // Prepare stats array
         $stats = [
             'total_series' => $mySeriesCount,
             'total_episodes' => $myEpisodesCount,
             'total_scenes' => $myScenesCount,
-            'completed_series' => $completedSeries
+            'completed_series' => $completedSeries,
+            'available_credits' => $availableCredits
         ];
         
+        // Get user's web series
         $webSeries = WebSeries::where('user_id', $userId)
             ->with('category')
             ->withCount('episodes')
             ->latest()
             ->paginate(12);
         
+        // Get trending categories
         $trendingCategories = Category::with('template')
             ->where('is_active', true)
             ->withCount('webSeries')
@@ -727,6 +871,7 @@ public function storeEpisode(Request $request, $seriesId)
             ->take(10)
             ->get();
         
+        // If no trending categories found, get active categories
         if ($trendingCategories->count() == 0) {
             $trendingCategories = Category::with('template')
                 ->where('is_active', true)
@@ -734,6 +879,7 @@ public function storeEpisode(Request $request, $seriesId)
                 ->take(10)
                 ->get();
             
+            // Add random series count for demo
             foreach ($trendingCategories as $index => $category) {
                 $category->series_count = rand(5, 50);
             }
@@ -743,6 +889,7 @@ public function storeEpisode(Request $request, $seriesId)
             }
         }
         
+        // Get recommended series based on user's categories
         $recommendedSeries = collect();
         
         $userCategoryIds = WebSeries::where('user_id', $userId)
@@ -762,6 +909,7 @@ public function storeEpisode(Request $request, $seriesId)
                 ->get();
         }
         
+        // If not enough recommendations, get popular series
         if ($recommendedSeries->count() < 6) {
             $needed = 10 - $recommendedSeries->count();
             $existingIds = $recommendedSeries->pluck('id')->toArray();
@@ -778,20 +926,68 @@ public function storeEpisode(Request $request, $seriesId)
             $recommendedSeries = $recommendedSeries->merge($popularSeries);
         }
         
+        // Add random views and ratings for display
         foreach ($recommendedSeries as $series) {
             $series->views_count = rand(100, 5000);
             $series->rating = rand(40, 50) / 10;
         }
         
+        // Get total users count
         $totalUsers = \App\Models\User::count();
         $avgRating = 4.9;
         
         return view('web-series.dashboard', compact(
-            'webSeries', 'stats', 'trendingCategories',
-            'mySeriesCount', 'myEpisodesCount', 'myScenesCount',
-            'completedSeries', 'completionRate', 'totalUsers', 'avgRating', 'recommendedSeries'
+            'webSeries',
+            'stats',
+            'trendingCategories',
+            'mySeriesCount',
+            'myEpisodesCount',
+            'myScenesCount',
+            'completedSeries',
+            'completionRate',
+            'totalUsers',
+            'avgRating',
+            'recommendedSeries'
+        ));
+        
+    } catch (\Exception $e) {
+        Log::error('Dashboard error: ' . $e->getMessage());
+        
+        // Fallback data
+        $stats = [
+            'total_series' => 0,
+            'total_episodes' => 0,
+            'total_scenes' => 0,
+            'completed_series' => 0,
+            'available_credits' => 0
+        ];
+        
+        $webSeries = collect();
+        $trendingCategories = collect();
+        $recommendedSeries = collect();
+        $completionRate = 0;
+        $mySeriesCount = 0;
+        $myEpisodesCount = 0;
+        $myScenesCount = 0;
+        $completedSeries = 0;
+        $totalUsers = 1;
+        $avgRating = 4.5;
+        
+        return view('web-series.dashboard', compact(
+            'webSeries',
+            'stats',
+            'trendingCategories',
+            'mySeriesCount',
+            'myEpisodesCount',
+            'myScenesCount',
+            'completedSeries',
+            'completionRate',
+            'totalUsers',
+            'avgRating',
+            'recommendedSeries'
         ));
     }
+}
     
     public function destroy($id)
     {
@@ -1107,42 +1303,44 @@ public function storeEpisode(Request $request, $seriesId)
     }
     
     public function getDashboardStats()
-    {
-        if ($this->isDemoUser()) {
-            $demoController = $this->getDemoController();
-            return $demoController->getDashboardStats();
-        }
-        
-        try {
-            $userId = auth()->id();
-            
-            $totalSeries = WebSeries::where('user_id', $userId)->count();
-            $totalEpisodes = Episode::whereHas('webSeries', function($q) use ($userId) {
-                $q->where('user_id', $userId);
-            })->count();
-            $completedSeries = WebSeries::where('user_id', $userId)
-                ->where('status', 'completed')->count();
-            
-            $completionRate = $totalSeries > 0 ? round(($completedSeries / $totalSeries) * 100) : 0;
-            $availableCredits = auth()->user()->credits ?? 0;
-            
-            return response()->json([
-                'success' => true,
-                'stats' => [
-                    'total_series' => $totalSeries,
-                    'total_episodes' => $totalEpisodes,
-                    'available_credits' => $availableCredits,
-                    'completion_rate' => $completionRate,
-                    'completed_series' => $completedSeries
-                ]
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
-        }
+{
+    if ($this->isDemoUser()) {
+        $demoController = $this->getDemoController();
+        return $demoController->getDashboardStats();
     }
+    
+    try {
+        $userId = auth()->id();
+        
+        $totalSeries = WebSeries::where('user_id', $userId)->count();
+        $totalEpisodes = Episode::whereHas('webSeries', function($q) use ($userId) {
+            $q->where('user_id', $userId);
+        })->count();
+        $completedSeries = WebSeries::where('user_id', $userId)
+            ->where('status', 'completed')->count();
+        
+        $completionRate = $totalSeries > 0 ? round(($completedSeries / $totalSeries) * 100) : 0;
+        $availableCredits = auth()->user()->credits ?? 0;
+        
+        return response()->json([
+            'success' => true,
+            'stats' => [
+                'total_series' => $totalSeries,
+                'total_episodes' => $totalEpisodes,
+                'available_credits' => $availableCredits,
+                'completion_rate' => $completionRate,
+                'completed_series' => $completedSeries
+            ]
+        ]);
+    } catch (\Exception $e) {
+        Log::error('Get dashboard stats error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
+    }
+}
+    
     
     public function getRecentSeries()
     {

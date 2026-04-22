@@ -1,4 +1,3 @@
-{{-- resources/views/web-series/create.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -33,118 +32,85 @@
 
         <!-- Step 1: Create Series -->
         <div id="step1" class="bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-800 p-8 transform transition-all duration-500 hover:border-purple-500/50">
-    <div class="flex items-center gap-3 mb-6">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
-            <i class="fas fa-tv text-white text-lg"></i>
-        </div>
-        <h2 class="text-2xl font-bold text-white">Create Your Series</h2>
-    </div>
-    
-    <form id="projectForm">
-        @csrf
-        <div class="mb-6">
-            <label class="block text-white font-semibold mb-2 flex items-center gap-2">
-                <i class="fas fa-heading text-purple-400 text-sm"></i>
-                Series Name
-            </label>
-            <input type="text" id="project_name" required 
-                   placeholder="e.g., The Chronicles of AI, Future Tales, Mystery Manor"
-                   class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
-            <p class="text-gray-500 text-xs mt-2">Give your web series a unique and memorable title</p>
-        </div>
-        
-        <div class="mb-8">
-            <label class="block text-white font-semibold mb-3 flex items-center gap-2">
-                <i class="fas fa-tags text-purple-400 text-sm"></i>
-                Select Genre
-            </label>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                @foreach($categories as $category)
-                @php
-                    // Get category template image
-                    $template = \App\Models\CategoryTemplate::where('category_id', $category->id)
-                        ->where('is_active', true)
-                        ->first();
-                    
-                    $imageUrl = null;
-                    if ($template && $template->init_image) {
-                        $imagePath = str_replace(['/public/', 'public/'], '', $template->init_image);
-                        $imagePath = ltrim($imagePath, '/');
-                        if (file_exists(public_path($imagePath))) {
-                            $imageUrl = asset($imagePath);
-                        }
-                    }
-                @endphp
-                <label class="category-card cursor-pointer group">
-                    <input type="radio" name="category_id" value="{{ $category->id }}" class="hidden peer" required>
-                    <div class="relative overflow-hidden rounded-xl border-2 border-gray-700 bg-gray-800/30 transition-all duration-300 peer-checked:border-purple-500 peer-checked:bg-purple-500/20 peer-checked:shadow-lg hover:border-gray-500 hover:bg-gray-700/50 cursor-pointer">
-                        <!-- Category Image -->
-                        <div class="relative h-32 overflow-hidden">
-                            @if($imageUrl)
-                                <img src="{{ $imageUrl }}" 
-                                     alt="{{ $category->name }}" 
-                                     class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                            @else
-                                <div class="w-full h-full bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
-                                    <i class="fas {{ $category->icon ?? 'fa-tag' }} text-4xl text-purple-400/70"></i>
-                                </div>
-                            @endif
-                            
-                            <!-- Checkmark overlay for selected -->
-                            <div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-purple-500 scale-0 peer-checked:scale-100 transition-transform duration-300 flex items-center justify-center shadow-lg z-10">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        
-                        <!-- Category Info -->
-                        <div class="p-3 text-center">
-                            <div class="text-white font-semibold text-sm">{{ $category->name }}</div>
-                        </div>
-                    </div>
-                </label>
-                @endforeach
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-tv text-white text-lg"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Create Your Series</h2>
             </div>
-            <p class="text-gray-500 text-xs mt-3">Choose the genre that best fits your story</p>
+            
+            <form id="projectForm">
+                @csrf
+                <div class="mb-6">
+                    <label class="block text-white font-semibold mb-2 flex items-center gap-2">
+                        <i class="fas fa-heading text-purple-400 text-sm"></i>
+                        Series Name
+                    </label>
+                    <input type="text" id="project_name" required 
+                           placeholder="e.g., The Chronicles of AI, Future Tales, Mystery Manor"
+                           class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300">
+                    <p class="text-gray-500 text-xs mt-2">Give your web series a unique and memorable title</p>
+                </div>
+                
+                <div class="mb-8">
+                    <label class="block text-white font-semibold mb-3 flex items-center gap-2">
+                        <i class="fas fa-tags text-purple-400 text-sm"></i>
+                        Select Genre
+                    </label>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                        @foreach($categories as $category)
+                        @php
+                            $template = \App\Models\CategoryTemplate::where('category_id', $category->id)
+                                ->where('is_active', true)
+                                ->first();
+                            
+                            $imageUrl = null;
+                            if ($template && $template->init_image) {
+                                $imagePath = str_replace(['/public/', 'public/'], '', $template->init_image);
+                                $imagePath = ltrim($imagePath, '/');
+                                if (file_exists(public_path($imagePath))) {
+                                    $imageUrl = asset($imagePath);
+                                }
+                            }
+                        @endphp
+                        <label class="category-card cursor-pointer group">
+                            <input type="radio" name="category_id" value="{{ $category->id }}" class="hidden peer" required>
+                            <div class="relative overflow-hidden rounded-xl border-2 border-gray-700 bg-gray-800/30 transition-all duration-300 peer-checked:border-purple-500 peer-checked:bg-purple-500/20 peer-checked:shadow-lg hover:border-gray-500 hover:bg-gray-700/50 cursor-pointer">
+                                <div class="relative h-32 overflow-hidden">
+                                    @if($imageUrl)
+                                        <img src="{{ $imageUrl }}" 
+                                             alt="{{ $category->name }}" 
+                                             class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
+                                    @else
+                                        <div class="w-full h-full bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
+                                            <i class="fas {{ $category->icon ?? 'fa-tag' }} text-4xl text-purple-400/70"></i>
+                                        </div>
+                                    @endif
+                                    
+                                    <div class="absolute top-2 right-2 w-6 h-6 rounded-full bg-purple-500 scale-0 peer-checked:scale-100 transition-transform duration-300 flex items-center justify-center shadow-lg z-10">
+                                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="p-3 text-center">
+                                    <div class="text-white font-semibold text-sm">{{ $category->name }}</div>
+                                </div>
+                            </div>
+                        </label>
+                        @endforeach
+                    </div>
+                    <p class="text-gray-500 text-xs mt-3">Choose the genre that best fits your story</p>
+                </div>
+                
+                <button type="submit" 
+                        class="group w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-pink-500/25 hover:scale-[1.02]">
+                    <span>Create Series</span>
+                    <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </form>
         </div>
-        
-        <button type="submit" 
-                class="group w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-pink-500/25 hover:scale-[1.02]">
-            <span>Create Series</span>
-            <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-        </button>
-    </form>
-</div>
-
-<style>
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.category-card {
-    transition: all 0.3s ease;
-}
-
-.category-card:hover {
-    transform: translateY(-3px);
-}
-
-/* Custom radio styling */
-.peer:checked ~ div {
-    border-color: #8b5cf6;
-    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
-}
-
-/* Gradient overlay */
-.bg-gradient-to-t {
-    background-image: linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0));
-}
-</style>
 
         <!-- Step 2: Add Prompt for Episode 1 -->
         <div id="step2" class="hidden bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-800 p-8">
@@ -186,7 +152,7 @@
             </form>
         </div>
 
-        <!-- Step 3: Review & Edit Concept Only (No original prompt, no character counter) -->
+        <!-- Step 3: Review & Edit Concept -->
         <div id="step3" class="hidden bg-gray-900/50 backdrop-blur-lg rounded-2xl border border-gray-800 p-8">
             <div class="flex items-center gap-3 mb-6">
                 <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
@@ -225,10 +191,9 @@
     </div>
 </div>
 
-<!-- Full Page Loader with Success Animation -->
+<!-- Full Page Loader with Changing Text -->
 <div id="fullPageLoader" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[100] hidden items-center justify-center">
     <div class="text-center transform transition-all duration-500 scale-95" id="loaderContent">
-        <!-- Spinner Container -->
         <div id="spinnerContainer" class="mb-8">
             <div class="relative w-32 h-32 mx-auto">
                 <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
@@ -241,7 +206,6 @@
             </div>
         </div>
         
-        <!-- Success Checkmark Container (Hidden initially) -->
         <div id="successContainer" class="hidden mb-8">
             <div class="relative w-32 h-32 mx-auto">
                 <div class="absolute inset-0 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full animate-ping opacity-75"></div>
@@ -254,25 +218,19 @@
             </div>
         </div>
         
-        <!-- AI Working Badge -->
         <div id="workingBadge" class="inline-flex items-center gap-2 bg-purple-500/20 backdrop-blur-sm px-4 py-2 rounded-full mb-4 border border-purple-500/30">
             <div class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></div>
             <span class="text-purple-400 text-sm font-medium">AI WORKING</span>
         </div>
         
-        <!-- Success Badge (Hidden initially) -->
         <div id="successBadge" class="hidden inline-flex items-center gap-2 bg-green-500/20 backdrop-blur-sm px-4 py-2 rounded-full mb-4 border border-green-500/30">
             <div class="w-2 h-2 rounded-full bg-green-400"></div>
             <span class="text-green-400 text-sm font-medium">COMPLETE!</span>
         </div>
         
-        <!-- Title -->
         <h2 id="loaderTitle" class="text-3xl font-bold text-white mb-3">Creating Your Segments</h2>
-        
-        <!-- Subtitle -->
         <p id="loaderMessage" class="text-gray-400 text-lg mb-6">Our AI is generating 5 unique segments for your episode</p>
         
-        <!-- Animated Progress Bar -->
         <div class="max-w-md mx-auto">
             <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
                 <div id="progressBarFill" class="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500 rounded-full transition-all duration-300" style="width: 0%; background-size: 200% 100%;"></div>
@@ -311,6 +269,7 @@ let currentSeriesId = null;
 let currentEpisodeId = null;
 let currentPrompt = '';
 let currentConcept = '';
+let loaderTextInterval = null;
 
 // Character counter for prompt only
 document.addEventListener('input', function(e) {
@@ -366,7 +325,7 @@ async function apiCall(url, method, data) {
     }
 }
 
-// Show full page loader with animation
+// Full Page Loader with Changing Text
 function showFullPageLoader() {
     const loader = document.getElementById('fullPageLoader');
     const content = document.getElementById('loaderContent');
@@ -376,10 +335,18 @@ function showFullPageLoader() {
         content.classList.remove('scale-95');
         content.classList.add('scale-100');
     }, 10);
+    
+    // Start changing text every 2 seconds
+    startLoaderTextRotation();
 }
 
-// Hide full page loader
 function hideFullPageLoader() {
+    // Clear text rotation interval
+    if (loaderTextInterval) {
+        clearInterval(loaderTextInterval);
+        loaderTextInterval = null;
+    }
+    
     const loader = document.getElementById('fullPageLoader');
     const content = document.getElementById('loaderContent');
     content.classList.remove('scale-100');
@@ -390,22 +357,72 @@ function hideFullPageLoader() {
     }, 300);
 }
 
-// Update loader progress
-function updateLoaderProgress(step, message) {
-    const progressSteps = {
-        1: 'Saving your concept...',
-        2: 'Analyzing story elements...',
-        3: 'Creating segment structures...',
-        4: 'Generating segment details...',
-        5: 'Finalizing your episode...'
-    };
+function startLoaderTextRotation() {
+    // Clear existing interval
+    if (loaderTextInterval) {
+        clearInterval(loaderTextInterval);
+    }
     
-    const progressPercent = (step / 5) * 100;
-    document.getElementById('progressBarFill').style.width = progressPercent + '%';
-    document.getElementById('progressText').textContent = message || progressSteps[step] || 'Processing...';
+    const messages = [
+        "Analyzing your story concept...",
+        "Creating unique characters...",
+        "Building engaging plot twists...",
+        "Developing emotional scenes...",
+        "Structuring your narrative...",
+        "Adding creative details...",
+        "Polishing your episode...",
+        "Almost there...",
+        "Finalizing your segments..."
+    ];
+    
+    let messageIndex = 0;
+    const messageElement = document.getElementById('loaderMessage');
+    const titleElement = document.getElementById('loaderTitle');
+    
+    const titles = [
+        "Creating Your Segments",
+        "Building Story Elements",
+        "Developing Characters",
+        "Crafting Plot",
+        "Adding Emotion",
+        "Structuring Narrative",
+        "Polishing Details",
+        "Almost Ready",
+        "Finalizing"
+    ];
+    
+    // Change text every 2 seconds
+    loaderTextInterval = setInterval(() => {
+        if (messageElement) {
+            messageIndex = (messageIndex + 1) % messages.length;
+            messageElement.textContent = messages[messageIndex];
+            
+            // Fade animation
+            messageElement.style.opacity = '0';
+            setTimeout(() => {
+                if (messageElement) messageElement.style.opacity = '1';
+            }, 200);
+            
+            // Update title occasionally
+            if (titleElement && messageIndex % 2 === 0) {
+                titleElement.style.opacity = '0';
+                setTimeout(() => {
+                    if (titleElement) {
+                        titleElement.textContent = titles[messageIndex];
+                        titleElement.style.opacity = '1';
+                    }
+                }, 200);
+            }
+        }
+    }, 2000);
 }
 
-// Show success animation then redirect
+function updateLoaderProgress(step, message) {
+    const progressPercent = (step / 5) * 100;
+    document.getElementById('progressBarFill').style.width = progressPercent + '%';
+    document.getElementById('progressText').textContent = message || 'Processing...';
+}
+
 async function showSuccessAndRedirect(redirectUrl) {
     const spinnerContainer = document.getElementById('spinnerContainer');
     const successContainer = document.getElementById('successContainer');
@@ -493,7 +510,6 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
         if (result.success) {
             currentConcept = result.concept;
             currentEpisodeId = result.episode_id;
-            
             document.getElementById('concept').value = currentConcept;
             
             // Simulate progress steps
@@ -509,7 +525,6 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
             updateLoaderMessage('Finalizing your concept...');
             await new Promise(resolve => setTimeout(resolve, 600));
             
-            // Hide loader and switch step
             hideConceptLoader();
             switchStep(3);
         } else {
@@ -527,21 +542,14 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
 
 // Show concept loader
 function showConceptLoader() {
-    // Remove existing loader if any
     const existingLoader = document.getElementById('conceptLoader');
-    if (existingLoader) {
-        existingLoader.remove();
-    }
+    if (existingLoader) existingLoader.remove();
     
-    // Clear any existing interval
-    if (window.conceptTextInterval) {
-        clearInterval(window.conceptTextInterval);
-    }
+    if (window.conceptTextInterval) clearInterval(window.conceptTextInterval);
     
-    // Create loader HTML with your design
     const loaderHTML = `
         <div id="conceptLoader" class="fixed inset-0 bg-black/95 backdrop-blur-xl z-[200] flex items-center justify-center">
-            <div class="text-center transform transition-all duration-300 scale-100">
+            <div class="text-center">
                 <div class="relative w-32 h-32 mx-auto mb-6">
                     <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
                     <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 border-b-purple-500 border-l-pink-500 rounded-full animate-spin"></div>
@@ -552,14 +560,14 @@ function showConceptLoader() {
                     </div>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
-                <p id="loaderMessage" class="text-gray-400 text-lg">Creating your unique concept...</p>
+                <p id="conceptLoaderMessage" class="text-gray-400 text-lg">Creating your unique concept...</p>
                 <div class="flex gap-2 justify-center mt-4">
                     <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0s"></div>
                     <div class="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 0.2s"></div>
                     <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0.4s"></div>
                 </div>
                 <div class="mt-6 w-64 h-1.5 bg-gray-700 rounded-full overflow-hidden mx-auto">
-                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-progress" style="width: 0%; animation: progress 8s ease-out forwards;"></div>
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full animate-progress" style="width: 0%; animation: progress 6s ease-out forwards;"></div>
                 </div>
                 <p class="text-gray-500 text-sm mt-4">Please wait...</p>
             </div>
@@ -568,8 +576,7 @@ function showConceptLoader() {
     
     document.body.insertAdjacentHTML('beforeend', loaderHTML);
     
-    // Array of messages to cycle through
-    const messages = [
+    const conceptMessages = [
         "Creating your unique concept...",
         "Analyzing story elements...",
         "Building character arcs...",
@@ -577,29 +584,24 @@ function showConceptLoader() {
         "Developing emotional moments...",
         "Structuring your narrative...",
         "Adding creative details...",
-        "Polishing your story...",
         "Almost there...",
         "Finalizing your concept!"
     ];
     
-    let messageIndex = 0;
-    const messageElement = document.getElementById('loaderMessage');
+    let msgIndex = 0;
+    const msgElement = document.getElementById('conceptLoaderMessage');
     
-    // Change text every 2 seconds
     window.conceptTextInterval = setInterval(() => {
-        if (messageElement) {
-            messageIndex = (messageIndex + 1) % messages.length;
-            messageElement.textContent = messages[messageIndex];
-            
-            // Add fade animation
-            messageElement.style.opacity = '0';
+        if (msgElement) {
+            msgIndex = (msgIndex + 1) % conceptMessages.length;
+            msgElement.textContent = conceptMessages[msgIndex];
+            msgElement.style.opacity = '0';
             setTimeout(() => {
-                if (messageElement) messageElement.style.opacity = '1';
+                if (msgElement) msgElement.style.opacity = '1';
             }, 200);
         }
     }, 2000);
     
-    // Add animation styles if not present
     if (!document.querySelector('#loaderStyles')) {
         const style = document.createElement('style');
         style.id = 'loaderStyles';
@@ -620,74 +622,30 @@ function showConceptLoader() {
             .animate-spin { animation: spin 1s linear infinite; }
             .animate-bounce { animation: bounce 0.8s ease-in-out infinite; }
             .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
-            .animate-progress { animation: progress 8s ease-out forwards; }
-            #loaderMessage {
-                transition: opacity 0.2s ease-in-out;
-                min-height: 60px;
-            }
+            .animate-progress { animation: progress 6s ease-out forwards; }
+            #conceptLoaderMessage { transition: opacity 0.2s ease-in-out; min-height: 60px; }
         `;
         document.head.appendChild(style);
     }
 }
 
 function hideConceptLoader() {
-    // Clear interval
     if (window.conceptTextInterval) {
         clearInterval(window.conceptTextInterval);
         window.conceptTextInterval = null;
     }
-    
-    // Remove loader with fade effect
     const loader = document.getElementById('conceptLoader');
     if (loader) {
         loader.style.opacity = '0';
         loader.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            loader.remove();
-        }, 300);
+        setTimeout(() => loader.remove(), 300);
     }
 }
 
-function hideConceptLoader() {
-    // Clear intervals
-    if (window.conceptTextInterval) {
-        clearInterval(window.conceptTextInterval);
-        window.conceptTextInterval = null;
-    }
-    if (window.conceptTimerInterval) {
-        clearInterval(window.conceptTimerInterval);
-        window.conceptTimerInterval = null;
-    }
-    
-    // Remove loader with fade effect
-    const loader = document.getElementById('conceptLoader');
-    if (loader) {
-        loader.style.opacity = '0';
-        loader.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            loader.remove();
-        }, 300);
-    }
-}
-
-// Update loader message
 function updateLoaderMessage(message) {
     const loaderMessage = document.getElementById('loaderMessage');
     if (loaderMessage) {
         loaderMessage.textContent = message;
-    }
-}
-
-// Hide concept loader
-function hideConceptLoader() {
-    const loader = document.getElementById('conceptLoader');
-    if (loader) {
-        // Add fade out effect
-        loader.style.opacity = '0';
-        loader.style.transition = 'opacity 0.3s ease';
-        setTimeout(() => {
-            loader.remove();
-        }, 300);
     }
 }
 
@@ -703,6 +661,8 @@ document.getElementById('regenerateConceptBtn')?.addEventListener('click', async
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Regenerating...';
     btn.disabled = true;
     
+    showConceptLoader();
+    
     try {
         const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
             prompt: currentPrompt
@@ -711,11 +671,15 @@ document.getElementById('regenerateConceptBtn')?.addEventListener('click', async
         if (result.success) {
             currentConcept = result.concept;
             document.getElementById('concept').value = currentConcept;
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            hideConceptLoader();
             alert('✅ Concept regenerated successfully!');
         } else {
+            hideConceptLoader();
             alert('Error: ' + result.message);
         }
     } catch (error) { 
+        hideConceptLoader();
         alert('Error: ' + error.message);
     } finally {
         btn.innerHTML = originalText;
@@ -810,6 +774,8 @@ async function saveEditedPromptAndRegenerate() {
         btn.disabled = true;
     }
     
+    showConceptLoader();
+    
     try {
         const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
             prompt: currentPrompt
@@ -818,11 +784,15 @@ async function saveEditedPromptAndRegenerate() {
         if (result.success) {
             currentConcept = result.concept;
             document.getElementById('concept').value = currentConcept;
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            hideConceptLoader();
             alert('✅ Concept regenerated with your new prompt!');
         } else {
+            hideConceptLoader();
             alert('Error: ' + result.message);
         }
     } catch (error) { 
+        hideConceptLoader();
         alert('Error: ' + error.message);
     } finally {
         if (btn) {
@@ -884,252 +854,6 @@ function switchStep(step) {
         }
     }
 }
-
-// Add this to your create.blade.php script section
-
-// Check if user is demo user
-const isDemoUser = {{ auth()->check() && auth()->user()->demo_mode ? 'true' : 'false' }};
-
-// Step 2: Generate Concept with delay for demo user
-document.getElementById('promptForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    if (!currentSeriesId) {
-        alert('Please create a series first');
-        return;
-    }
-    
-    currentPrompt = document.getElementById('prompt').value;
-    if (currentPrompt.length < 10) {
-        alert('Please enter a more detailed prompt (minimum 10 characters)');
-        return;
-    }
-    
-    const btn = document.getElementById('generateConceptBtn');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-    btn.disabled = true;
-    
-    try {
-        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
-            prompt: currentPrompt
-        });
-        
-        if (result.success) {
-            currentConcept = result.concept;
-            currentEpisodeId = result.episode_id;
-            
-            // Safely set values - check if elements exist first
-            const conceptElement = document.getElementById('concept');
-            if (conceptElement) {
-                conceptElement.value = currentConcept;
-            }
-            
-            const charCountElement = document.getElementById('charCount');
-            if (charCountElement) {
-                charCountElement.textContent = currentConcept.length + '/600 characters';
-            }
-            
-            const originalPromptElement = document.getElementById('originalPromptDisplay');
-            if (originalPromptElement) {
-                originalPromptElement.textContent = currentPrompt;
-            }
-            
-            // For demo user, add delay before showing concept
-            if (isDemoUser) {
-                // Show loading animation
-                showConceptLoading();
-                
-                // Wait 5 seconds
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                
-                // Hide loading and show concept
-                hideConceptLoading();
-            }
-            
-            switchStep(3);
-        } else {
-            alert('Error: ' + result.message);
-        }
-    } catch (error) { 
-        alert('Error: ' + error.message);
-    } finally {
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-    }
-});
-
-// Show loading animation on concept area
-function showConceptLoading() {
-    // Remove existing loading if any
-    const existingLoading = document.getElementById('conceptLoading');
-    if (existingLoading) {
-        existingLoading.remove();
-    }
-    
-    // Clear any existing interval
-    if (window.conceptTextInterval) {
-        clearInterval(window.conceptTextInterval);
-    }
-    
-    // Create loading overlay
-    const loadingDiv = document.createElement('div');
-    loadingDiv.id = 'conceptLoading';
-    loadingDiv.className = 'fixed inset-0 bg-black/90 backdrop-blur-md z-[200] flex items-center justify-center';
-    loadingDiv.innerHTML = `
-        <div class="text-center transform transition-all duration-300 scale-100">
-            <div class="relative w-32 h-32 mx-auto mb-6">
-                <div class="absolute inset-0 border-4 border-purple-500/20 rounded-full"></div>
-                <div class="absolute inset-0 border-4 border-t-purple-500 border-r-pink-500 border-b-purple-500 border-l-pink-500 rounded-full animate-spin"></div>
-                <div class="absolute inset-2 border-2 border-purple-500/10 rounded-full"></div>
-                <div class="absolute inset-4 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <i class="fas fa-brain text-purple-400 text-4xl animate-pulse"></i>
-                </div>
-            </div>
-            <h3 class="text-2xl font-bold text-white mb-2">AI is Thinking</h3>
-            <p id="conceptLoadingText" class="text-gray-400">Creating your unique concept...</p>
-            <div class="flex gap-2 justify-center mt-4">
-                <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0s"></div>
-                <div class="w-2 h-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 0.2s"></div>
-                <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce" style="animation-delay: 0.4s"></div>
-            </div>
-            <p class="text-gray-500 text-sm mt-4">Please wait...</p>
-        </div>
-    `;
-    
-    document.body.appendChild(loadingDiv);
-    
-    // Array of messages to cycle through
-    const messages = [
-        "Creating your unique concept...",
-        "Analyzing story elements...",
-        "Building character arcs...",
-        "Crafting engaging plot twists...",
-        "Developing emotional moments...",
-        "Structuring your narrative...",
-        "Adding creative details...",
-        "Almost there...",
-        "Finalizing your concept..."
-    ];
-    
-    let messageIndex = 0;
-    const textElement = document.getElementById('conceptLoadingText');
-    
-    // Change text every 2 seconds
-    window.conceptTextInterval = setInterval(() => {
-        if (textElement) {
-            messageIndex = (messageIndex + 1) % messages.length;
-            textElement.textContent = messages[messageIndex];
-            
-            // Add a subtle fade animation
-            textElement.style.opacity = '0';
-            setTimeout(() => {
-                if (textElement) textElement.style.opacity = '1';
-            }, 200);
-        }
-    }, 2000);
-    
-    // Add animation styles if not already present
-    if (!document.querySelector('#conceptLoadingStyles')) {
-        const style = document.createElement('style');
-        style.id = 'conceptLoadingStyles';
-        style.textContent = `
-            @keyframes bounce {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-10px); }
-            }
-            .animate-bounce {
-                animation: bounce 0.8s ease-in-out infinite;
-            }
-            #conceptLoadingText {
-                transition: opacity 0.2s ease-in-out;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
-
-function hideConceptLoading() {
-    // Clear the interval
-    if (window.conceptTextInterval) {
-        clearInterval(window.conceptTextInterval);
-        window.conceptTextInterval = null;
-    }
-    
-    // Remove the loading element
-    const loadingElement = document.getElementById('conceptLoading');
-    if (loadingElement) {
-        loadingElement.remove();
-    }
-}
-
-// Hide loading animation
-function hideConceptLoading() {
-    const loadingDiv = document.getElementById('conceptLoading');
-    if (loadingDiv) {
-        loadingDiv.remove();
-    }
-}
-
-// Update switchStep function to safely handle elements
-function switchStep(step) {
-    // Hide loading if any
-    hideConceptLoading();
-    
-    for(let i = 1; i <= 4; i++) {
-        const div = document.getElementById(`step${i}`);
-        if(div) div.classList.add('hidden');
-        
-        const indicator = document.getElementById(`step${i}Indicator`);
-        if(indicator) {
-            const circle = indicator.querySelector('div');
-            const text = indicator.querySelector('span');
-            
-            if(i < step) {
-                if(circle) {
-                    circle.classList.remove('bg-gray-700', 'text-gray-400');
-                    circle.classList.add('bg-green-600', 'text-white');
-                    circle.innerHTML = '✓';
-                }
-                if(text) text.classList.remove('text-gray-400');
-                if(text) text.classList.add('text-white');
-            } else if(i === step) {
-                if(circle) {
-                    circle.classList.remove('bg-gray-700', 'text-gray-400', 'bg-green-600');
-                    circle.classList.add('bg-purple-600', 'text-white');
-                    circle.innerHTML = step;
-                }
-                if(text) text.classList.remove('text-gray-400');
-                if(text) text.classList.add('text-white');
-            } else {
-                if(circle) {
-                    circle.classList.remove('bg-purple-600', 'bg-green-600', 'text-white');
-                    circle.classList.add('bg-gray-700', 'text-gray-400');
-                    circle.innerHTML = i;
-                }
-                if(text) text.classList.add('text-gray-400');
-            }
-        }
-    }
-    
-    const targetStep = document.getElementById(`step${step}`);
-    if(targetStep) targetStep.classList.remove('hidden');
-    
-    for(let i = 1; i <= 3; i++) {
-        const line = document.getElementById(`line${i}`);
-        if(line) {
-            if(i < step) {
-                line.classList.remove('bg-gray-700');
-                line.classList.add('bg-gradient-to-r', 'from-purple-500', 'to-pink-500');
-            } else {
-                line.classList.remove('bg-gradient-to-r', 'from-purple-500', 'to-pink-500');
-                line.classList.add('bg-gray-700');
-            }
-        }
-    }
-}
-
 </script>
 
 <style>
@@ -1138,71 +862,41 @@ function switchStep(step) {
     to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-@keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
+@keyframes spin { to { transform: rotate(360deg); } }
 @keyframes bounce {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
 }
-
-@keyframes ping {
-    75%, 100% { transform: scale(2); opacity: 0; }
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(0.95); }
+}
+@keyframes progress {
+    0% { width: 0%; }
+    100% { width: 100%; }
 }
 
-.animate-bounce {
-    animation: bounce 0.5s ease-in-out 3;
-}
-
-.animate-ping {
-    animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
+.animate-bounce { animation: bounce 0.5s ease-in-out 3; }
+.animate-spin { animation: spin 1s linear infinite; }
+.animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
 
 #step1, #step2, #step3 {
     animation: fadeIn 0.5s ease-out;
 }
 
-.animate-spin {
-    animation: spin 1s linear infinite;
+.category-card:hover {
+    transform: translateY(-3px);
 }
 
-.animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.peer:checked ~ div {
+    border-color: #8b5cf6;
+    box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
 }
 
-/* Category card hover effects */
-.category-card:hover div {
-    transform: translateY(-2px);
-}
-
-.category-card input:checked + div {
-    animation: glow 0.5s ease-out;
-}
-
-@keyframes glow {
-    0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
-}
-
-/* Focus effects */
 input:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
 }
 
-/* Radio button styling */
-input[type="radio"]:checked + div {
-    border-color: #8b5cf6;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.1));
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .py-\[120px\] {
         padding-top: 60px !important;
@@ -1210,38 +904,24 @@ input[type="radio"]:checked + div {
     }
 }
 
-/* Custom scrollbar */
 ::-webkit-scrollbar {
     width: 8px;
 }
-
 ::-webkit-scrollbar-track {
     background: #1a1a1a;
     border-radius: 4px;
 }
-
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(to bottom, #8b5cf6, #ec4899);
     border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(to bottom, #7c3aed, #db2777);
-}
-
-/* Full page loader styles */
-#fullPageLoader {
+#fullPageLoader, #conceptLoader {
     transition: all 0.3s ease;
 }
 
 #progressBarFill {
     transition: width 0.5s ease;
-    animation: shimmer 2s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
 }
 </style>
 @endsection
