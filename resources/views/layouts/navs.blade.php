@@ -22,9 +22,9 @@
                 <a href="{{ route('web-series.my-series') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
                     <i class="fas fa-tv mr-2 text-xs"></i>My Series
                 </a>
-                <a href="{{ route('buycredits') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
+                <!-- <a href="{{ route('buycredits') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
                     <i class="fas fa-gem mr-2 text-xs text-yellow-400"></i>Buy Credits
-                </a>
+                </a> -->
             </div>
         </div>
         
@@ -32,7 +32,7 @@
         <div class="flex items-center gap-3">    
             
             <!-- Credits Display -->
-            <div class="hidden md:flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-3 py-1.5 rounded-full border border-yellow-500/40 shadow-lg">
+            <!-- <div class="hidden md:flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-3 py-1.5 rounded-full border border-yellow-500/40 shadow-lg">
                 <div class="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
                     <i class="fas fa-gem text-white text-xs"></i>
                 </div>
@@ -43,7 +43,7 @@
                 <a href="{{ route('buycredits') }}" class="ml-1 w-5 h-5 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                     <i class="fas fa-plus text-white text-[8px]"></i>
                 </a>
-            </div>
+            </div> -->
             
             <!-- User Menu -->
             <div class="relative group">
@@ -54,13 +54,13 @@
                     </div>
                     <div class="hidden md:flex flex-col items-start">
                         <span class="text-white text-sm font-medium leading-tight">{{ auth()->user()->name ?? 'User' }}</span>
-                        <span class="text-[10px] text-gray-400 leading-tight">
+                        <!-- <span class="text-[10px] text-gray-400 leading-tight">
                             @if(auth()->user()->plan)
                                 {{ auth()->user()->plan }} Plan
                             @else
                                 Free Plan
                             @endif
-                        </span>
+                        </span> -->
                     </div>
                     <i class="fas fa-chevron-down text-xs text-gray-400 hidden md:inline group-hover:text-white transition-colors"></i>
                 </button>
