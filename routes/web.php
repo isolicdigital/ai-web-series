@@ -31,6 +31,8 @@ Route::post('/generate-single-scene-image/{sceneId}', [WebSeriesController::clas
 Route::post('/create-full-episode', [EpisodeController::class, 'createFullEpisode'])->name('create.full.episode');
 Route::post('/check-image-status', [WebSeriesController::class, 'checkImageStatus'])->name('check.image.status');
 Route::post('/generate-image-for-scene/{sceneId}', [WebSeriesController::class, 'generateImageForScene'])->name('generate.image.for.scene');
+// Async image generation endpoint (non-blocking)
+Route::get('/api/generate-scene-image-async/{sceneId}', [WebSeriesController::class, 'generateSceneImageAsyncBackground']);
 
 // ============================================
 // PROFILE & AUTH ROUTES
@@ -55,8 +57,12 @@ Route::middleware(['auth'])->group(function () {
     
     // Video generation routes
     Route::post('/generate-scene-video', [WebSeriesController::class, 'generateSceneVideo'])->name('generate.scene.video');
+    Route::get('/api/scene/{sceneId}/video-status', [WebSeriesController::class, 'checkVideoStatus']);
+
     Route::get('/check-video-status/{sceneId}', [WebSeriesController::class, 'checkVideoStatus'])->name('check.video.status');
     Route::post('/generate-video', [WebSeriesController::class, 'generateSceneVideo'])->name('generate.video');
+    // Async video generation endpoint
+Route::post('/api/generate-video-async/{sceneId}', [WebSeriesController::class, 'generateVideoAsync']);
     
     // Scene status polling
     Route::get('/series/{id}/scenes-status', [WebSeriesController::class, 'getScenesStatus'])->name('series.scenes.status');
@@ -64,10 +70,21 @@ Route::middleware(['auth'])->group(function () {
     // Image generation routes
     Route::post('/generate-image', [WebSeriesController::class, 'generateImage'])->name('generate.image');
     Route::post('/check-image-status', [WebSeriesController::class, 'checkImageStatus'])->name('check.image.status');
+    // Add these routes after your auth middleware group
+Route::post('/admin/retry-failed-images', [WebSeriesController::class, 'retryFailedImages'])
+    ->middleware(['auth', 'admin'])
+    ->name('admin.retry-failed-images');
+
+Route::post('/web-series/retry-scene/{sceneId}', [WebSeriesController::class, 'retrySingleScene'])
+    ->middleware('auth')
+    ->name('web-series.retry-scene');
     
     // ============================================
     // IMPORTANT: Specific routes with NO parameters MUST come BEFORE parameterized routes
     // ============================================
+
+    // Add this line with your other web-series routes (around line 70-80)
+Route::get('/web-series/{seriesId}/episodes', [WebSeriesController::class, 'showEpisodes'])->name('web-series.episodes');
     
     // Specific routes (no {id} parameters)
     Route::get('/web-series/my-series', [WebSeriesController::class, 'mySeries'])->name('web-series.my-series');
@@ -88,15 +105,17 @@ Route::get('/web-series/{seriesId}/create-episode', [WebSeriesController::class,
     Route::get('/web-series/{series}/episodes/{episode}/full-video', [EpisodeController::class, 'getFullVideo'])->name('web-series.episode.full-video');
     
     // Parameterized routes (with {id}) - MUST come AFTER specific routes
-    Route::get('/web-series/{id}', [WebSeriesController::class, 'show'])->name('web-series.show');
+    // Change this route to accept episode number as optional parameter
+Route::get('/web-series/{id}/{episodeNumber?}', [WebSeriesController::class, 'show'])->name('web-series.show');;
+    Route::get('/web-series/{seriesId}/episodes', [WebSeriesController::class, 'showEpisodes'])->name('web-series.episodes');
     Route::delete('/web-series/{id}', [WebSeriesController::class, 'destroy'])->name('web-series.destroy');
     Route::get('/web-series/{id}/generate-video', [WebSeriesController::class, 'generateVideoPage'])->name('web-series.generate-video-page');
     Route::post('/web-series/generate-video', [WebSeriesController::class, 'generateVideo'])->name('web-series.generate-video');
     
     // Episode and scene routes
-    Route::post('/web-series/{id}/generate-episode1-concept', [WebSeriesController::class, 'generateEpisode1Concept'])->name('web-series.generate-concept');
-    Route::post('/web-series/{id}/update-episode1-concept', [WebSeriesController::class, 'updateEpisode1Concept'])->name('web-series.update-concept');
-    Route::post('/web-series/{id}/generate-episode1-scenes', [WebSeriesController::class, 'generateEpisode1Scenes'])->name('web-series.generate-scenes');
+    Route::post('/series/{id}/generate-episode-concept', [WebSeriesController::class, 'generateEpisodeConcept'])->name('web-series.generate-concept');
+    Route::post('/series/{id}/update-episode-concept', [WebSeriesController::class, 'updateEpisodeConcept'])->name('web-series.update-concept');
+    Route::post('/series/{id}/generate-episode-scenes', [WebSeriesController::class, 'generateEpisodeScenes'])->name('web-series.generate-scenes');
     Route::get('/web-series/{id}/episode-1', [WebSeriesController::class, 'showEpisode1'])->name('web-series.episode1');
     Route::get('/web-series/{seriesId}/scene/{sceneId}', [WebSeriesController::class, 'showScene'])->name('web-series.scene');
     Route::get('/web-series/{seriesId}/episodes/{episodeId}', function($seriesId, $episodeId) {
@@ -105,8 +124,14 @@ Route::get('/web-series/{seriesId}/create-episode', [WebSeriesController::class,
         return redirect()->route('web-series.show', $seriesId)->with('selected_episode', $episodeId);
     })->name('web-series.episode.show');
     
-    Route::get('/web-series/{seriesId}/episodes', [WebSeriesController::class, 'showEpisodes'])->name('web-series.episodes');
     Route::get('/web-series/{seriesId}/create-episode', [WebSeriesController::class, 'createEpisode'])->name('web-series.create-episode');
+    // Add this route after your other episode routes
+Route::get('/web-series/{seriesId}/episodes/{episodeNumber}', [WebSeriesController::class, 'showEpisode'])->name('web-series.episode.show');
+Route::delete('/web-series/{seriesId}/episodes/{episodeNumber}', [WebSeriesController::class, 'destroyEpisode'])
+    ->name('web-series.destroy-episode');
+    Route::delete('/web-series/{id}', [WebSeriesController::class, 'destroy'])
+    ->name('web-series.destroy');
+
 });
 
 // ============================================

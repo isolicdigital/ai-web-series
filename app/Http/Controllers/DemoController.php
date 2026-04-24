@@ -100,8 +100,8 @@ class DemoController extends Controller
     {
         $titles = [
             'cat and dog' => 'The elite and glamorous underworld of San Francisco',
-            'dog and cat' => 'The elite and glamorous underworld of San Francisco',
-            'space' => 'The elite and glamorous underworld of San Francisco'
+            'dog and cat' => 'The Dragon Riders of Aethelgard',
+            'space' => 'Horizon: The Final Frontier'
         ];
         
         if ($prompt && !empty($prompt)) {

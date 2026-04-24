@@ -28,33 +28,28 @@ class WebSeriesController extends Controller
     }
     
     private function isDemoUser()
-{
-    if (!Auth::check()) {
-        return false;
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+        
+        $user = Auth::user();
+        $demoMode = $user->demo_mode;
+        $isDemo = in_array($demoMode, [true, 1, '1', 'true', 'yes'], true);
+        
+        Log::info('isDemoUser check', [
+            'user_id' => $user->id,
+            'demo_mode_raw' => $demoMode,
+            'result' => $isDemo
+        ]);
+        
+        return $isDemo;
     }
     
-    $user = Auth::user();
-    $demoMode = $user->demo_mode;
-    
-    // Handle different possible values
-    // Check if demo_mode is true, 'true', 1, '1', or 'yes'
-    $isDemo = in_array($demoMode, [true, 1, '1', 'true', 'yes'], true);
-    
-    // Log for debugging
-    Log::info('isDemoUser check', [
-        'user_id' => $user->id,
-        'demo_mode_raw' => $demoMode,
-        'demo_mode_type' => gettype($demoMode),
-        'result' => $isDemo
-    ]);
-    
-    return $isDemo;
-}
-    
     private function getDemoController()
-{
-    return app(DemoController::class);
-}
+    {
+        return app(DemoController::class);
+    }
     
     public function create()
     {
@@ -92,10 +87,9 @@ class WebSeriesController extends Controller
         }
     }
     
-    public function generateEpisode1Concept(Request $request, $id)
+    public function generateEpisodeConcept(Request $request, $id)
 {
-    // Log: Method called
-    Log::info('generateEpisode1Concept called', [
+    Log::info('generateEpisodeConcept called', [
         'series_id' => $id,
         'user_id' => auth()->id(),
         'is_demo_user' => $this->isDemoUser(),
@@ -109,43 +103,13 @@ class WebSeriesController extends Controller
     }
     
     try {
-        // Log: Validation start
-        Log::debug('Validating request for generateEpisode1Concept');
-        
         $request->validate([
             'prompt' => 'required|string|min:10|max:500',
-            'episode_number' => 'nullable|integer|min:1'
+            'episode_number' => 'required|integer|min:1'  // Make episode_number required
         ]);
-        
-        // Log: Validation passed
-        Log::debug('Validation passed for generateEpisode1Concept');
 
-        // Log: Fetching series
-        Log::debug('Fetching series from database', ['series_id' => $id]);
-        
         $series = WebSeries::where('user_id', auth()->id())->with('category')->findOrFail($id);
-        
-        Log::info('Series found', [
-            'series_id' => $series->id,
-            'series_name' => $series->project_name,
-            'category_id' => $series->category_id
-        ]);
-        
-        // Get episode number from request or default to next available
-        $episodeNumber = $request->episode_number ?? ($series->episodes()->max('episode_number') + 1);
-        
-        Log::debug('Episode number determined', [
-            'requested_episode' => $request->episode_number,
-            'final_episode_number' => $episodeNumber,
-            'max_existing_episode' => $series->episodes()->max('episode_number')
-        ]);
-        
-        // Log: Generating concept via service
-        Log::info('Calling ModelsLabService to generate concept', [
-            'prompt_length' => strlen($request->prompt),
-            'category_id' => $series->category_id,
-            'project_name' => $series->project_name
-        ]);
+        $episodeNumber = $request->episode_number;
         
         $concept = $this->modelsLabService->generateConcept(
             $request->prompt, 
@@ -153,45 +117,19 @@ class WebSeriesController extends Controller
             $series->project_name
         );
         
-        Log::info('Concept generated successfully', [
-            'concept_length' => strlen($concept),
-            'concept_preview' => substr($concept, 0, 100) . '...'
-        ]);
-        
-        // Check if episode already exists with this number
-        Log::debug('Checking if episode already exists', [
-            'series_id' => $series->id,
-            'episode_number' => $episodeNumber
-        ]);
-        
+        // Find or create episode by number
         $episode = Episode::where('web_series_id', $series->id)
             ->where('episode_number', $episodeNumber)
             ->first();
         
         if ($episode) {
-            // Update existing episode
-            Log::info('Updating existing episode', [
-                'episode_id' => $episode->id,
-                'episode_number' => $episodeNumber,
-                'old_title' => $episode->title
-            ]);
-            
             $episode->update([
                 'title' => 'Episode ' . $episodeNumber,
                 'prompt' => $request->prompt,
                 'concept' => $concept,
                 'status' => 'concept_ready'
             ]);
-            
-            Log::info('Episode updated successfully', ['episode_id' => $episode->id]);
         } else {
-            // Create new episode
-            Log::info('Creating new episode', [
-                'series_id' => $series->id,
-                'episode_number' => $episodeNumber,
-                'user_id' => auth()->id()
-            ]);
-            
             $episode = Episode::create([
                 'web_series_id' => $series->id,
                 'user_id' => auth()->id(),
@@ -202,27 +140,11 @@ class WebSeriesController extends Controller
                 'status' => 'concept_ready',
                 'total_scenes' => 0
             ]);
-            
-            Log::info('Episode created successfully', [
-                'episode_id' => $episode->id,
-                'episode_number' => $episodeNumber
-            ]);
         }
-        
-        // Update series
-        Log::debug('Updating series with generated concept', ['series_id' => $series->id]);
         
         $series->update([
             'concept' => $concept,
             'status' => 'concept_generated'
-        ]);
-        
-        Log::info('Series updated successfully', ['series_id' => $series->id]);
-
-        // Log: Success response
-        Log::info('generateEpisode1Concept completed successfully', [
-            'episode_id' => $episode->id,
-            'episode_number' => $episodeNumber
         ]);
 
         return response()->json([
@@ -233,40 +155,10 @@ class WebSeriesController extends Controller
             'message' => 'Concept generated for Episode ' . $episodeNumber . '!'
         ]);
 
-    } catch (\Illuminate\Validation\ValidationException $e) {
-        // Log: Validation error
-        Log::warning('Validation failed in generateEpisode1Concept', [
-            'errors' => $e->errors(),
-            'request_data' => $request->all()
-        ]);
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Validation failed: ' . $e->getMessage(),
-            'errors' => $e->errors()
-        ], 422);
-        
-    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
-        // Log: Series not found
-        Log::error('Series not found in generateEpisode1Concept', [
-            'series_id' => $id,
-            'user_id' => auth()->id(),
-            'error' => $e->getMessage()
-        ]);
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Series not found or you do not have permission to access it'
-        ], 404);
-        
     } catch (\Exception $e) {
-        // Log: General error
-        Log::error('Unexpected error in generateEpisode1Concept', [
+        Log::error('Unexpected error in generateEpisodeConcept', [
             'series_id' => $id,
-            'user_id' => auth()->id(),
             'error_message' => $e->getMessage(),
-            'error_file' => $e->getFile(),
-            'error_line' => $e->getLine(),
             'trace' => $e->getTraceAsString()
         ]);
         
@@ -277,141 +169,345 @@ class WebSeriesController extends Controller
     }
 }
     
-    public function updateEpisode1Concept(Request $request, $id)
-    {
-        try {
-            $request->validate([
-                'concept' => 'required|string|min:10'
-            ]);
+    public function updateEpisodeConcept(Request $request, $id)
+{
+    try {
+        $request->validate([
+            'concept' => 'required|string|min:10',
+            'episode_number' => 'required|integer|min:1'
+        ]);
 
-            $series = WebSeries::where('user_id', auth()->id())->findOrFail($id);
-            $episode = Episode::where('web_series_id', $series->id)
-                ->where('episode_number', 1)
-                ->firstOrFail();
-            
-            $episode->update([
-                'concept' => $request->concept,
-                'status' => 'concept_saved'
-            ]);
-            
-            $series->update([
-                'concept' => $request->concept,
-                'status' => 'concept_saved'
-            ]);
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($id);
+        $episode = Episode::where('web_series_id', $series->id)
+            ->where('episode_number', $request->episode_number)
+            ->firstOrFail();
+        
+        $episode->update([
+            'concept' => $request->concept,
+            'status' => 'concept_saved'
+        ]);
+        
+        $series->update([
+            'concept' => $request->concept,
+            'status' => 'concept_saved'
+        ]);
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Concept saved successfully!'
-            ]);
+        return response()->json([
+            'success' => true,
+            'message' => 'Concept saved successfully!'
+        ]);
 
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to save concept: ' . $e->getMessage()
-            ], 500);
-        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to save concept: ' . $e->getMessage()
+        ], 500);
+    }
+}
+    
+    public function generateEpisodeScenes(Request $request, $id)
+{
+    if ($this->isDemoUser()) {
+        $demoController = $this->getDemoController();
+        return $demoController->generateScenes($request, $id);
     }
     
-    public function generateEpisode1Scenes(Request $request, $id)
-    {
-        if ($this->isDemoUser()) {
-            $demoController = $this->getDemoController();
-            return $demoController->generateScenes($request, $id);
-        }
-        
-        try {
-            $request->validate([
-                'total_scenes' => 'required|integer|min:5|max:10'
-            ]);
+    try {
+        $request->validate([
+            'total_scenes' => 'required|integer|min:5|max:10',
+            'episode_number' => 'required|integer|min:1'
+        ]);
 
-            $series = WebSeries::where('user_id', auth()->id())->with('category')->findOrFail($id);
-            $episode = Episode::where('web_series_id', $series->id)
-                ->where('episode_number', 1)
-                ->firstOrFail();
+        $series = WebSeries::where('user_id', auth()->id())->with('category')->findOrFail($id);
+        $episode = Episode::where('web_series_id', $series->id)
+            ->where('episode_number', $request->episode_number)
+            ->firstOrFail();
+        
+        $scenePrompts = $this->modelsLabService->generateScenePrompts(
+            $episode->concept, 
+            $request->total_scenes, 
+            $request->episode_number
+        );
+        
+        DB::beginTransaction();
+        Scene::where('episode_id', $episode->id)->delete();
+        $createdScenes = [];
+        
+        foreach ($scenePrompts as $index => $scenePrompt) {
+            $sceneNumber = $index + 1;
+            $title = $scenePrompt['title'];
+            $description = $scenePrompt['description'];
             
-            $scenePrompts = $this->modelsLabService->generateScenePrompts(
+            $content = '<div class="scene-content">
+                <h3 class="text-purple-400 text-xl font-bold mb-3">' . htmlspecialchars($title) . '</h3>
+                <p><strong>Episode ' . $request->episode_number . ' - Scene ' . $sceneNumber . '</strong></p>
+                <p><strong>What happens:</strong> ' . htmlspecialchars($description) . '</p>
+                <p><strong>Story Concept:</strong> ' . htmlspecialchars(substr($episode->concept, 0, 200)) . '...</p>
+            </div>';
+            
+            $imagePrompt = $this->modelsLabService->generateImagePrompt(
                 $episode->concept, 
-                $request->total_scenes, 
-                1
+                $title, 
+                $description, 
+                $sceneNumber, 
+                $request->episode_number, 
+                $series->category_id
             );
             
-            DB::beginTransaction();
-            
-            Scene::where('episode_id', $episode->id)->delete();
-            
-            $createdScenes = [];
-            
-            foreach ($scenePrompts as $index => $scenePrompt) {
-                $sceneNumber = $index + 1;
-                $title = $scenePrompt['title'];
-                $description = $scenePrompt['description'];
-                
-                $content = '<div class="scene-content">
-                    <h3 class="text-purple-400 text-xl font-bold mb-3">' . htmlspecialchars($title) . '</h3>
-                    <p><strong>Episode 1 - Scene ' . $sceneNumber . '</strong></p>
-                    <p><strong>What happens:</strong> ' . htmlspecialchars($description) . '</p>
-                    <p><strong>Story Concept:</strong> ' . htmlspecialchars(substr($episode->concept, 0, 200)) . '...</p>
-                </div>';
-                
-                $imagePrompt = $this->modelsLabService->generateImagePrompt(
-                    $episode->concept, 
-                    $title, 
-                    $description, 
-                    $sceneNumber, 
-                    1, 
-                    $series->category_id
-                );
-                
-                $scene = Scene::create([
-                    'episode_id' => $episode->id,
-                    'web_series_id' => $series->id,
-                    'scene_number' => $sceneNumber,
-                    'title' => $title,
-                    'content' => $content,
-                    'image_prompt' => $imagePrompt,
-                    'summary' => substr($description, 0, 150),
-                    'status' => 'pending'
-                ]);
-                
-                $createdScenes[] = $scene;
-            }
-            
-            $episode->update([
-                'total_scenes' => $request->total_scenes,
-                'status' => 'scenes_created'
+            $scene = Scene::create([
+                'episode_id' => $episode->id,
+                'web_series_id' => $series->id,
+                'scene_number' => $sceneNumber,
+                'title' => $title,
+                'content' => $content,
+                'image_prompt' => $imagePrompt,
+                'summary' => substr($description, 0, 150),
+                'status' => 'pending'
             ]);
             
-            $series->update([
-                'total_episodes' => 1,
-                'status' => 'scenes_created'
-            ]);
+            $createdScenes[] = $scene;
+        }
+        
+        $episode->update([
+            'total_scenes' => $request->total_scenes,
+            'status' => 'scenes_created'
+        ]);
+        
+        $series->update([
+            'total_episodes' => $series->episodes()->count(),
+            'status' => 'scenes_created'
+        ]);
+        
+        DB::commit();
+        
+        if (!empty($createdScenes)) {
+            $firstScene = $createdScenes[0];
+            $this->startAsyncImageGenerationForFirstScene($firstScene->id);
             
-            DB::commit();
-            
-            // Start sequential image generation for first scene
-            if (!empty($createdScenes)) {
-                $this->generateImageForScene($createdScenes[0]->id);
-            }
-
             return response()->json([
                 'success' => true,
-                'message' => $request->total_scenes . ' scenes created successfully! Images are being generated in the background.',
-                'redirect_url' => route('web-series.show', $series->id)
+                'message' => $request->total_scenes . ' scenes created! Image generation started.',
+                'redirect_after_first_image' => true,
+                'series_id' => $series->id,
+                'first_scene_id' => $firstScene->id
             ]);
+        }
 
+        return response()->json([
+            'success' => true,
+            'message' => $request->total_scenes . ' scenes created!',
+            'redirect_after_first_image' => false
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        Log::error('Generate scenes error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to create scenes: ' . $e->getMessage()
+        ], 500);
+    }
+}
+
+    private function startAsyncImageGenerationForFirstScene($sceneId)
+    {
+        Log::info("Starting async image generation for first scene: {$sceneId}");
+        
+        $url = url("/api/generate-scene-image-async/{$sceneId}");
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+        curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'X-Requested-With: XMLHttpRequest'
+        ]);
+        
+        curl_exec($ch);
+        curl_close($ch);
+        
+        Log::info("Async request dispatched for scene: {$sceneId}");
+    }
+
+    public function generateSceneImageAsyncBackground($sceneId, $retryCount = 0)
+    {
+        ignore_user_abort(true);
+        set_time_limit(300);
+        
+        $maxRetries = 3;
+        
+        Log::info("Starting background image generation for scene: {$sceneId}, retry: {$retryCount}");
+        
+        try {
+            $scene = Scene::find($sceneId);
+            if (!$scene) {
+                Log::error("Scene {$sceneId} not found for background generation");
+                return response()->json(['success' => false]);
+            }
+            
+            if ($scene->generated_image_url) {
+                Log::info("Scene {$sceneId} already has image");
+                $this->generateNextSceneImageAsync($sceneId);
+                return response()->json(['success' => true]);
+            }
+            
+            $scene->update(['status' => 'generating']);
+            
+            $result = $this->modelsLabService->generateImage(
+                $scene->image_prompt,
+                1024, 1024, 1
+            );
+            
+            // Check for rate limit (429)
+            if (!$result['success'] && isset($result['message'])) {
+                $errorMsg = strtolower($result['message']);
+                if (str_contains($errorMsg, '429') || str_contains($errorMsg, 'rate limit') || str_contains($errorMsg, 'throttled')) {
+                    if ($retryCount < $maxRetries) {
+                        $waitTime = pow(2, $retryCount) * 5; // 5s, 10s, 20s
+                        Log::warning("Rate limit hit for scene {$sceneId}. Retry {$retryCount}/{$maxRetries} after {$waitTime}s");
+                        sleep($waitTime);
+                        return $this->generateSceneImageAsyncBackground($sceneId, $retryCount + 1);
+                    } else {
+                        $scene->update([
+                            'status' => 'failed',
+                            'error_message' => 'Rate limit exceeded after ' . $maxRetries . ' retries'
+                        ]);
+                        return response()->json(['success' => false]);
+                    }
+                }
+            }
+            
+            if ($result['success'] && !empty($result['images'])) {
+                $imageUrl = $result['images'][0];
+                $validatedUrl = $this->waitForAndValidateImage($imageUrl, $sceneId, $scene->web_series_id);
+                
+                if ($validatedUrl) {
+                    $scene->update([
+                        'generated_image_url' => $validatedUrl,
+                        'status' => 'completed'
+                    ]);
+                    Log::info("Image saved for scene {$sceneId}");
+                    $this->generateNextSceneImageAsync($sceneId);
+                    return response()->json(['success' => true]);
+                } else {
+                    // Image validation failed - retry
+                    if ($retryCount < $maxRetries) {
+                        $waitTime = pow(2, $retryCount) * 3;
+                        Log::warning("Image validation failed for scene {$sceneId}. Retry {$retryCount}/{$maxRetries} after {$waitTime}s");
+                        sleep($waitTime);
+                        return $this->generateSceneImageAsyncBackground($sceneId, $retryCount + 1);
+                    } else {
+                        $scene->update([
+                            'status' => 'failed',
+                            'error_message' => 'Image validation failed after ' . $maxRetries . ' retries'
+                        ]);
+                    }
+                }
+            } else {
+                // API error - retry
+                if ($retryCount < $maxRetries) {
+                    $waitTime = pow(2, $retryCount) * 3;
+                    Log::warning("API error for scene {$sceneId}: " . ($result['message'] ?? 'Unknown') . ". Retry {$retryCount}/{$maxRetries} after {$waitTime}s");
+                    sleep($waitTime);
+                    return $this->generateSceneImageAsyncBackground($sceneId, $retryCount + 1);
+                } else {
+                    $scene->update([
+                        'status' => 'failed',
+                        'error_message' => $result['message'] ?? 'Unknown error after ' . $maxRetries . ' retries'
+                    ]);
+                    Log::error("Failed to generate image for scene {$sceneId} after {$maxRetries} retries");
+                }
+            }
+            
+            return response()->json(['success' => true]);
+            
         } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Generate scenes error: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to create scenes: ' . $e->getMessage()
-            ], 500);
+            Log::error("Background image generation error for scene {$sceneId}: " . $e->getMessage());
+            
+            // Exception - retry
+            if ($retryCount < $maxRetries) {
+                $waitTime = pow(2, $retryCount) * 3;
+                Log::warning("Exception for scene {$sceneId}. Retry {$retryCount}/{$maxRetries} after {$waitTime}s");
+                sleep($waitTime);
+                return $this->generateSceneImageAsyncBackground($sceneId, $retryCount + 1);
+            }
+            
+            if (isset($scene)) {
+                $scene->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage()
+                ]);
+            }
+            return response()->json(['success' => false]);
+        }
+    }
+
+    private function generateNextSceneImageAsync($currentSceneId)
+    {
+        try {
+            $currentScene = Scene::find($currentSceneId);
+            if (!$currentScene) return;
+            
+            $nextScene = Scene::where('episode_id', $currentScene->episode_id)
+                ->where('scene_number', $currentScene->scene_number + 1)
+                ->first();
+            
+            if ($nextScene && !$nextScene->generated_image_url) {
+                Log::info("Triggering async generation for next scene: {$nextScene->id}");
+                
+                $url = url("/api/generate-scene-image-async/{$nextScene->id}");
+                
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+                curl_setopt($ch, CURLOPT_FORBID_REUSE, true);
+                curl_exec($ch);
+                curl_close($ch);
+            } else {
+                Log::info("All images generated for episode {$currentScene->episode_id}");
+                Episode::where('id', $currentScene->episode_id)->update(['status' => 'images_completed']);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error("Error triggering next scene: " . $e->getMessage());
         }
     }
     
-    /**
-     * Generate image for a specific scene (called from backend)
-     */
+    public function getSceneImageStatus($sceneId)
+    {
+        try {
+            $scene = Scene::find($sceneId);
+            
+            if (!$scene) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Scene not found',
+                    'image_url' => null
+                ]);
+            }
+            
+            $imageUrl = $scene->generated_image_url ? asset($scene->generated_image_url) : null;
+            
+            return response()->json([
+                'success' => true,
+                'image_url' => $imageUrl,
+                'status' => $scene->status,
+                'scene_id' => $sceneId
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'image_url' => null
+            ]);
+        }
+    }
+    
     public function generateImageForScene($sceneId)
     {
         try {
@@ -468,9 +564,6 @@ class WebSeriesController extends Controller
         }
     }
     
-    /**
-     * Generate image for the next scene
-     */
     private function generateNextSceneImage($currentSceneId)
     {
         try {
@@ -649,16 +742,32 @@ class WebSeriesController extends Controller
         }
     }
     
-    public function show($id)
-    {
-        $series = WebSeries::with('episodes.scenes', 'category')
-            ->where('user_id', auth()->id())
-            ->findOrFail($id);
+    public function show($id, $episodeNumber = null)
+{
+    $series = WebSeries::with('episodes.scenes', 'category')
+        ->where('user_id', auth()->id())
+        ->findOrFail($id);
+    
+    // If episode number is provided, load that specific episode's scenes
+    if ($episodeNumber) {
+        $episode = Episode::where('web_series_id', $id)
+            ->where('episode_number', $episodeNumber)
+            ->with('scenes')
+            ->firstOrFail();
         
-        $episodes = $series->episodes()->with('scenes')->orderBy('episode_number')->paginate(9);
+        $totalScenes = $episode->scenes->count();
+        $completedVideos = $episode->scenes->whereNotNull('video_url')->count();
+        $allVideosCompleted = $totalScenes > 0 && $completedVideos == $totalScenes;
         
-        return view('web-series.show', compact('series', 'episodes'));
+        // Pass the episode's scenes to the same show.blade.php
+        return view('web-series.show', compact('series', 'episode', 'totalScenes', 'completedVideos', 'allVideosCompleted'));
     }
+    
+    // If no episode number, show all episodes (default view)
+    $episodes = $series->episodes()->with('scenes')->orderBy('episode_number')->paginate(9);
+    
+    return view('web-series.show', compact('series', 'episodes'));
+}
     
     public function mySeries()
     {
@@ -671,9 +780,6 @@ class WebSeriesController extends Controller
         return view('web-series.my-series', compact('webSeries'));
     }
     
-    /**
-     * Show all episodes for a series
-     */
     public function showEpisodes($seriesId)
     {
         $series = WebSeries::where('user_id', auth()->id())
@@ -685,68 +791,52 @@ class WebSeriesController extends Controller
         return view('web-series.episodes', compact('series', 'episodes'));
     }
     
-    /**
-     * Show the form for creating a new episode.
-     */
-   /**
- * Show the form for creating a new episode.
- */
-/**
- * Show the form for creating a new episode.
- */
-/**
- * Show the form for creating a new episode.
- */
-public function createEpisode($seriesId)
-{
-    $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
-    
-    // Get the next episode number
-    $nextEpisodeNumber = $series->episodes()->max('episode_number') + 1;
-    
-    return view('episodes.create', compact('series', 'nextEpisodeNumber'));
-}
-    
-    /**
-     * Store a newly created episode.
-     */
-  /**
- * Store a newly created episode.
- */
-public function storeEpisode(Request $request, $seriesId)
-{
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'concept' => 'nullable|string',
-        'episode_number' => 'required|integer|min:1'
-    ]);
-
-    $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
-    
-    // Check if episode number already exists
-    $exists = $series->episodes()->where('episode_number', $request->episode_number)->exists();
-    if ($exists) {
-        return back()->withErrors(['episode_number' => 'Episode number already exists for this series'])->withInput();
+    public function createEpisode($seriesId)
+    {
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+        $nextEpisodeNumber = $series->episodes()->max('episode_number') + 1;
+        
+        return view('episodes.create', compact('series', 'nextEpisodeNumber'));
     }
     
-    // Create episode - match your database fields
-    $episode = $series->episodes()->create([
-        'web_series_id' => $series->id,
-        'user_id' => auth()->id(),
-        'episode_number' => $request->episode_number,
-        'title' => $request->title,
-        'concept' => $request->concept,
-        'status' => 'draft',
-        'total_scenes' => 0
-    ]);
+    public function storeEpisode(Request $request, $seriesId)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'concept' => 'nullable|string',
+            'episode_number' => 'required|integer|min:1'
+        ]);
+
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
+        
+        $exists = $series->episodes()->where('episode_number', $request->episode_number)->exists();
+        if ($exists) {
+            return redirect()->route('web-series.show', $seriesId)
+                ->withErrors(['episode_number' => 'Episode number already exists for this series']);
+        }
+        
+        $episode = $series->episodes()->create([
+            'web_series_id' => $series->id,
+            'user_id' => auth()->id(),
+            'episode_number' => $request->episode_number,
+            'title' => $request->title,
+            'concept' => $request->concept,
+            'status' => 'draft',
+            'total_scenes' => 0
+        ]);
+        
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'episode_id' => $episode->id,
+                'message' => "Episode {$episode->episode_number} created successfully!"
+            ]);
+        }
+        
+        return redirect()->route('web-series.show', $seriesId)
+            ->with('success', "Episode {$episode->episode_number} created successfully!");
+    }
     
-    return redirect()->route('web-series.show', $seriesId)
-        ->with('success', "Episode {$episode->episode_number} created successfully!");
-}
-    
-    /**
-     * Show the form for editing an episode.
-     */
     public function editEpisode($seriesId, $episodeNumber)
     {
         $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
@@ -755,9 +845,6 @@ public function storeEpisode(Request $request, $seriesId)
         return view('episodes.edit', compact('series', 'episode'));
     }
     
-    /**
-     * Update an episode.
-     */
     public function updateEpisode(Request $request, $seriesId, $episodeNumber)
     {
         $request->validate([
@@ -777,217 +864,209 @@ public function storeEpisode(Request $request, $seriesId)
             ->with('success', 'Episode updated successfully!');
     }
     
-    /**
-     * Delete an episode.
-     */
     public function destroyEpisode($seriesId, $episodeNumber)
-    {
+{
+    try {
         $series = WebSeries::where('user_id', auth()->id())->findOrFail($seriesId);
         $episode = $series->episodes()->where('episode_number', $episodeNumber)->firstOrFail();
         
-        // Delete associated scenes first
+        // Delete all scenes and their files first
         foreach ($episode->scenes as $scene) {
-            // Delete video files if they exist
+            // Delete video file if exists
             if ($scene->video_url && Storage::disk('public')->exists($scene->video_url)) {
                 Storage::disk('public')->delete($scene->video_url);
             }
-            // Delete image files if they exist
+            // Delete image file if exists
             if ($scene->generated_image_url && Storage::disk('public')->exists($scene->generated_image_url)) {
                 Storage::disk('public')->delete($scene->generated_image_url);
             }
+            // Delete the scene record
             $scene->delete();
         }
         
-        // Delete final episode video if exists
+        // Delete episode's final video if exists
         if ($episode->final_video_url && Storage::disk('public')->exists($episode->final_video_url)) {
             Storage::disk('public')->delete($episode->final_video_url);
         }
         
+        // Delete the episode
         $episode->delete();
         
-        // Reorder remaining episodes
-        $remainingEpisodes = $series->episodes()->orderBy('episode_number')->get();
-        $counter = 1;
-        foreach ($remainingEpisodes as $remainingEpisode) {
-            $remainingEpisode->update(['episode_number' => $counter]);
-            $counter++;
-        }
+        // Re-order remaining episodes (but DON'T do this if it causes issues)
+        // Instead of renumbering, just keep the episode numbers as they are
+        // Or implement properly
         
-        return redirect()->route('web-series.show', $seriesId)
-            ->with('success', 'Episode deleted successfully!');
-    }
-    
-    /**
- * Display the user dashboard
- */
-public function dashboard()
-{
-    if ($this->isDemoUser()) {
-        $demoController = $this->getDemoController();
-        return $demoController->getDashboardView();
-    }
-    
-    try {
-        $userId = auth()->id();
+        DB::commit();
         
-        // Get user's series statistics
-        $mySeriesCount = WebSeries::where('user_id', $userId)->count();
-        $myEpisodesCount = Episode::whereHas('webSeries', function($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })->count();
-        $myScenesCount = Scene::whereHas('webSeries', function($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })->count();
-        $completedSeries = WebSeries::where('user_id', $userId)
-            ->where('status', 'completed')->count();
-        
-        // Calculate completion rate
-        $completionRate = $mySeriesCount > 0 ? round(($completedSeries / $mySeriesCount) * 100) : 0;
-        
-        // Get available credits
-        $availableCredits = auth()->user()->credits ?? 0;
-        
-        // Prepare stats array
-        $stats = [
-            'total_series' => $mySeriesCount,
-            'total_episodes' => $myEpisodesCount,
-            'total_scenes' => $myScenesCount,
-            'completed_series' => $completedSeries,
-            'available_credits' => $availableCredits
-        ];
-        
-        // Get user's web series
-        $webSeries = WebSeries::where('user_id', $userId)
-            ->with('category')
-            ->withCount('episodes')
-            ->latest()
-            ->paginate(12);
-        
-        // Get trending categories
-        $trendingCategories = Category::with('template')
-            ->where('is_active', true)
-            ->withCount('webSeries')
-            ->orderBy('web_series_count', 'desc')
-            ->take(10)
-            ->get();
-        
-        // If no trending categories found, get active categories
-        if ($trendingCategories->count() == 0) {
-            $trendingCategories = Category::with('template')
-                ->where('is_active', true)
-                ->orderBy('display_order', 'asc')
-                ->take(10)
-                ->get();
-            
-            // Add random series count for demo
-            foreach ($trendingCategories as $index => $category) {
-                $category->series_count = rand(5, 50);
-            }
-        } else {
-            foreach ($trendingCategories as $category) {
-                $category->series_count = $category->web_series_count;
-            }
-        }
-        
-        // Get recommended series based on user's categories
-        $recommendedSeries = collect();
-        
-        $userCategoryIds = WebSeries::where('user_id', $userId)
-            ->whereNotNull('category_id')
-            ->pluck('category_id')
-            ->unique()
-            ->toArray();
-        
-        if (!empty($userCategoryIds)) {
-            $recommendedSeries = WebSeries::with(['user', 'category', 'episodes'])
-                ->where('user_id', '!=', $userId)
-                ->whereIn('category_id', $userCategoryIds)
-                ->where('status', 'completed')
-                ->withCount('episodes')
-                ->latest()
-                ->take(10)
-                ->get();
-        }
-        
-        // If not enough recommendations, get popular series
-        if ($recommendedSeries->count() < 6) {
-            $needed = 10 - $recommendedSeries->count();
-            $existingIds = $recommendedSeries->pluck('id')->toArray();
-            
-            $popularSeries = WebSeries::with(['user', 'category', 'episodes'])
-                ->where('user_id', '!=', $userId)
-                ->whereNotIn('id', $existingIds)
-                ->where('status', 'completed')
-                ->withCount('episodes')
-                ->orderBy('created_at', 'desc')
-                ->take($needed)
-                ->get();
-            
-            $recommendedSeries = $recommendedSeries->merge($popularSeries);
-        }
-        
-        // Add random views and ratings for display
-        foreach ($recommendedSeries as $series) {
-            $series->views_count = rand(100, 5000);
-            $series->rating = rand(40, 50) / 10;
-        }
-        
-        // Get total users count
-        $totalUsers = \App\Models\User::count();
-        $avgRating = 4.9;
-        
-        return view('web-series.dashboard', compact(
-            'webSeries',
-            'stats',
-            'trendingCategories',
-            'mySeriesCount',
-            'myEpisodesCount',
-            'myScenesCount',
-            'completedSeries',
-            'completionRate',
-            'totalUsers',
-            'avgRating',
-            'recommendedSeries'
-        ));
+        return response()->json([
+            'success' => true,
+            'message' => 'Episode deleted successfully!'
+        ]);
         
     } catch (\Exception $e) {
-        Log::error('Dashboard error: ' . $e->getMessage());
-        
-        // Fallback data
-        $stats = [
-            'total_series' => 0,
-            'total_episodes' => 0,
-            'total_scenes' => 0,
-            'completed_series' => 0,
-            'available_credits' => 0
-        ];
-        
-        $webSeries = collect();
-        $trendingCategories = collect();
-        $recommendedSeries = collect();
-        $completionRate = 0;
-        $mySeriesCount = 0;
-        $myEpisodesCount = 0;
-        $myScenesCount = 0;
-        $completedSeries = 0;
-        $totalUsers = 1;
-        $avgRating = 4.5;
-        
-        return view('web-series.dashboard', compact(
-            'webSeries',
-            'stats',
-            'trendingCategories',
-            'mySeriesCount',
-            'myEpisodesCount',
-            'myScenesCount',
-            'completedSeries',
-            'completionRate',
-            'totalUsers',
-            'avgRating',
-            'recommendedSeries'
-        ));
+        DB::rollBack();
+        Log::error('Destroy episode error: ' . $e->getMessage());
+        return response()->json([
+            'success' => false,
+            'message' => $e->getMessage()
+        ], 500);
     }
 }
+    
+    public function dashboard()
+    {
+        if ($this->isDemoUser()) {
+            $demoController = $this->getDemoController();
+            return $demoController->getDashboardView();
+        }
+        
+        try {
+            $userId = auth()->id();
+            
+            $mySeriesCount = WebSeries::where('user_id', $userId)->count();
+            $myEpisodesCount = Episode::whereHas('webSeries', function($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->count();
+            $myScenesCount = Scene::whereHas('webSeries', function($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->count();
+            $completedSeries = WebSeries::where('user_id', $userId)
+                ->where('status', 'completed')->count();
+            
+            $completionRate = $mySeriesCount > 0 ? round(($completedSeries / $mySeriesCount) * 100) : 0;
+            $availableCredits = auth()->user()->credits ?? 0;
+            
+            $stats = [
+                'total_series' => $mySeriesCount,
+                'total_episodes' => $myEpisodesCount,
+                'total_scenes' => $myScenesCount,
+                'completed_series' => $completedSeries,
+                'available_credits' => $availableCredits
+            ];
+            
+            $webSeries = WebSeries::where('user_id', $userId)
+                ->with('category')
+                ->withCount('episodes')
+                ->latest()
+                ->paginate(12);
+            
+            $trendingCategories = Category::with('template')
+                ->where('is_active', true)
+                ->withCount('webSeries')
+                ->orderBy('web_series_count', 'desc')
+                ->take(10)
+                ->get();
+            
+            if ($trendingCategories->count() == 0) {
+                $trendingCategories = Category::with('template')
+                    ->where('is_active', true)
+                    ->orderBy('display_order', 'asc')
+                    ->take(10)
+                    ->get();
+                
+                foreach ($trendingCategories as $index => $category) {
+                    $category->series_count = rand(5, 50);
+                }
+            } else {
+                foreach ($trendingCategories as $category) {
+                    $category->series_count = $category->web_series_count;
+                }
+            }
+            
+            $recommendedSeries = collect();
+            
+            $userCategoryIds = WebSeries::where('user_id', $userId)
+                ->whereNotNull('category_id')
+                ->pluck('category_id')
+                ->unique()
+                ->toArray();
+            
+            if (!empty($userCategoryIds)) {
+                $recommendedSeries = WebSeries::with(['user', 'category', 'episodes'])
+                    ->where('user_id', '!=', $userId)
+                    ->whereIn('category_id', $userCategoryIds)
+                    ->where('status', 'completed')
+                    ->withCount('episodes')
+                    ->latest()
+                    ->take(10)
+                    ->get();
+            }
+            
+            if ($recommendedSeries->count() < 6) {
+                $needed = 10 - $recommendedSeries->count();
+                $existingIds = $recommendedSeries->pluck('id')->toArray();
+                
+                $popularSeries = WebSeries::with(['user', 'category', 'episodes'])
+                    ->where('user_id', '!=', $userId)
+                    ->whereNotIn('id', $existingIds)
+                    ->where('status', 'completed')
+                    ->withCount('episodes')
+                    ->orderBy('created_at', 'desc')
+                    ->take($needed)
+                    ->get();
+                
+                $recommendedSeries = $recommendedSeries->merge($popularSeries);
+            }
+            
+            foreach ($recommendedSeries as $series) {
+                $series->views_count = rand(100, 5000);
+                $series->rating = rand(40, 50) / 10;
+            }
+            
+            $totalUsers = \App\Models\User::count();
+            $avgRating = 4.9;
+            
+            return view('web-series.dashboard', compact(
+                'webSeries',
+                'stats',
+                'trendingCategories',
+                'mySeriesCount',
+                'myEpisodesCount',
+                'myScenesCount',
+                'completedSeries',
+                'completionRate',
+                'totalUsers',
+                'avgRating',
+                'recommendedSeries'
+            ));
+            
+        } catch (\Exception $e) {
+            Log::error('Dashboard error: ' . $e->getMessage());
+            
+            $stats = [
+                'total_series' => 0,
+                'total_episodes' => 0,
+                'total_scenes' => 0,
+                'completed_series' => 0,
+                'available_credits' => 0
+            ];
+            
+            $webSeries = collect();
+            $trendingCategories = collect();
+            $recommendedSeries = collect();
+            $completionRate = 0;
+            $mySeriesCount = 0;
+            $myEpisodesCount = 0;
+            $myScenesCount = 0;
+            $completedSeries = 0;
+            $totalUsers = 1;
+            $avgRating = 4.5;
+            
+            return view('web-series.dashboard', compact(
+                'webSeries',
+                'stats',
+                'trendingCategories',
+                'mySeriesCount',
+                'myEpisodesCount',
+                'myScenesCount',
+                'completedSeries',
+                'completionRate',
+                'totalUsers',
+                'avgRating',
+                'recommendedSeries'
+            ));
+        }
+    }
     
     public function destroy($id)
     {
@@ -1020,6 +1099,8 @@ public function dashboard()
         return view('web-series.generate-video', compact('series'));
     }
     
+    // ==================== VIDEO GENERATION METHODS ====================
+    
     public function generateSceneVideo(Request $request)
     {
         try {
@@ -1037,6 +1118,15 @@ public function dashboard()
                 })
                 ->firstOrFail();
             
+            if ($scene->video_url) {
+                $fullUrl = asset(ltrim($scene->video_url, '/'));
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Video already exists',
+                    'video_url' => $fullUrl
+                ]);
+            }
+            
             $scene->update([
                 'video_status' => 'generating',
                 'video_generation_started_at' => now()
@@ -1048,14 +1138,16 @@ public function dashboard()
                 $localUrl = $this->storeVideoLocally($videoUrl, $sceneId, $scene->web_series_id);
                 
                 $scene->update([
-                    'video_url' => $localUrl ?? $videoUrl,
+                    'video_url' => $localUrl,
                     'video_status' => 'completed',
                     'video_generation_completed_at' => now()
                 ]);
                 
+                $fullUrl = asset($localUrl);
+                
                 return response()->json([
                     'success' => true,
-                    'video_url' => $localUrl ?? $videoUrl,
+                    'video_url' => $fullUrl,
                     'message' => 'Video generated successfully!'
                 ]);
             } else {
@@ -1088,7 +1180,23 @@ public function dashboard()
                 })
                 ->firstOrFail();
             
-            $videoUrl = $scene->video_url ? asset($scene->video_url) : null;
+            $videoUrl = null;
+            if ($scene->video_url) {
+                if (filter_var($scene->video_url, FILTER_VALIDATE_URL)) {
+                    $videoUrl = $scene->video_url;
+                } 
+                elseif (str_starts_with($scene->video_url, 'videos/')) {
+                    $videoUrl = asset($scene->video_url);
+                }
+                elseif (str_starts_with($scene->video_url, 'storage/')) {
+                    $videoUrl = asset($scene->video_url);
+                }
+                else {
+                    $videoUrl = asset(ltrim($scene->video_url, '/'));
+                }
+            }
+            
+            Log::info("Video status check for scene {$sceneId}: video_url = " . ($videoUrl ?? 'null'));
             
             return response()->json([
                 'success' => true,
@@ -1098,6 +1206,7 @@ public function dashboard()
             ]);
             
         } catch (\Exception $e) {
+            Log::error('Check video status error: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
@@ -1107,6 +1216,9 @@ public function dashboard()
     
     private function generateVideoWithReplicate($imageUrl, $sceneId, $sceneTitle)
     {
+        Log::info("Generating video for scene: {$sceneId}");
+        Log::info("Input image URL: {$imageUrl}");
+        
         $apiToken = env('REPLICATE_API_TOKEN');
         
         if (!$apiToken) {
@@ -1114,45 +1226,65 @@ public function dashboard()
             return null;
         }
         
-        $prompts = [
-            "A cinematic video of {$sceneTitle} with smooth camera movement, natural motion, and atmospheric lighting.",
-            "Bring this scene to life with gentle motion, a subtle camera pan, and dramatic atmospheric lighting.",
-            "Transform this static image into a dynamic cinematic shot with fluid motion and depth of field."
-        ];
+        $scene = Scene::find($sceneId);
+        if (!$scene) {
+            Log::error("Scene {$sceneId} not found");
+            return null;
+        }
         
-        $prompt = $prompts[array_rand($prompts)];
+        $series = WebSeries::find($scene->web_series_id);
+        if (!$series) {
+            Log::error("Series not found for scene {$sceneId}");
+            return null;
+        }
+        
+        $videoPrompt = $this->getVideoPromptFromTemplate($scene, $series);
+        Log::info("Video prompt: " . substr($videoPrompt, 0, 500));
+        
+        $imageContent = $this->getImageContentFromLocalPath($imageUrl);
+        
+        if (!$imageContent) {
+            Log::error("Failed to get image content");
+            return null;
+        }
+        
+        $base64Image = base64_encode($imageContent);
+        $dataUri = 'data:image/png;base64,' . $base64Image;
+        
+        Log::info("Image converted to base64, length: " . strlen($base64Image));
         
         $payload = [
-            'version' => '69599cebad125acfd3d5c682c187702ea7a84d537603e46b468a44fe94c5fd13',
+            'version' => 'stability-ai/stable-video-diffusion:3f0457e4619daac51203dedb472816fd4af51f3149fa7a9e0b5ffcf1b8172438',
             'input' => [
-                'width' => 704,
-                'height' => 480,
-                'prompt' => $prompt,
-                'frame_rate' => 25,
-                'num_frames' => 121,
-                'guidance_scale' => 3,
-                'negative_prompt' => 'worst quality, inconsistent motion, blurry, jittery, distorted',
-                'num_inference_steps' => 40
+                'input_image' => $dataUri,
+                'video_length' => '14_frames_with_svd',
+                'sizing_strategy' => 'maintain_aspect_ratio',
+                'frames_per_second' => 6,
             ]
         ];
+        
+        Log::info("Calling Replicate API for image-to-video");
         
         try {
             $ch = curl_init();
             curl_setopt($ch, CURLOPT_URL, 'https://api.replicate.com/v1/predictions');
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 300);
             curl_setopt($ch, CURLOPT_HTTPHEADER, [
                 'Authorization: Bearer ' . $apiToken,
                 'Content-Type: application/json'
             ]);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
-            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
             
+            Log::info("Replicate API response code: {$httpCode}");
+            
             if ($httpCode !== 201) {
+                Log::error("Replicate API error: " . $response);
                 return null;
             }
             
@@ -1160,10 +1292,13 @@ public function dashboard()
             $predictionId = $result['id'] ?? null;
             
             if (!$predictionId) {
+                Log::error("No prediction ID received");
                 return null;
             }
             
-            return $this->pollReplicatePrediction($predictionId, $apiToken, $sceneId);
+            Log::info("Prediction ID: {$predictionId}. Polling for video...");
+            
+            return $this->pollReplicatePrediction($predictionId, $apiToken, $sceneId, 60, 3);
             
         } catch (\Exception $e) {
             Log::error('Replicate error: ' . $e->getMessage());
@@ -1171,9 +1306,72 @@ public function dashboard()
         }
     }
     
+    private function getVideoPromptFromTemplate($scene, $series)
+    {
+        $template = \App\Models\CategoryTemplate::where('category_id', $series->category_id)
+            ->where('is_active', true)
+            ->first();
+        
+        $videoPrompt = null;
+        
+        if ($template && isset($template->category_prompt['video_generator'])) {
+            $videoPrompt = $template->category_prompt['video_generator'];
+            $videoPrompt = str_replace('{scene_title}', $scene->title, $videoPrompt);
+            $videoPrompt = str_replace('{scene_description}', $scene->summary ?? $scene->title, $videoPrompt);
+            $videoPrompt = str_replace('{category}', $series->category->name ?? 'Web Series', $videoPrompt);
+            Log::info("Using video prompt from database template");
+        } else {
+            $videoPrompt = "A cinematic video of {$scene->title}. Smooth camera movement, dramatic lighting, professional cinematography. High quality MP4, natural motion, atmospheric.";
+            Log::info("Using default video prompt");
+        }
+        
+        return $videoPrompt;
+    }
+    
+    private function getImageContentFromLocalPath($url)
+    {
+        try {
+            $path = parse_url($url, PHP_URL_PATH);
+            
+            $possiblePaths = [
+                public_path($path),
+                public_path('storage/' . ltrim($path, '/storage/')),
+                base_path(ltrim($path, '/')),
+            ];
+            
+            foreach ($possiblePaths as $fullPath) {
+                if (file_exists($fullPath)) {
+                    Log::info("Found image at: {$fullPath}");
+                    return file_get_contents($fullPath);
+                }
+            }
+            
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            $content = curl_exec($ch);
+            curl_close($ch);
+            
+            if ($content) {
+                Log::info("Downloaded image from URL");
+                return $content;
+            }
+            
+            Log::error("Image not found at any location: {$url}");
+            return null;
+            
+        } catch (\Exception $e) {
+            Log::error("Error getting image content: " . $e->getMessage());
+            return null;
+        }
+    }
+    
     private function pollReplicatePrediction($predictionId, $apiToken, $sceneId, $maxAttempts = 60, $delaySeconds = 3)
     {
         for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+            Log::info("Polling attempt {$attempt} for scene {$sceneId}");
+            
             sleep($delaySeconds);
             
             try {
@@ -1190,38 +1388,67 @@ public function dashboard()
                 curl_close($ch);
                 
                 if ($httpCode !== 200) {
+                    Log::warning("Polling HTTP error: {$httpCode}");
                     continue;
                 }
                 
                 $result = json_decode($response, true);
+                $status = $result['status'] ?? 'processing';
                 
-                if ($result['status'] === 'succeeded') {
+                Log::info("Prediction status: {$status}");
+                
+                if ($status === 'succeeded') {
                     $output = $result['output'] ?? null;
-                    if (is_array($output) && isset($output[0])) {
-                        return $output[0];
+                    
+                    Log::info("=== VIDEO GENERATION SUCCESS ===");
+                    Log::info("Prediction ID: {$predictionId}");
+                    Log::info("Scene ID: {$sceneId}");
+                    
+                    $videoUrl = null;
+                    
+                    if (is_array($output)) {
+                        if (isset($output['video'])) {
+                            $videoUrl = $output['video'];
+                        } elseif (isset($output['mp4'])) {
+                            $videoUrl = $output['mp4'];
+                        } elseif (isset($output[0]) && is_string($output[0])) {
+                            $videoUrl = $output[0];
+                        } elseif (is_string($output)) {
+                            $videoUrl = $output;
+                        }
+                    } elseif (is_string($output)) {
+                        $videoUrl = $output;
                     }
-                    if (is_string($output)) {
-                        return $output;
+                    
+                    if ($videoUrl) {
+                        Log::info("Video URL extracted: {$videoUrl}");
+                        return $videoUrl;
+                    } else {
+                        Log::error("No video URL found in output", ['output' => $output]);
+                        return null;
                     }
-                    return null;
                 }
                 
-                if ($result['status'] === 'failed') {
+                if ($status === 'failed') {
+                    $error = $result['error'] ?? 'Unknown error';
+                    Log::error("Replicate prediction failed: " . $error);
+                    Log::error("Full response: " . json_encode($result, JSON_PRETTY_PRINT));
                     return null;
                 }
                 
             } catch (\Exception $e) {
-                Log::error('Error polling Replicate: ' . $e->getMessage());
+                Log::error("Error polling Replicate: " . $e->getMessage());
             }
         }
         
+        Log::error("Polling timeout for scene {$sceneId}");
         return null;
     }
     
     private function storeVideoLocally($videoUrl, $sceneId, $seriesId)
     {
         try {
-            $directory = storage_path("app/public/videos/series/{$seriesId}/scenes/{$sceneId}");
+            $directory = public_path("videos/series/{$seriesId}/scenes/{$sceneId}");
             
             if (!file_exists($directory)) {
                 mkdir($directory, 0777, true);
@@ -1245,7 +1472,7 @@ public function dashboard()
             file_put_contents($fullPath, $videoContent);
             
             if (file_exists($fullPath) && filesize($fullPath) > 0) {
-                return Storage::url("videos/series/{$seriesId}/scenes/{$sceneId}/{$filename}");
+                return "videos/series/{$seriesId}/scenes/{$sceneId}/{$filename}";
             }
             
             throw new \Exception("Failed to save file");
@@ -1303,44 +1530,43 @@ public function dashboard()
     }
     
     public function getDashboardStats()
-{
-    if ($this->isDemoUser()) {
-        $demoController = $this->getDemoController();
-        return $demoController->getDashboardStats();
+    {
+        if ($this->isDemoUser()) {
+            $demoController = $this->getDemoController();
+            return $demoController->getDashboardStats();
+        }
+        
+        try {
+            $userId = auth()->id();
+            
+            $totalSeries = WebSeries::where('user_id', $userId)->count();
+            $totalEpisodes = Episode::whereHas('webSeries', function($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->count();
+            $completedSeries = WebSeries::where('user_id', $userId)
+                ->where('status', 'completed')->count();
+            
+            $completionRate = $totalSeries > 0 ? round(($completedSeries / $totalSeries) * 100) : 0;
+            $availableCredits = auth()->user()->credits ?? 0;
+            
+            return response()->json([
+                'success' => true,
+                'stats' => [
+                    'total_series' => $totalSeries,
+                    'total_episodes' => $totalEpisodes,
+                    'available_credits' => $availableCredits,
+                    'completion_rate' => $completionRate,
+                    'completed_series' => $completedSeries
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get dashboard stats error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-    
-    try {
-        $userId = auth()->id();
-        
-        $totalSeries = WebSeries::where('user_id', $userId)->count();
-        $totalEpisodes = Episode::whereHas('webSeries', function($q) use ($userId) {
-            $q->where('user_id', $userId);
-        })->count();
-        $completedSeries = WebSeries::where('user_id', $userId)
-            ->where('status', 'completed')->count();
-        
-        $completionRate = $totalSeries > 0 ? round(($completedSeries / $totalSeries) * 100) : 0;
-        $availableCredits = auth()->user()->credits ?? 0;
-        
-        return response()->json([
-            'success' => true,
-            'stats' => [
-                'total_series' => $totalSeries,
-                'total_episodes' => $totalEpisodes,
-                'available_credits' => $availableCredits,
-                'completion_rate' => $completionRate,
-                'completed_series' => $completedSeries
-            ]
-        ]);
-    } catch (\Exception $e) {
-        Log::error('Get dashboard stats error: ' . $e->getMessage());
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
-    }
-}
-    
     
     public function getRecentSeries()
     {
@@ -1387,5 +1613,64 @@ public function dashboard()
         } catch (\Exception $e) {
             return back()->with('error', 'Failed to delete series');
         }
+    }
+    
+    // ==================== RETRY METHODS ====================
+    
+    public function retryFailedImages()
+    {
+        Log::info('=== RETRYING FAILED IMAGE GENERATIONS ===');
+        
+        $failedScenes = Scene::where('status', 'failed')
+            ->whereNull('generated_image_url')
+            ->whereNull('video_url')
+            ->take(10)
+            ->get();
+        
+        $retriedCount = 0;
+        $stillFailedCount = 0;
+        
+        foreach ($failedScenes as $scene) {
+            Log::info("Retrying image generation for scene {$scene->id}");
+            
+            $scene->update([
+                'status' => 'pending',
+                'error_message' => null
+            ]);
+            
+            $this->generateSceneImageAsyncBackground($scene->id);
+            $retriedCount++;
+            
+            sleep(2);
+        }
+        
+        Log::info("Retry complete. Retried: {$retriedCount}, Still failed: {$stillFailedCount}");
+        
+        return response()->json([
+            'success' => true,
+            'retried_count' => $retriedCount,
+            'message' => "Successfully retried {$retriedCount} scenes"
+        ]);
+    }
+    
+    public function retrySingleScene($sceneId)
+    {
+        $scene = Scene::where('id', $sceneId)
+            ->whereHas('webSeries', function($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->firstOrFail();
+        
+        $scene->update([
+            'status' => 'pending',
+            'error_message' => null
+        ]);
+        
+        $this->generateSceneImageAsyncBackground($sceneId);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Retry started for scene ' . $sceneId
+        ]);
     }
 }

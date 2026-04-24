@@ -1,3 +1,4 @@
+{{-- resources/views/episodes/create.blade.php --}}
 @extends('layouts.app')
 
 @section('content')
@@ -39,6 +40,7 @@
             <form id="promptForm">
                 @csrf
                 <input type="hidden" id="series_id" value="{{ $series->id }}">
+                <input type="hidden" id="episode_number" value="{{ $nextEpisodeNumber }}">
                 <div class="mb-4">
                     <label class="block text-white font-semibold mb-2 flex items-center gap-2">
                         <i class="fas fa-pen-fancy text-purple-400 text-sm"></i>
@@ -47,7 +49,7 @@
                     <textarea id="prompt" rows="6" required 
                               placeholder="Example: A young detective discovers a mysterious case that leads her into a world of supernatural phenomena. She must uncover the truth before it's too late..."
                               class="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300"></textarea>
-                    <p class="text-gray-400 text-sm mt-2">💡 Be detailed about what happens in this episode (minimum 50 characters)</p>
+                    <p class="text-gray-400 text-sm mt-2">💡 Be detailed about what happens in this episode (minimum 10 characters)</p>
                     <div class="text-right text-xs text-gray-500 mt-1">
                         <span id="promptCharCount">0</span> characters
                     </div>
@@ -172,9 +174,8 @@ document.addEventListener('input', function(e) {
 
 function goBackToStep(step) {
     if (step === 2) {
-        if (confirm('Are you sure you want to go back? Your current progress will be lost.')) {
-            window.location.href = '{{ route("web-series.show", $series->id) }}';
-        }
+        // Go back to episodes page
+        window.location.href = `/web-series/${currentSeriesId}/episodes`;
     } else {
         switchStep(step);
     }
@@ -259,12 +260,12 @@ async function showSuccessAndRedirect(redirectUrl) {
         workingBadge.classList.add('hidden');
         successBadge.classList.remove('hidden');
         loaderTitle.textContent = 'All Segments Created!';
-        loaderMessage.textContent = 'Your episode is ready. Redirecting to series...';
+        loaderMessage.textContent = 'Your episode is ready. Redirecting to episodes...';
         successContainer.classList.add('animate-bounce');
     }, 500);
     
     setTimeout(() => {
-        window.location.href = redirectUrl;
+        window.location.href = `/web-series/${currentSeriesId}/episodes`;
     }, 2500);
 }
 
@@ -290,10 +291,9 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
     btn.disabled = true;
     
     try {
-        // Send episode_number along with prompt
-        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
+        const result = await apiCall(`/series/${currentSeriesId}/generate-episode-concept`, 'POST', {
             prompt: currentPrompt,
-            episode_number: nextEpisodeNumber
+            episode_number: nextEpisodeNumber  // Pass the episode number
         });
         
         if (result.success) {
@@ -312,7 +312,7 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
     }
 });
 
-/// Regenerate Concept
+// Regenerate Concept
 document.getElementById('regenerateConceptBtn')?.addEventListener('click', async () => {
     if (!currentSeriesId) {
         alert('No series found');
@@ -361,8 +361,9 @@ document.getElementById('continueBtn').addEventListener('click', async () => {
         await new Promise(resolve => setTimeout(resolve, 800));
         
         updateLoaderProgress(2, 'Analyzing story elements...');
-        await apiCall(`/series/${currentSeriesId}/update-episode1-concept`, 'POST', {
-            concept: updatedConcept
+        await apiCall(`/series/${currentSeriesId}/update-episode-concept`, 'POST', {
+            concept: updatedConcept,
+            episode_number: nextEpisodeNumber  // Pass the episode number
         });
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -371,15 +372,16 @@ document.getElementById('continueBtn').addEventListener('click', async () => {
         
         updateLoaderProgress(4, 'Generating segment details...');
         
-        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-scenes`, 'POST', {
-            total_scenes: 5
+        const result = await apiCall(`/series/${currentSeriesId}/generate-episode-scenes`, 'POST', {
+            total_scenes: 5,
+            episode_number: nextEpisodeNumber  // Pass the episode number
         });
         
         updateLoaderProgress(5, 'Finalizing your episode...');
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         if (result.success) {
-            await showSuccessAndRedirect(`/web-series/${currentSeriesId}`);
+            await showSuccessAndRedirect(`/web-series/${currentSeriesId}/episodes`);
         } else {
             hideFullPageLoader();
             alert('Error: ' + result.message);

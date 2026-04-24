@@ -270,6 +270,7 @@ let currentEpisodeId = null;
 let currentPrompt = '';
 let currentConcept = '';
 let loaderTextInterval = null;
+let firstImageCheckInterval = null;
 
 // Character counter for prompt only
 document.addEventListener('input', function(e) {
@@ -336,15 +337,18 @@ function showFullPageLoader() {
         content.classList.add('scale-100');
     }, 10);
     
-    // Start changing text every 2 seconds
     startLoaderTextRotation();
 }
 
 function hideFullPageLoader() {
-    // Clear text rotation interval
     if (loaderTextInterval) {
         clearInterval(loaderTextInterval);
         loaderTextInterval = null;
+    }
+    
+    if (firstImageCheckInterval) {
+        clearInterval(firstImageCheckInterval);
+        firstImageCheckInterval = null;
     }
     
     const loader = document.getElementById('fullPageLoader');
@@ -358,7 +362,6 @@ function hideFullPageLoader() {
 }
 
 function startLoaderTextRotation() {
-    // Clear existing interval
     if (loaderTextInterval) {
         clearInterval(loaderTextInterval);
     }
@@ -391,19 +394,16 @@ function startLoaderTextRotation() {
         "Finalizing"
     ];
     
-    // Change text every 2 seconds
     loaderTextInterval = setInterval(() => {
         if (messageElement) {
             messageIndex = (messageIndex + 1) % messages.length;
             messageElement.textContent = messages[messageIndex];
             
-            // Fade animation
             messageElement.style.opacity = '0';
             setTimeout(() => {
                 if (messageElement) messageElement.style.opacity = '1';
             }, 200);
             
-            // Update title occasionally
             if (titleElement && messageIndex % 2 === 0) {
                 titleElement.style.opacity = '0';
                 setTimeout(() => {
@@ -417,13 +417,23 @@ function startLoaderTextRotation() {
     }, 2000);
 }
 
-function updateLoaderProgress(step, message) {
-    const progressPercent = (step / 5) * 100;
-    document.getElementById('progressBarFill').style.width = progressPercent + '%';
-    document.getElementById('progressText').textContent = message || 'Processing...';
+function updateLoaderProgress(percent, text) {
+    const progressBarFill = document.getElementById('progressBarFill');
+    const progressText = document.getElementById('progressText');
+    
+    // Ensure percent is between 0 and 100
+    percent = Math.min(Math.max(percent, 0), 100);
+    
+    if (progressBarFill) {
+        progressBarFill.style.width = percent + '%';
+        console.log(`Progress updated to: ${percent}%`);
+    }
+    if (progressText) {
+        progressText.textContent = text || Math.floor(percent) + '% complete';
+    }
 }
 
-async function showSuccessAndRedirect(redirectUrl) {
+function showSuccessAndRedirect(redirectUrl) {
     const spinnerContainer = document.getElementById('spinnerContainer');
     const successContainer = document.getElementById('successContainer');
     const workingBadge = document.getElementById('workingBadge');
@@ -450,6 +460,105 @@ async function showSuccessAndRedirect(redirectUrl) {
         window.location.href = redirectUrl;
     }, 2500);
 }
+
+// ==================== WAIT FOR FIRST IMAGE AND REDIRECT ====================
+
+function waitForFirstImageAndRedirect(sceneId, seriesId) {
+    console.log('Waiting for first image for scene:', sceneId);
+    
+    // Don't reset progress bar - continue from current progress
+    const currentProgressBar = document.getElementById('progressBarFill');
+    let currentWidth = 70; // Starting from where segment generation left off (70%)
+    
+    if (currentProgressBar) {
+        currentWidth = parseFloat(currentProgressBar.style.width) || 70;
+    }
+    
+    updateLoaderMessage('Creating First Scene Image', '🎨 Generating first image...<br><small>Please wait, this may take 30-60 seconds</small>', 'image');
+    
+    // Continue progress from where we left off (70% - 95%)
+    let attempts = 0;
+    const maxAttempts = 40;
+    const startProgress = currentWidth;
+    const endProgress = 95;
+    const progressPerAttempt = (endProgress - startProgress) / maxAttempts;
+    
+    if (firstImageCheckInterval) {
+        clearInterval(firstImageCheckInterval);
+        firstImageCheckInterval = null;
+    }
+    
+    async function checkImageStatus() {
+        attempts++;
+        console.log(`Polling attempt ${attempts}/${maxAttempts}`);
+        
+        // Calculate progress from 70% to 95%
+        const newProgress = Math.min(startProgress + (progressPerAttempt * attempts), endProgress);
+        updateLoaderProgress(newProgress, `Generating image (${attempts}/${maxAttempts})...`);
+        
+        try {
+            const response = await fetch(`/api/scene/${sceneId}/image-status`, {
+                method: 'GET',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            
+            if (data.image_url && data.image_url !== '' && data.image_url !== null) {
+                console.log('✅ First image ready! Redirecting...');
+                
+                if (firstImageCheckInterval) {
+                    clearInterval(firstImageCheckInterval);
+                    firstImageCheckInterval = null;
+                }
+                
+                updateLoaderMessage('Image Generated Successfully!', '✅ First image created! Redirecting to series page...', 'success');
+                updateLoaderProgress(100, 'Complete! Redirecting...');
+                
+                setTimeout(() => {
+                    window.location.href = `/web-series/${seriesId}`;
+                }, 1500);
+                return;
+            }
+            
+            if (attempts >= maxAttempts) {
+                clearInterval(firstImageCheckInterval);
+                firstImageCheckInterval = null;
+                updateLoaderMessage('Redirecting...', 'Taking longer than expected. Redirecting to series page...', null);
+                setTimeout(() => {
+                    window.location.href = `/web-series/${seriesId}`;
+                }, 1000);
+            }
+            
+        } catch (error) {
+            console.error('Polling error:', error);
+            if (attempts >= maxAttempts) {
+                clearInterval(firstImageCheckInterval);
+                firstImageCheckInterval = null;
+                setTimeout(() => {
+                    window.location.href = `/web-series/${seriesId}`;
+                }, 1000);
+            }
+        }
+    }
+    
+    checkImageStatus();
+    firstImageCheckInterval = setInterval(checkImageStatus, 2000);
+    
+    setTimeout(() => {
+        if (firstImageCheckInterval) {
+            clearInterval(firstImageCheckInterval);
+            firstImageCheckInterval = null;
+            window.location.href = `/web-series/${seriesId}`;
+        }
+    }, 90000);
+}
+
 
 // Step 1: Create Series
 document.getElementById('projectForm').addEventListener('submit', async (e) => {
@@ -479,7 +588,7 @@ document.getElementById('projectForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Step 2: Generate Concept with full page loader
+// Step 2: Generate Concept
 document.getElementById('promptForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     
@@ -499,12 +608,12 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
     btn.disabled = true;
     
-    // Show full page loader
     showConceptLoader();
     
     try {
-        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
-            prompt: currentPrompt
+        const result = await apiCall(`/series/${currentSeriesId}/generate-episode-concept`, 'POST', {
+            prompt: currentPrompt,
+            episode_number: 1
         });
         
         if (result.success) {
@@ -512,7 +621,6 @@ document.getElementById('promptForm').addEventListener('submit', async (e) => {
             currentEpisodeId = result.episode_id;
             document.getElementById('concept').value = currentConcept;
             
-            // Simulate progress steps
             updateLoaderMessage('Analyzing your story...');
             await new Promise(resolve => setTimeout(resolve, 800));
             
@@ -664,8 +772,10 @@ document.getElementById('regenerateConceptBtn')?.addEventListener('click', async
     showConceptLoader();
     
     try {
-        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
-            prompt: currentPrompt
+        const result = await apiCall(`/series/${currentSeriesId}/generate-episode-concept`, 'POST', {
+            prompt: currentPrompt,
+            episode_number: 1
+            
         });
         
         if (result.success) {
@@ -687,7 +797,7 @@ document.getElementById('regenerateConceptBtn')?.addEventListener('click', async
     }
 });
 
-// Continue button - Save concept and generate segments with full page loader
+// Continue button - Save concept and generate segments
 document.getElementById('continueBtn').addEventListener('click', async () => {
     if (!currentSeriesId) {
         alert('No series found');
@@ -703,8 +813,9 @@ document.getElementById('continueBtn').addEventListener('click', async () => {
         await new Promise(resolve => setTimeout(resolve, 800));
         
         updateLoaderProgress(2, 'Analyzing story elements...');
-        await apiCall(`/series/${currentSeriesId}/update-episode1-concept`, 'POST', {
-            concept: updatedConcept
+        await apiCall(`/series/${currentSeriesId}/update-episode-concept`, 'POST', {
+            concept: updatedConcept,
+            episode_number: 1
         });
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -713,21 +824,31 @@ document.getElementById('continueBtn').addEventListener('click', async () => {
         
         updateLoaderProgress(4, 'Generating segment details...');
         
-        const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-scenes`, 'POST', {
-            total_scenes: 5
+        const result = await apiCall(`/series/${currentSeriesId}/generate-episode-scenes`, 'POST', {
+            total_scenes: 5,
+            episode_number: 1
         });
         
-        updateLoaderProgress(5, 'Finalizing your episode...');
+        updateLoaderProgress(5, 'Finalizing...');
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         if (result.success) {
-            await showSuccessAndRedirect(`/web-series/${currentSeriesId}`);
+            console.log('API result:', result);
+            
+            if (result.redirect_after_first_image && result.first_scene_id) {
+                console.log('Waiting for first image...');
+                // Don't hide loader - update it for image generation
+                waitForFirstImageAndRedirect(result.first_scene_id, currentSeriesId);
+            } else {
+                await showSuccessAndRedirect(`/web-series/${currentSeriesId}`);
+            }
         } else {
             hideFullPageLoader();
             alert('Error: ' + result.message);
         }
     } catch (error) { 
         hideFullPageLoader();
+        console.error('Error:', error);
         alert('Error: ' + error.message);
     }
 });
@@ -778,7 +899,8 @@ async function saveEditedPromptAndRegenerate() {
     
     try {
         const result = await apiCall(`/series/${currentSeriesId}/generate-episode1-concept`, 'POST', {
-            prompt: currentPrompt
+            prompt: currentPrompt,
+            episode_number: 1
         });
         
         if (result.success) {

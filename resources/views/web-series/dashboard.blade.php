@@ -159,7 +159,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Total Series</p>
-                            <p class="text-3xl font-bold text-white">{{ $stats['total_series'] ?? 35 }}</p>
+                            <p class="text-3xl font-bold text-white">{{ $stats['total_series'] ?? 0 }}</p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
                             <i class="fas fa-tv text-purple-400 text-xl"></i>
@@ -171,7 +171,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Total Episodes</p>
-                            <p class="text-3xl font-bold text-white">{{ $stats['total_episodes'] ?? 221 }}</p>
+                            <p class="text-3xl font-bold text-white">{{ $stats['total_episodes'] ?? 0 }}</p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
                             <i class="fas fa-list-ol text-blue-400 text-xl"></i>
@@ -184,7 +184,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-gray-400 text-sm">Completion Rate</p>
-                            <p class="text-3xl font-bold text-white">{{ $completionRate ?? 79 }}%</p>
+                            <p class="text-3xl font-bold text-white">{{ $completionRate ?? 0 }}%</p>
                         </div>
                         <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
                             <i class="fas fa-chart-line text-green-400 text-xl"></i>
@@ -193,7 +193,7 @@
                 </div>
             </div>
             
-            <!-- Creator Section
+            <!-- Creator Section -->
             <div class="max-w-5xl mx-auto mb-16" id="creator-section">
                 <div class="bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-800 overflow-hidden shadow-xl hover:border-purple-500/30 transition-all duration-300">
                     <div class="p-6 md:p-8">
@@ -217,7 +217,7 @@
                         </div>
                     </div>
                 </div>
-            </div> -->
+            </div>
             <!-- POPULAR CATEGORIES SECTION (All Categories) -->
             @php
                 use App\Models\Category;
@@ -278,422 +278,172 @@
             </div>
             @endif
             
-            <!-- MY SERIES SECTION - Static Cards -->
-<div class="mb-12">
-    <div class="flex items-center justify-between mb-6">
-        <div>
-            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
-                <i class="fas fa-film text-purple-400"></i>
-                My Series
-            </h2>
-            <p class="text-gray-400 text-sm mt-1">Your created web series</p>
-        </div>
-        <a href="#" class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-all duration-300 flex items-center gap-1 group">
-            View All
-            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-            </svg>
-        </a>
-    </div>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-        
-        <!-- Card 1 -->
-        <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
-            <!-- Card Header with Thumbnail -->
-            <div class="relative h-40 overflow-hidden">
-                <img src="https://app.aiwebseries.live/images/series/32/scenes/125/scene_125_1776924050.png" 
-                     alt="Series Thumbnail" 
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-80"></div>
-                
-                <!-- Status Badge -->
-                <div class="absolute top-2 right-2">
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm bg-green-600/80 text-white">
-                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            <!-- MY SERIES SECTION - Enhanced -->
+            @if(isset($webSeries) && $webSeries->count() > 0)
+            <div class="mb-12">
+                <div class="flex items-center justify-between mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-film text-purple-400"></i>
+                            My Series
+                        </h2>
+                        <p class="text-gray-400 text-sm mt-1">Your created web series</p>
+                    </div>
+                    <a href="{{ route('web-series.my-series') }}" class="text-purple-400 hover:text-purple-300 text-sm font-medium transition-all duration-300 flex items-center gap-1 group">
+                        View All
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                         </svg>
-                        Completed
-                    </span>
+                    </a>
                 </div>
                 
-                <!-- Episode count overlay -->
-                <div class="absolute bottom-2 left-2">
-                    <div class="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
-                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                        <span class="text-white text-xs font-medium">5 Episodes</span>
-                    </div>
-                </div>
-                
-                <!-- Play icon overlay on hover -->
-                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div class="w-12 h-12 rounded-full bg-purple-600/90 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card Content -->
-            <div class="p-4">
-                <h4 class="text-white font-semibold text-base mb-1 group-hover:text-purple-300 transition line-clamp-1">The Chronicles of AI</h4>
-                
-                <!-- Category Badge -->
-                <div class="mb-2">
-                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
-                        </svg>
-                        Comedy
-                    </span>
-                </div>
-                
-                <!-- Description -->
-                <p class="text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">An epic journey through time and space where artificial intelligence meets human destiny.</p>
-                
-                <!-- Progress Bar -->
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span class="text-[10px]">Progress</span>
-                        <span class="text-[10px] font-mono">5/5 Episodes</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: 100%"></div>
-                    </div>
-                </div>
-                
-                <!-- Action Button -->
-                <div class="mt-3 pt-2 border-t border-gray-800/50">
-                    <div class="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white text-xs font-medium flex items-center justify-center gap-2">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        View Series
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Card 2 -->
-        <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
-            <div class="relative h-40 overflow-hidden">
-                <img src="{{ asset('/demo/img/scene1.png') }}" 
-                     alt="Series Thumbnail" 
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-80"></div>
-                
-                <div class="absolute top-2 right-2">
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm bg-green-600/80 text-white">
-                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Completed
-                    </span>
-                </div>
-                
-                <div class="absolute bottom-2 left-2">
-                    <div class="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
-                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                        <span class="text-white text-xs font-medium">3 Episodes</span>
-                    </div>
-                </div>
-                
-                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div class="w-12 h-12 rounded-full bg-purple-600/90 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="p-4">
-                <h4 class="text-white font-semibold text-base mb-1 group-hover:text-purple-300 transition line-clamp-1">Future Tales</h4>
-                <div class="mb-2">
-                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
-                        </svg>
-                        Action
-                    </span>
-                </div>
-                <p class="text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">In a neon-lit metropolis, technology and humanity collide in unexpected ways.</p>
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span class="text-[10px]">Progress</span>
-                        <span class="text-[10px] font-mono">3/5 Episodes</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: 60%"></div>
-                    </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-gray-800/50">
-                    <div class="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white text-xs font-medium flex items-center justify-center gap-2">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        View Series
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Card 3 -->
-        <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
-            <div class="relative h-40 overflow-hidden">
-                <img src="{{ asset('/demo/img/scene2.png') }}" 
-                     alt="Series Thumbnail" 
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-80"></div>
-                
-                <div class="absolute top-2 right-2">
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm bg-green-600/80 text-white">
-                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Completed
-                    </span>
-                </div>
-                
-                <div class="absolute bottom-2 left-2">
-                    <div class="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
-                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                        <span class="text-white text-xs font-medium">1 Episode</span>
-                    </div>
-                </div>
-                
-                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div class="w-12 h-12 rounded-full bg-purple-600/90 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="p-4">
-                <h4 class="text-white font-semibold text-base mb-1 group-hover:text-purple-300 transition line-clamp-1">Mystery Manor</h4>
-                <div class="mb-2">
-                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
-                        </svg>
-                        Mystery
-                    </span>
-                </div>
-                <p class="text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">A detective uncovers dark secrets in an ancient manor filled with supernatural phenomena.</p>
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span class="text-[10px]">Progress</span>
-                        <span class="text-[10px] font-mono">1/5 Episodes</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: 20%"></div>
-                    </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-gray-800/50">
-                    <div class="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white text-xs font-medium flex items-center justify-center gap-2">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        View Series
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Card 4 -->
-        <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
-            <div class="relative h-40 overflow-hidden">
-                <img src="https://app.aiwebseries.live/images/series/32/scenes/124/scene_124_1776923927.png" 
-                     alt="Series Thumbnail" 
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-80"></div>
-                
-                <div class="absolute top-2 right-2">
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm bg-green-600/80 text-white">
-                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Completed
-                    </span>
-                </div>
-                
-                <div class="absolute bottom-2 left-2">
-                    <div class="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
-                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                        <span class="text-white text-xs font-medium">8 Episodes</span>
-                    </div>
-                </div>
-                
-                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div class="w-12 h-12 rounded-full bg-purple-600/90 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="p-4">
-                <h4 class="text-white font-semibold text-base mb-1 group-hover:text-purple-300 transition line-clamp-1">Space Odyssey</h4>
-                <div class="mb-2">
-                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
-                        </svg>
-                        Comedy
-                    </span>
-                </div>
-                <p class="text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">A crew of explorers ventures into unknown galaxies seeking humanity's next frontier.</p>
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span class="text-[10px]">Progress</span>
-                        <span class="text-[10px] font-mono">8/8 Episodes</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-gray-800/50">
-                    <div class="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white text-xs font-medium flex items-center justify-center gap-2">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        View Series
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Card 5 -->
-        <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
-            <div class="relative h-40 overflow-hidden">
-                <img src="{{ asset('/demo/img/scene3.png') }}" 
-                     alt="Series Thumbnail" 
-                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
-                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-80"></div>
-                
-                <div class="absolute top-2 right-2">
-                    <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm bg-green-600/80 text-white">
-                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                        Completed
-                    </span>
-                </div>
-                
-                <div class="absolute bottom-2 left-2">
-                    <div class="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
-                        <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-                        </svg>
-                        <span class="text-white text-xs font-medium">8 Episodes</span>
-                    </div>
-                </div>
-                
-                <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                    <div class="w-12 h-12 rounded-full bg-purple-600/90 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="p-4">
-                <h4 class="text-white font-semibold text-base mb-1 group-hover:text-purple-300 transition line-clamp-1">Neon Shadows</h4>
-                <div class="mb-2">
-                    <span class="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full bg-purple-500/20 text-purple-300">
-                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
-                        </svg>
-                        Action
-                    </span>
-                </div>
-                <p class="text-gray-400 text-xs mb-3 line-clamp-2 leading-relaxed">Lira’s soldiers ambush Kael in the AI core chamber. The hero strikes a heroic pose, ready for battle.</p>
-                <div class="mb-3">
-                    <div class="flex justify-between text-xs text-gray-500 mb-1">
-                        <span class="text-[10px]">Progress</span>
-                        <span class="text-[10px] font-mono">8/8 Episodes</span>
-                    </div>
-                    <div class="w-full h-1.5 bg-gray-700/50 rounded-full overflow-hidden">
-                        <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: 100%"></div>
-                    </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-gray-800/50">
-                    <div class="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg text-white text-xs font-medium flex items-center justify-center gap-2">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                        </svg>
-                        View Series
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5">
+                    @foreach($webSeries->take(5) as $mySeries)
+                    @php
+                        // Get episodes for this series
+                        $episodes = $mySeries->episodes;
+                        $episodeCount = $episodes->count();
+                        $hasMultipleEpisodes = $episodeCount > 1;
+                        
+                        // Get thumbnail from first episode's first scene
+                        $thumbnailUrl = null;
+                        $firstEpisode = $episodes->first();
+                        if ($firstEpisode) {
+                            $firstScene = $firstEpisode->scenes->first();
+                            if ($firstScene && $firstScene->generated_image_url) {
+                                $thumbnailUrl = asset($firstScene->generated_image_url);
+                            }
+                        }
+                        
+                        $progressPercent = $mySeries->total_episodes ? ($episodeCount / $mySeries->total_episodes) * 100 : 0;
+                    @endphp
+                    <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+                        
+                        <!-- Card Header with Thumbnail -->
+                        <div class="relative h-40 overflow-hidden">
+                            @if($thumbnailUrl)
+                                <img src="{{ $thumbnailUrl }}" 
+                                     alt="{{ $mySeries->project_name }}" 
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out">
+                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/20 to-transparent opacity-80"></div>
+                            @else
+                                <div class="absolute inset-0 bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center">
+                                    <div class="text-center transform group-hover:scale-105 transition-transform duration-300">
+                                        <div class="w-16 h-16 mx-auto rounded-2xl bg-white/10 backdrop-blur-sm flex items-center justify-center mb-2">
+                                            <svg class="w-8 h-8 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            <!-- Status Badge -->
+                            <div class="absolute top-2 right-2">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-medium backdrop-blur-sm {{ $mySeries->status === 'completed' ? 'bg-green-600/80 text-white' : ($mySeries->status === 'generating' ? 'bg-yellow-600/80 text-white' : 'bg-gray-700/80 text-gray-300') }}">
+                                    @if($mySeries->status === 'completed')
+                                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                        </svg>
+                                    @elseif($mySeries->status === 'generating')
+                                        <svg class="w-3 h-3 inline mr-1 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                        </svg>
+                                    @else
+                                        <svg class="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                        </svg>
+                                    @endif
+                                    {{ $mySeries->status === 'completed' ? 'Completed' : ucfirst($mySeries->status) }}
+                                </span>
+                            </div>
+                            
+                            <!-- Episode count overlay -->
+                            <div class="absolute bottom-2 left-2">
+                                <div class="flex items-center gap-1 bg-black/60 backdrop-blur-md px-2 py-1 rounded-lg">
+                                    <svg class="w-3 h-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                    <span class="text-white text-xs font-medium">{{ $episodeCount }} Episode{{ $episodeCount !== 1 ? 's' : '' }}</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Play icon overlay on hover -->
+                            <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                                <div class="w-10 h-10 rounded-full bg-purple-600/90 backdrop-blur-sm flex items-center justify-center transform scale-90 group-hover:scale-100 transition-transform duration-300">
+                                    <svg class="w-5 h-5 text-white ml-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Card Content -->
+                        <div class="p-3">
+                            <h4 class="text-white font-semibold text-sm mb-1 group-hover:text-purple-300 transition line-clamp-1">{{ $mySeries->project_name }}</h4>
+                            
+                            <!-- Category Badge -->
+                            @if($mySeries->category)
+                            <div class="mb-2">
+                                <span class="inline-flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300">
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l5 5a2 2 0 01.586 1.414V19a2 2 0 01-2 2H7a2 2 0 01-2-2V5a2 2 0 012-2z"></path>
+                                    </svg>
+                                    {{ $mySeries->category->name }}
+                                </span>
+                            </div>
+                            @endif
+                            
+                            <!-- Description -->
+                            <p class="text-gray-400 text-xs mb-2 line-clamp-2 leading-relaxed">{{ Str::limit($mySeries->concept ?? 'No description provided', 70) }}</p>
+                            
+                            <!-- Progress Bar -->
+                            <div class="mb-2">
+                                <div class="flex justify-between text-xs text-gray-500 mb-0.5">
+                                    <span class="text-[10px]">Progress</span>
+                                    <span class="text-[10px] font-mono">{{ $episodeCount }}/{{ $mySeries->total_episodes ?: 1 }}</span>
+                                </div>
+                                <div class="w-full h-1 bg-gray-700/50 rounded-full overflow-hidden">
+                                    <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500" style="width: {{ $progressPercent }}%"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="flex gap-2 mt-2 pt-2 border-t border-gray-800/50">
+    <button onclick="viewSeries({{ $mySeries->id }})" 
+            class="flex-1 px-2 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-xs font-medium transition-all duration-300 flex items-center justify-center gap-1 group/btn">
+        <svg class="w-3 h-3 group-hover/btn:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+        </svg>
+        View Episodes
+    </button>
 </div>
-
-<!-- Empty State (Hidden by default, shown when no series exist) -->
-<div class="text-center py-16 mb-12 hidden">
-    <div class="relative w-32 h-32 mx-auto mb-6">
-        <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full animate-pulse"></div>
-        <div class="absolute inset-2 bg-gradient-to-br from-purple-600/30 to-pink-600/30 rounded-full backdrop-blur-sm flex items-center justify-center">
-            <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
-            </svg>
-        </div>
-    </div>
-    <h3 class="text-xl font-semibold text-white mb-2">No Series Yet</h3>
-    <p class="text-gray-400 mb-4 max-w-md mx-auto">Start your creative journey by creating your first AI web series</p>
-    <a href="#" class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-pink-500/25 hover:scale-105">
-        <i class="fas fa-plus-circle"></i>
-        Create Your First Series
-    </a>
-</div>
-
-<style>
-.line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
-
-.animate-spin {
-    animation: spin 1s linear infinite;
-}
-</style>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @else
+            <div class="text-center py-16 mb-12">
+                <div class="relative w-32 h-32 mx-auto mb-6">
+                    <div class="absolute inset-0 bg-gradient-to-br from-purple-600/20 to-pink-600/20 rounded-full animate-pulse"></div>
+                    <div class="absolute inset-2 bg-gradient-to-br from-purple-600/30 to-pink-600/30 rounded-full backdrop-blur-sm flex items-center justify-center">
+                        <svg class="w-12 h-12 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-white mb-2">No Series Yet</h3>
+                <p class="text-gray-400 mb-4 max-w-md mx-auto">Start your creative journey by creating your first AI web series</p>
+                <a href="{{ route('web-series.create') }}" 
+                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl text-white font-semibold transition-all duration-300 shadow-lg hover:shadow-pink-500/25 hover:scale-105">
+                    <i class="fas fa-plus-circle"></i>
+                    Create Your First Series
+                </a>
+            </div>
+            @endif
             
             <!-- Call to Action Banner -->
             <div class="mt-8 bg-gradient-to-r from-purple-600/10 to-pink-600/10 rounded-2xl border border-purple-500/30 p-6 md:p-8 text-center hover:border-purple-500/50 transition-all duration-300">

@@ -37,17 +37,17 @@
                 </button>
             </div>
             
-            <p class="credentials-intro text-gray-300 text-sm mb-6">Thank you for purchasing <strong class="text-purple-400">{{ config('app.name') }}</strong>! Below are your login details:</p>
+            <p class="text-gray-300 text-sm mb-6">Thank you for purchasing <strong class="text-purple-400">{{ config('app.name') }}</strong>! Below are your login details:</p>
             
             <div class="space-y-4">
                 <!-- Login URL -->
-                <div class="credential-item flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
-                    <div class="credential-label flex items-center gap-2 min-w-[120px]">
+                <div class="flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
+                    <div class="flex items-center gap-2 min-w-[120px]">
                         <i class="fas fa-globe text-purple-400"></i>
                         <span class="text-gray-400 font-medium">Login URL:</span>
                     </div>
-                    <div class="credential-value flex-1">
-                        <a href="{{ url('/') }}" target="_blank" class="url-link text-purple-400 hover:text-pink-400 font-medium inline-flex items-center gap-2 transition-all duration-300 hover:gap-3">
+                    <div class="flex-1">
+                        <a href="{{ url('/') }}" target="_blank" class="text-purple-400 hover:text-pink-400 font-medium inline-flex items-center gap-2 transition-all duration-300 hover:gap-3">
                             {{ url('/') }}
                             <i class="fas fa-external-link-alt text-xs"></i>
                         </a>
@@ -55,12 +55,12 @@
                 </div>
                 
                 <!-- Email -->
-                <div class="credential-item flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
-                    <div class="credential-label flex items-center gap-2 min-w-[120px]">
+                <div class="flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
+                    <div class="flex items-center gap-2 min-w-[120px]">
                         <i class="fas fa-envelope text-purple-400"></i>
                         <span class="text-gray-400 font-medium">Email:</span>
                     </div>
-                    <div class="credential-value flex-1 flex items-center gap-2">
+                    <div class="flex-1 flex items-center gap-2">
                         <span class="text-gray-300">Your Purchase Email Address</span>
                         <div class="relative group">
                             <i class="fas fa-info-circle text-gray-500 cursor-help hover:text-purple-400 transition-colors"></i>
@@ -72,13 +72,13 @@
                 </div>
                 
                 <!-- Password -->
-                <div class="credential-item flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
-                    <div class="credential-label flex items-center gap-2 min-w-[120px]">
+                <div class="flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
+                    <div class="flex items-center gap-2 min-w-[120px]">
                         <i class="fas fa-lock text-purple-400"></i>
                         <span class="text-gray-400 font-medium">Password:</span>
                     </div>
-                    <div class="credential-value flex-1 flex items-center gap-3">
-                        <code id="password-text" class="password-text bg-black/50 px-3 py-1.5 rounded-lg text-yellow-400 font-mono text-sm border border-yellow-500/30">
+                    <div class="flex-1 flex items-center gap-3">
+                        <code id="password-text" class="bg-black/50 px-3 py-1.5 rounded-lg text-yellow-400 font-mono text-sm border border-yellow-500/30">
                             {{ env('DEF_PW', 'default123') }}
                         </code>
                         <button onclick="copyPassword()" 
@@ -119,15 +119,14 @@
                     <i class="fas fa-envelope text-white text-xl"></i>
                 </div>
                 <div class="flex-1">
-                    <h4 class="text-white font-semibold">Email Support</h4>
-                    <p class="text-gray-400 text-sm">Direct email support for all your questions</p>
+                    <h4 class="text-white font-semibold">Support Team</h4>
+                    <p class="text-gray-400 text-sm">Direct message support for all your questions</p>
                 </div>
-                <div class="support-email-compact flex items-center gap-2 bg-gray-800/50 rounded-lg p-2 border border-gray-700 hover:border-purple-500/50 transition-all duration-300">
-    <span class="email-text-compact text-purple-400 text-sm font-mono">softwarelaunchhelp@gmail.com</span>
-    <button class="copy-btn-small w-8 h-8 rounded-lg bg-gray-700 hover:bg-purple-600 text-gray-400 hover:text-white transition-all duration-300 flex items-center justify-center" onclick="copySupportEmail()" title="Copy email">
-        <i class="fas fa-copy text-sm"></i>
-    </button>
-</div>
+                <a href="{{ env('SUPPORT_EXT', '#') }}" target="_blank" 
+                   class="bg-white/10 hover:bg-white/20 text-white px-5 py-2 rounded-full text-sm font-medium flex items-center gap-2 transition-all duration-300 hover:gap-3 hover:scale-105">
+                    Open Desk
+                    <i class="fas fa-arrow-right"></i>
+                </a>
             </div>
 
             <div class="bg-yellow-500/10 rounded-xl p-4 border border-yellow-500/20 transition-all duration-300 hover:bg-yellow-500/15">
@@ -175,158 +174,57 @@
 </div>
 
 <script>
-
-    function copySupportEmail(event) {
-    const email = 'softwarelaunchhelp@gmail.com';
-    
-    // Prevent event bubbling if needed
-    if (event) {
-        event.stopPropagation();
-    }
-    
-    // Copy to clipboard
-    navigator.clipboard.writeText(email).then(() => {
-        // Change button icon temporarily to show success
-        const btn = event.currentTarget;
-        const originalIcon = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check text-sm"></i>';
-        setTimeout(() => {
-            btn.innerHTML = originalIcon;
-        }, 2000);
-        
-        // Show success message
-        if (typeof toastr !== 'undefined') {
-            toastr.success('Support email copied to clipboard!');
-        } else if (typeof showToast === 'function') {
-            showToast('Support email copied!', 'success');
-        } else {
-            alert('Email copied: ' + email);
-        }
-    }).catch(() => {
-        // Fallback for older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = email;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        
-        if (typeof toastr !== 'undefined') {
-            toastr.info('Support email copied!');
-        } else {
-            alert('Email copied: ' + email);
-        }
-    });
-}
     function copyPassword() {
-        const passwordText = document.getElementById('password-text');
-        if (passwordText) {
-            copyToClipboard(passwordText.textContent, 'Password');
-        } else {
-            showToast('Password not found');
-        }
+        const passwordText = document.getElementById('password-text').textContent;
+        copyToClipboard(passwordText, 'Password');
     }
 
     function copyAllCredentials() {
-        const introText = document.querySelector('.credentials-intro');
+        const introText = document.querySelector('.credentials-intro').textContent;
         const credentialsItems = document.querySelectorAll('.credential-item');
-        
-        if (!introText) {
-            showToast('Credentials intro not found');
-            return;
-        }
         
         let credentialsText = '';
         credentialsItems.forEach(item => {
-            const labelSpan = item.querySelector('.credential-label span');
-            if (labelSpan) {
-                const label = labelSpan.textContent;
-                let value = '';
-                
-                const urlLink = item.querySelector('.url-link');
-                const passwordText = item.querySelector('.password-text');
-                const credentialSpan = item.querySelector('.credential-value span');
-                
-                if (urlLink) {
-                    value = urlLink.textContent.trim();
-                } else if (passwordText) {
-                    value = passwordText.textContent;
-                } else if (credentialSpan) {
-                    value = credentialSpan.textContent;
-                }
-                
-                credentialsText += `${label} ${value}\n`;
+            const label = item.querySelector('.credential-label span').textContent;
+            let value = '';
+            
+            if (item.querySelector('.url-link')) {
+                value = item.querySelector('.url-link').textContent.trim();
+            } else if (item.querySelector('.password-text')) {
+                value = item.querySelector('.password-text').textContent;
+            } else {
+                value = item.querySelector('.credential-value span').textContent;
             }
+            
+            credentialsText += `${label} ${value}\n`;
         });
         
-        const fullText = `${introText.textContent}\n\n${credentialsText}`;
+        const fullText = `${introText}\n\n${credentialsText}`;
         copyToClipboard(fullText, 'All credentials');
     }
 
-    function copySupportEmail() {
-        const email = 'softwarelaunchhelp@gmail.com';
-        copyToClipboard(email, 'Support email');
-    }
-
     function copyToClipboard(text, type) {
-        if (!text) {
-            showToast(`No ${type} to copy`);
-            return;
-        }
-        
-        // Modern clipboard API
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast(`${type} copied to clipboard!`);
-            }).catch(() => {
-                fallbackCopyToClipboard(text, type);
-            });
-        } else {
-            fallbackCopyToClipboard(text, type);
-        }
-    }
-
-    function fallbackCopyToClipboard(text, type) {
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        textArea.style.position = 'fixed';
-        textArea.style.top = '-999999px';
-        textArea.style.left = '-999999px';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        
-        try {
-            const successful = document.execCommand('copy');
-            if (successful) {
-                showToast(`${type} copied to clipboard!`);
-            } else {
-                showToast(`Failed to copy ${type.toLowerCase()}`);
-            }
-        } catch (err) {
-            console.error('Copy failed:', err);
-            showToast(`Failed to copy ${type.toLowerCase()}`);
-        }
-        
-        document.body.removeChild(textArea);
+        navigator.clipboard.writeText(text).then(() => {
+            showToast(`${type} copied to clipboard!`);
+        }).catch(() => {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showToast(`${type} copied to clipboard!`);
+        });
     }
 
     function showToast(message) {
         const toast = document.getElementById('global-toast');
         const toastMessage = document.getElementById('toast-message');
         
-        if (!toast || !toastMessage) {
-            alert(message);
-            return;
-        }
-        
         toastMessage.textContent = message;
-        
-        // Reset animation
         toast.classList.remove('opacity-0', 'translate-y-4');
         toast.classList.add('opacity-100', 'translate-y-0');
         
-        // Hide after 3 seconds
         setTimeout(() => {
             toast.classList.remove('opacity-100', 'translate-y-0');
             toast.classList.add('opacity-0', 'translate-y-4');

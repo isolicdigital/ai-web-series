@@ -101,8 +101,7 @@
                 $progressPercent = $scenesCount > 0 ? ($completedScenesCount / $scenesCount) * 100 : 0;
                 $isCompleted = $episode->status === 'completed';
             @endphp
-            <div class="group bg-gray-900/40 backdrop-blur-lg rounded-2xl border border-gray-800 hover:border-purple-500/50 transition-all duration-300 overflow-hidden hover:transform hover:scale-105 cursor-pointer" 
-                 onclick="event.stopPropagation(); {{ $isCompleted ? 'openVideoModal(' . $episode->id . ', \'' . addslashes($episode->title) . '\', ' . $episode->episode_number . ')' : 'viewSeries(' . $series->id . ')' }}">
+            <div class="group bg-gray-900/40 backdrop-blur-lg rounded-2xl border border-gray-800 hover:border-purple-500/50 transition-all duration-300 overflow-hidden hover:transform hover:scale-105">
                 <!-- Card Header -->
                 <div class="relative h-48 overflow-hidden bg-gradient-to-br from-purple-600/20 to-pink-600/20">
                     @if($thumbnailUrl)
@@ -123,6 +122,14 @@
                             Episode {{ $episode->episode_number }}
                         </span>
                     </div>
+                    
+                    <!-- Delete Button (Only appears on hover) -->
+                    <button onclick="event.stopPropagation(); confirmDeleteEpisode({{ $series->id }}, {{ $episode->episode_number }}, '{{ addslashes($episode->title) }}')" 
+                            class="absolute top-3 left-3 p-1.5 bg-red-600/80 hover:bg-red-600 rounded-lg text-white transition-all duration-300 opacity-0 group-hover:opacity-100 backdrop-blur-sm z-10">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                    </button>
                     
                     <!-- Scenes Count -->
                     <div class="absolute bottom-3 left-3">
@@ -193,7 +200,7 @@
                     
                     <!-- Status and Date -->
                     <div class="flex items-center justify-between">
-                        <span class="text-xs px-2 py-1 rounded-full {{ $isCompleted ? 'bg-green-500/20 text-green-400' : 'bg-yellow-500/20 text-yellow-400' }}">
+                        <span class="text-xs px-2 py-1 rounded-full {{ $isCompleted ? 'bg-green-500/20 text-green-400' : 'bg-purple-500/20 text-purple-400' }}">
                             {{ $isCompleted ? 'Ready to Watch' : 'In Progress' }}
                         </span>
                         <div class="flex items-center gap-1 text-gray-500 text-xs">
@@ -204,10 +211,10 @@
                         </div>
                     </div>
                     
-                    <!-- Action Button -->
-                    <div class="mt-4 pt-3 border-t border-gray-800">
-                        <button onclick="event.stopPropagation(); {{ $isCompleted ? 'openVideoModal(' . $episode->id . ', \'' . addslashes($episode->title) . '\', ' . $episode->episode_number . ')' : 'viewSeries(' . $series->id . ')' }}" 
-                                class="w-full py-2 {{ $isCompleted ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-purple-600/20 to-pink-600/20 hover:from-purple-600 hover:to-pink-600' }} rounded-lg {{ $isCompleted ? 'text-white' : 'text-purple-400 hover:text-white' }} text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
+                    <!-- Action Buttons -->
+                    <div class="mt-4 pt-3 border-t border-gray-800 flex gap-2">
+                        <button onclick="event.stopPropagation(); {{ $isCompleted ? 'openVideoModal(' . $episode->id . ', \'' . addslashes($episode->title) . '\', ' . $episode->episode_number . ')' : 'continueEditing(' . $series->id . ', ' . $episode->episode_number . ')' }}" 
+                                class="flex-1 py-2 {{ $isCompleted ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' }} rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
                             @if($isCompleted)
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
@@ -252,6 +259,37 @@
             </a>
         </div>
         @endif
+    </div>
+</div>
+
+<!-- Delete Episode Confirmation Modal -->
+<div id="deleteEpisodeModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center transition-all duration-300">
+    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full mx-4 p-6 border border-red-500/30 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="deleteEpisodeModalContent">
+        <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">Delete Episode</h3>
+            <p class="text-gray-400 mb-2">
+                Are you sure you want to delete "<span id="deleteEpisodeName" class="text-white font-semibold"></span>"?
+            </p>
+            <p class="text-red-400 text-sm mb-6">⚠️ This action cannot be undone. All scenes and generated content will be permanently deleted.</p>
+            <div class="flex gap-3">
+                <button onclick="closeDeleteEpisodeModal()" 
+                        class="flex-1 px-4 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl text-white font-medium transition-all duration-300">
+                    Cancel
+                </button>
+                <button id="confirmDeleteEpisodeBtn" 
+                        class="flex-1 px-4 py-2.5 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 rounded-xl text-white font-medium transition-all duration-300 flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete Permanently
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -306,38 +344,96 @@
 <script>
 let currentVideoUrl = null;
 let currentEpisodeId = null;
+let seriesIdToDelete = null;
+let episodeNumberToDelete = null;
+
 const isDemoUser = {{ auth()->user() && auth()->user()->demo_mode ? 'true' : 'false' }};
 
-function editEpisode(seriesId, episodeNumber) {
-    window.location.href = `/web-series/${seriesId}/episodes/${episodeNumber}/edit`;
+function continueEditing(seriesId, episodeNumber) {
+    window.location.href = `/web-series/${seriesId}/${episodeNumber}`;
 }
 
+function confirmDeleteEpisode(seriesId, episodeNumber, episodeTitle) {
+    seriesIdToDelete = seriesId;
+    episodeNumberToDelete = episodeNumber;
+    document.getElementById('deleteEpisodeName').textContent = episodeTitle;
+    const modal = document.getElementById('deleteEpisodeModal');
+    const content = document.getElementById('deleteEpisodeModalContent');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeDeleteEpisodeModal() {
+    const modal = document.getElementById('deleteEpisodeModal');
+    const content = document.getElementById('deleteEpisodeModalContent');
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        seriesIdToDelete = null;
+        episodeNumberToDelete = null;
+    }, 300);
+}
+
+document.getElementById('confirmDeleteEpisodeBtn').addEventListener('click', async function() {
+    if (!seriesIdToDelete || !episodeNumberToDelete) return;
+    
+    const btn = this;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Deleting...';
+    btn.disabled = true;
+    
+    try {
+        const response = await fetch(`/web-series/${seriesIdToDelete}/episodes/${episodeNumberToDelete}`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Episode deleted successfully!', 'success');
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showToast('Error: ' + result.message, 'error');
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            closeDeleteEpisodeModal();
+        }
+    } catch (error) {
+        showToast('Error deleting episode: ' + error.message, 'error');
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        closeDeleteEpisodeModal();
+    }
+});
+
 function openVideoModal(episodeId, episodeTitle, episodeNumber) {
-    // Set modal title
     document.getElementById('modalEpisodeTitle').textContent = episodeTitle;
     document.getElementById('modalEpisodeInfo').textContent = `Episode ${episodeNumber}`;
     
-    // Show loading state
     const videoPlayer = document.getElementById('modalVideoPlayer');
     videoPlayer.innerHTML = '<source src="" type="video/mp4">';
-    
-    // Show modal
     document.getElementById('videoModal').style.display = 'flex';
     
-    // For demo user (ID 141), get video from demo controller
     if (isDemoUser) {
-        // Use the demo video endpoint - get video based on episode number
         const demoVideoUrl = `/demo/video/${episodeNumber}`;
         currentVideoUrl = demoVideoUrl;
         currentEpisodeId = episodeId;
-        
         videoPlayer.src = demoVideoUrl;
         videoPlayer.load();
         videoPlayer.play().catch(e => console.log('Auto-play prevented:', e));
-        
         showToast('🎬 Loading episode...', 'info');
     } else {
-        // For real users, fetch from API
         fetch(`/web-series/${episodeId}/full-video`)
             .then(response => response.json())
             .then(data => {
@@ -369,10 +465,6 @@ function closeVideoModal() {
     document.getElementById('videoModal').style.display = 'none';
 }
 
-function viewSeries(seriesId) {
-    window.location.href = `/web-series/${seriesId}`;
-}
-
 function downloadCurrentVideo() {
     if (currentVideoUrl) {
         const a = document.createElement('a');
@@ -388,7 +480,6 @@ function downloadCurrentVideo() {
 }
 
 function showToast(message, type = 'success') {
-    // Create toast element if it doesn't exist
     let toast = document.getElementById('customToast');
     if (!toast) {
         toast = document.createElement('div');
@@ -415,17 +506,20 @@ function showToast(message, type = 'success') {
     }, 3000);
 }
 
-// Close modal on escape key
+// Close modals on escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeVideoModal();
+        closeDeleteEpisodeModal();
     }
 });
 
-// Also add the viewEpisode function for backward compatibility
-function viewEpisode(seriesId, episodeNumber) {
-    window.location.href = `/web-series/${seriesId}?episode=${episodeNumber}`;
-}
+// Close delete modal when clicking outside
+document.getElementById('deleteEpisodeModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeDeleteEpisodeModal();
+    }
+});
 </script>
 
 <style>

@@ -169,27 +169,16 @@
                     </div>
                     @endif
                     
-                    <!-- Action Buttons -->
+                    <!-- Action Buttons - Single button to go to episodes page -->
                     <div class="flex gap-2 pt-3 border-t border-gray-800">
-                        @if($hasMultipleEpisodes)
-                            <button onclick="showEpisodeSelector({{ $series->id }}, '{{ addslashes($series->project_name) }}', {{ json_encode($episodes->map(function($e) { return ['id' => $e->id, 'title' => $e->title, 'episode_number' => $e->episode_number]; })) }})" 
-                                    class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-                                <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                </svg>
-                                Select Episode
-                            </button>
-                        @else
-                            <button onclick="viewSeriesEpisodes({{ $series->id }})" 
-        class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
-    <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-    </svg>
-    View Episodes
-</button>
-                        @endif
+                        <button onclick="viewSeriesEpisodes({{ $series->id }})" 
+                                class="flex-1 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2 group/btn">
+                            <svg class="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            View All Episodes
+                        </button>
                         <button onclick="confirmDelete({{ $series->id }}, '{{ $series->project_name }}')" 
                                 class="px-3 py-2 bg-red-600/20 hover:bg-red-600 border border-red-500/30 hover:border-red-500 rounded-lg text-red-400 hover:text-white transition-all duration-300">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,34 +218,7 @@
     </div>
 </div>
 
-<!-- Episode Selector Modal -->
-<div id="episodeSelectorModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center transition-all duration-300">
-    <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full mx-4 border border-purple-500/30 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="episodeSelectorContent">
-        <div class="p-6">
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-bold text-white">Select Episode</h3>
-                </div>
-                <button onclick="closeEpisodeSelector()" class="text-gray-400 hover:text-white transition">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>
-            <p class="text-gray-400 text-sm mb-4" id="episodeSeriesName"></p>
-            <div class="space-y-2 max-h-96 overflow-y-auto" id="episodeList">
-                <!-- Episodes will be populated here -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
+<!-- Delete Confirmation Modal (Only Modal Remaining) -->
 <div id="deleteModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden items-center justify-center transition-all duration-300">
     <div class="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl max-w-md w-full mx-4 p-6 border border-red-500/30 shadow-2xl transform transition-all duration-300 scale-95 opacity-0" id="deleteModalContent">
         <div class="text-center">
@@ -290,66 +252,9 @@
 <script>
 let seriesToDelete = null;
 
-function viewSeries(id) {
-    window.location.href = `/web-series/${id}`;
-}
-
-function viewEpisode(seriesId, episodeId) {
-    window.location.href = `/web-series/${seriesId}/episodes/${episodeId}`;
-}
-
+// Function to go to episodes page
 function viewSeriesEpisodes(seriesId) {
     window.location.href = `/web-series/${seriesId}/episodes`;
-}
-
-function showEpisodeSelector(seriesId, seriesName, episodes) {
-    document.getElementById('episodeSeriesName').innerHTML = `Choose an episode from <span class="text-purple-400 font-semibold">${seriesName}</span>`;
-    
-    const episodeList = document.getElementById('episodeList');
-    episodeList.innerHTML = '';
-    
-    episodes.forEach(episode => {
-        const episodeCard = document.createElement('div');
-        episodeCard.className = 'bg-gray-800/50 rounded-xl p-3 cursor-pointer hover:bg-gray-700/50 transition-all duration-300 border border-gray-700 hover:border-purple-500/50 group';
-        episodeCard.onclick = () => viewEpisode(seriesId, episode.id);
-        episodeCard.innerHTML = `
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600/30 to-pink-600/30 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <span class="text-purple-400 font-bold">${episode.episode_number}</span>
-                    </div>
-                    <div>
-                        <h4 class="text-white font-medium text-sm">${episode.title}</h4>
-                        <p class="text-gray-500 text-xs">Episode ${episode.episode_number}</p>
-                    </div>
-                </div>
-                <svg class="w-5 h-5 text-gray-500 group-hover:text-purple-400 group-hover:translate-x-1 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-            </div>
-        `;
-        episodeList.appendChild(episodeCard);
-    });
-    
-    const modal = document.getElementById('episodeSelectorModal');
-    const content = document.getElementById('episodeSelectorContent');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-        content.classList.remove('scale-95', 'opacity-0');
-        content.classList.add('scale-100', 'opacity-100');
-    }, 10);
-}
-
-function closeEpisodeSelector() {
-    const modal = document.getElementById('episodeSelectorModal');
-    const content = document.getElementById('episodeSelectorContent');
-    content.classList.remove('scale-100', 'opacity-100');
-    content.classList.add('scale-95', 'opacity-0');
-    setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }, 300);
 }
 
 function confirmDelete(id, name) {
@@ -414,12 +319,6 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async func
     }
 });
 
-document.getElementById('episodeSelectorModal').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeEpisodeSelector();
-    }
-});
-
 document.getElementById('deleteModal').addEventListener('click', function(e) {
     if (e.target === this) {
         closeDeleteModal();
@@ -480,21 +379,6 @@ function showToast(message, type) {
 
 .animate-spin {
     animation: spin 1s linear infinite;
-}
-
-/* Custom scrollbar for episode list */
-#episodeList::-webkit-scrollbar {
-    width: 6px;
-}
-
-#episodeList::-webkit-scrollbar-track {
-    background: #1a1a1a;
-    border-radius: 3px;
-}
-
-#episodeList::-webkit-scrollbar-thumb {
-    background: linear-gradient(to bottom, #8b5cf6, #ec4899);
-    border-radius: 3px;
 }
 
 @media (max-width: 768px) {

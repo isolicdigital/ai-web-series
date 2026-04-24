@@ -83,12 +83,12 @@ class ModelsLabService
             $concept .= '.';
         }
         
-        // Smart truncate to 1000 characters (minimum 900)
+        // Smart truncate to 1100 characters (minimum 800, maximum 1100)
         $conceptLength = strlen($concept);
         
-        if ($conceptLength > 1000) {
-            // Truncate to 997 characters to allow for punctuation
-            $truncated = substr($concept, 0, 997);
+        if ($conceptLength > 1100) {
+            // Truncate to 1097 characters to allow for punctuation
+            $truncated = substr($concept, 0, 1097);
             
             // Find the last sentence boundary (., !, ?)
             $lastPeriod = strrpos($truncated, '.');
@@ -100,13 +100,13 @@ class ModelsLabService
             if ($lastPunctuation > 600) {
                 $concept = substr($concept, 0, $lastPunctuation + 1);
             } else {
-                $concept = substr($concept, 0, 997) . '...';
+                $concept = substr($concept, 0, 1097) . '...';
             }
-        } elseif ($conceptLength < 900) {
+        } elseif ($conceptLength < 800) {
             // If concept is too short, add more detail
             Log::info('Concept too short (' . $conceptLength . ' chars), regenerating with more detail...');
             
-            $enhancePrompt = "The following concept is too short (" . $conceptLength . " characters). Please expand it to 900-1000 characters by adding more details, emotional depth, and vivid descriptions while maintaining the same core story:\n\n" . $concept;
+            $enhancePrompt = "The following concept is too short (" . $conceptLength . " characters). Please expand it to 800-1100 characters by adding more details, emotional depth, and vivid descriptions while maintaining the same core story:\n\n" . $concept;
             
             $enhancedResponse = $this->callChatApi($systemPrompt, $enhancePrompt, 1200);
             $concept = trim($enhancedResponse);
@@ -121,9 +121,9 @@ class ModelsLabService
             }
             
             // Final check - if still too short, append additional content
-            if (strlen($concept) < 900) {
+            if (strlen($concept) < 800) {
                 $appendText = " This gripping narrative builds tension throughout, leading to a powerful climax that will leave audiences eager for the next episode.";
-                if (strlen($concept) + strlen($appendText) <= 1000) {
+                if (strlen($concept) + strlen($appendText) <= 1100) {
                     $concept .= $appendText;
                 }
             }
@@ -134,9 +134,9 @@ class ModelsLabService
         Log::info('Final concept length: ' . $finalLength . ' characters');
         Log::info('Generated concept: ' . $concept);
         
-        // Ensure we're within bounds (900-1000)
-        if ($finalLength < 900) {
-            Log::warning('Concept still below 900 characters (' . $finalLength . '), using fallback');
+        // Ensure we're within bounds (800-1100)
+        if ($finalLength < 600) {
+            Log::warning('Concept still below 800 characters (' . $finalLength . '), using fallback');
             $category = \App\Models\Category::find($categoryId);
             $categoryName = $category ? $category->name : 'Web Series';
             return $this->getFallbackConcept($categoryName, $prompt);
@@ -317,6 +317,281 @@ Keep descriptions VERY SHORT and punchy.";
     }
 
     /**
+ * Generate image using ModelsLab API
+ */
+// public function generateImage($prompt, $width = 1024, $height = 1024, $samples = 1)
+// {
+//     Log::info('=== GENERATING IMAGE VIA MODELSLAB API ===');
+//     Log::info('Prompt length: ' . strlen($prompt));
+    
+//     try {
+//         $payload = [
+//             'key' => $this->imageApiKey,
+//             'model_id' => 'flux-2-dev',
+//             'prompt' => $prompt,
+//             'width' => (string)$width,
+//             'height' => (string)$height,
+//             'num_inference_steps' => '30',
+//             'samples' => (string)$samples,
+//             'safety_checker' => false,
+//             'enhance_prompt' => true,
+//             'guidance_scale' => 7.5,
+//         ];
+        
+//         Log::info('Sending request to ModelsLab API');
+        
+//         $response = $this->client->post($this->imageApiUrl, [
+//             'json' => $payload,
+//             'headers' => ['Content-Type' => 'application/json']
+//         ]);
+        
+//         $body = $response->getBody()->getContents();
+//         $result = json_decode($body, true);
+        
+//         Log::info('API Response received', ['response' => json_encode($result)]);
+        
+//         // Check for immediate output
+//         if (isset($result['output']) && !empty($result['output'])) {
+//             return [
+//                 'success' => true,
+//                 'images' => $result['output'],
+//                 'status' => 'completed'
+//             ];
+//         }
+        
+//         // Check for future_links
+//         if (isset($result['future_links']) && !empty($result['future_links'])) {
+//             return [
+//                 'success' => true,
+//                 'images' => $result['future_links'],
+//                 'status' => 'completed'
+//             ];
+//         }
+        
+//         // Check if processing
+//         if (isset($result['status']) && $result['status'] === 'processing') {
+//             return [
+//                 'success' => true,
+//                 'status' => 'processing',
+//                 'request_id' => $result['id'] ?? null,
+//                 'message' => 'Image generation started'
+//             ];
+//         }
+        
+//         return [
+//             'success' => false,
+//             'message' => $result['message'] ?? 'Unknown error occurred'
+//         ];
+        
+//     } catch (\Exception $e) {
+//         Log::error('Generate image error: ' . $e->getMessage());
+//         return [
+//             'success' => false,
+//             'message' => $e->getMessage()
+//         ];
+//     }
+// }
+
+
+public function generateImage($prompt, $width = 1024, $height = 1024, $samples = 1)
+{
+    Log::info('=== GENERATING IMAGE VIA REPLICATE FLUX SCHNELL API ===');
+    Log::info('Prompt: ' . substr($prompt, 0, 200));
+    
+    $apiToken = env('REPLICATE_API_TOKEN');
+    
+    if (!$apiToken) {
+        Log::error('REPLICATE_API_TOKEN not set');
+        return [
+            'success' => false,
+            'message' => 'REPLICATE_API_TOKEN not configured'
+        ];
+    }
+    
+    try {
+        // Determine aspect ratio from dimensions
+        $aspectRatio = $this->getAspectRatio($width, $height);
+        
+        $payload = [
+            'input' => [
+                'prompt' => $prompt,
+                'go_fast' => true,
+                'megapixels' => '1',
+                'num_outputs' => $samples,
+                'aspect_ratio' => $aspectRatio,
+                'output_format' => 'webp',
+                'output_quality' => 80,
+                'num_inference_steps' => 4
+            ]
+        ];
+        
+        Log::info('Sending request to Replicate Flux Schnell API');
+        Log::info('Payload: ' . json_encode($payload));
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $apiToken,
+            'Content-Type: application/json',
+            'Prefer: wait'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        Log::info("Replicate API response code: {$httpCode}");
+        
+        if ($httpCode !== 200 && $httpCode !== 201) {
+            Log::error("Replicate API error: " . $response);
+            return [
+                'success' => false,
+                'message' => "API returned status code: {$httpCode}"
+            ];
+        }
+        
+        $result = json_decode($response, true);
+        Log::info('API Response received', ['response' => json_encode($result)]);
+        
+        // Check for immediate output (with Prefer: wait header)
+        if (isset($result['output']) && !empty($result['output'])) {
+            // Flux Schnell returns output as array of URLs
+            $images = is_array($result['output']) ? $result['output'] : [$result['output']];
+            return [
+                'success' => true,
+                'images' => $images,
+                'status' => 'completed'
+            ];
+        }
+        
+        // Check if we have URLs in the output
+        if (isset($result['urls']) && isset($result['urls']['get'])) {
+            // Need to poll for result
+            return $this->pollReplicatePrediction($result['id'], $apiToken);
+        }
+        
+        // Check if processing
+        if (isset($result['status']) && $result['status'] === 'processing') {
+            return [
+                'success' => true,
+                'status' => 'processing',
+                'prediction_id' => $result['id'] ?? null,
+                'message' => 'Image generation started'
+            ];
+        }
+        
+        return [
+            'success' => false,
+            'message' => $result['error'] ?? 'Unknown error occurred'
+        ];
+        
+    } catch (\Exception $e) {
+        Log::error('Generate image error: ' . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+    }
+}
+
+/**
+ * Convert width/height to aspect ratio string for Replicate API
+ */
+private function getAspectRatio($width, $height)
+{
+    $ratios = [
+        '1:1' => ['min' => 0.95, 'max' => 1.05],
+        '3:2' => ['min' => 1.45, 'max' => 1.55],
+        '2:3' => ['min' => 0.64, 'max' => 0.68],
+        '4:3' => ['min' => 1.32, 'max' => 1.35],
+        '3:4' => ['min' => 0.74, 'max' => 0.76],
+        '16:9' => ['min' => 1.77, 'max' => 1.78],
+        '9:16' => ['min' => 0.56, 'max' => 0.57],
+    ];
+    
+    $ratio = $width / $height;
+    
+    foreach ($ratios as $aspect => $range) {
+        if ($ratio >= $range['min'] && $ratio <= $range['max']) {
+            return $aspect;
+        }
+    }
+    
+    return '1:1'; // Default
+}
+
+/**
+ * Poll Replicate prediction for result
+ */
+private function pollReplicatePrediction($predictionId, $apiToken, $maxAttempts = 30, $delaySeconds = 2)
+{
+    Log::info("Polling Replicate prediction: {$predictionId}");
+    
+    for ($attempt = 1; $attempt <= $maxAttempts; $attempt++) {
+        sleep($delaySeconds);
+        
+        try {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://api.replicate.com/v1/predictions/' . $predictionId);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $apiToken,
+                'Content-Type: application/json'
+            ]);
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode !== 200) {
+                Log::warning("Polling HTTP error: {$httpCode}");
+                continue;
+            }
+            
+            $result = json_decode($response, true);
+            $status = $result['status'] ?? 'processing';
+            
+            Log::info("Prediction status: {$status} (attempt {$attempt})");
+            
+            if ($status === 'succeeded') {
+                $output = $result['output'] ?? null;
+                
+                if ($output) {
+                    $images = is_array($output) ? $output : [$output];
+                    return [
+                        'success' => true,
+                        'images' => $images,
+                        'status' => 'completed'
+                    ];
+                }
+            }
+            
+            if ($status === 'failed') {
+                $error = $result['error'] ?? 'Unknown error';
+                Log::error("Replicate prediction failed: " . $error);
+                return [
+                    'success' => false,
+                    'message' => $error
+                ];
+            }
+            
+        } catch (\Exception $e) {
+            Log::error("Error polling Replicate: " . $e->getMessage());
+        }
+    }
+    
+    Log::error("Polling timeout for prediction {$predictionId}");
+    return [
+        'success' => false,
+        'message' => 'Image generation timed out'
+    ];
+}
+
+    /**
      * Get negative prompt from category template
      */
     public function getNegativePrompt($categoryId)
@@ -337,6 +612,39 @@ Keep descriptions VERY SHORT and punchy.";
             return null;
         }
     }
+
+    /**
+ * Get a fallback concept when generation fails
+ */
+private function getFallbackConcept($categoryName, $prompt)
+{
+    $fallbacks = [
+        "A compelling {$categoryName} story about an extraordinary journey. The hero faces impossible challenges, discovers hidden truths about their past, and transforms in unexpected ways. Along the way, they form unlikely alliances and confront their deepest fears. The episode builds to a breathtaking climax where everything changes, ending with a revelation that will haunt audiences until the next installment.",
+        
+        "In this gripping {$categoryName} tale, ordinary people are thrust into extraordinary circumstances. As secrets unravel and tensions rise, each character must choose between what is easy and what is right. The narrative weaves together multiple storylines, creating a rich tapestry of emotion, action, and suspense. Just when you think you know what happens next, a shocking twist changes everything, setting up an epic continuation.",
+        
+        "A powerful {$categoryName} narrative exploring themes of redemption, courage, and sacrifice. When a mysterious threat emerges, our protagonist must rally unlikely allies and overcome personal demons to save everything they hold dear. The episode masterfully balances heart-pounding action with quiet, character-driven moments, building toward an emotionally devastating conclusion that redefines what's possible in storytelling.",
+        
+        "An epic {$categoryName} adventure that pushes the boundaries of imagination. The story follows a unlikely hero who discovers they have the power to change their world. Through trials and tribulations, they learn that true strength comes from within. The episode ends with a cliffhanger that will leave audiences desperate for more, setting up an exciting season ahead.",
+        
+        "A heart-wrenching {$categoryName} drama that explores the depths of human emotion. When tragedy strikes, our protagonist must find the courage to carry on while helping others do the same. The episode weaves together multiple storylines, each exploring different aspects of love, loss, and redemption. The powerful conclusion will stay with viewers long after the credits roll."
+    ];
+    
+    // Add the user prompt context to the fallback
+    $fallback = $fallbacks[array_rand($fallbacks)];
+    if (!empty($prompt) && strlen($prompt) > 10) {
+        $fallback = "Based on the idea: \"{$prompt}\". " . $fallback;
+    }
+    
+    // Ensure fallback length is between 900-1000 characters
+    if (strlen($fallback) > 1000) {
+        $fallback = substr($fallback, 0, 997) . '.';
+    } elseif (strlen($fallback) < 900) {
+        $fallback .= " Every moment builds toward an unforgettable finale that redefines the {$categoryName} genre.";
+    }
+    
+    return $fallback;
+}
 
     /**
      * Get joke prompt for comedy category
@@ -375,171 +683,85 @@ Keep descriptions VERY SHORT and punchy.";
      * Generate image with webhook and logging (includes negative prompt in API call only)
      */
     public function generateImageWithWebhook($prompt, $sceneId, $seriesId, $userId, $width = 1024, $height = 1024, $samples = 1)
-    {
-        Log::info('=== GENERATING IMAGE WITH WEBHOOK ===');
-        Log::info('Scene ID: ' . $sceneId);
-        Log::info('Series ID: ' . $seriesId);
-        Log::info('User ID: ' . $userId);
+{
+    Log::info('=== GENERATING IMAGE VIA REPLICATE FLUX SCHNELL WITH WEBHOOK ===');
+    Log::info('Scene ID: ' . $sceneId);
+    
+    $apiToken = env('REPLICATE_API_TOKEN');
+    
+    if (!$apiToken) {
+        Log::error('REPLICATE_API_TOKEN not set');
+        return [
+            'success' => false,
+            'message' => 'REPLICATE_API_TOKEN not configured'
+        ];
+    }
+    
+    try {
+        // Get category for tracking
+        $scene = \App\Models\Scene::find($sceneId);
+        $webhookUrl = url("/api/replicate-webhook?scene_id={$sceneId}&series_id={$seriesId}&user_id={$userId}");
         
-        try {
-            $trackingId = $this->generateTrackingId();
-            $webhookUrl = url("/webhook/image-generation?tracking_id={$trackingId}&scene_id={$sceneId}&series_id={$seriesId}");
-            
-            // Get negative prompt from category template (for API call only, not stored in DB)
-            $scene = \App\Models\Scene::find($sceneId);
-            $negativePrompt = null;
-            if ($scene && $scene->web_series_id) {
-                $series = \App\Models\WebSeries::find($scene->web_series_id);
-                if ($series && $series->category_id) {
-                    $negativePrompt = $this->getNegativePrompt($series->category_id);
-                }
-            }
-            
-            // Create log entry (without negative_prompt column)
-            if (class_exists(\App\Models\ImageGenerationLog::class)) {
-                $log = \App\Models\ImageGenerationLog::create([
-                    'tracking_id' => $trackingId,
-                    'scene_id' => $sceneId,
-                    'web_series_id' => $seriesId,
-                    'user_id' => $userId,
-                    'prompt' => $prompt,
-                    'model_id' => 'flux-2-dev',
-                    'samples' => $samples,
-                    'num_inference_steps' => 30,
-                    'guidance_scale' => 7.5,
-                    'webhook_url' => $webhookUrl,
-                    'status' => 'pending',
-                    'api_called_at' => now()
-                ]);
-                Log::info('Created log entry with tracking ID: ' . $trackingId);
-            }
-            
-            $payload = [
-                'key' => $this->imageApiKey,
-                'model_id' => 'flux-2-dev',
+        $aspectRatio = $this->getAspectRatio($width, $height);
+        
+        $payload = [
+            'input' => [
                 'prompt' => $prompt,
-                'width' => (string)$width,
-                'height' => (string)$height,
-                'num_inference_steps' => '30',
-                'samples' => (string)$samples,
-                'safety_checker' => false,
-                'enhance_prompt' => true,
-                'guidance_scale' => 7.5,
-                'seed' => null,
-                'webhook' => $webhookUrl
-            ];
-            
-            // Add negative prompt to API payload if available
-            if ($negativePrompt) {
-                $payload['negative_prompt'] = $negativePrompt;
-                Log::info('Using negative prompt in API call');
-            }
-            
-            Log::info('Sending request to ModelsLab API');
-            
-            $response = $this->client->post($this->imageApiUrl, [
-                'json' => $payload,
-                'headers' => ['Content-Type' => 'application/json']
-            ]);
-            
-            $body = $response->getBody()->getContents();
-            $result = json_decode($body, true);
-            
-            Log::info('Image API Response', ['response' => $result]);
-            
-            // Update log with API response
-            if (isset($log)) {
-                $log->update([
-                    'full_api_response' => $result,
-                    'api_request_id' => $result['id'] ?? null
-                ]);
-            }
-            
-            // Check if future_links already available
-            if (isset($result['future_links']) && !empty($result['future_links'])) {
-                if (isset($log)) {
-                    $log->update([
-                        'status' => 'completed',
-                        'image_urls' => $result['future_links'],
-                        'completed_at' => now()
-                    ]);
-                }
-                return [
-                    'success' => true,
-                    'images' => $result['future_links'],
-                    'status' => 'completed',
-                    'tracking_id' => $trackingId
-                ];
-            }
-            
-            if (isset($result['output']) && !empty($result['output'])) {
-                if (isset($log)) {
-                    $log->update([
-                        'status' => 'completed',
-                        'image_urls' => $result['output'],
-                        'completed_at' => now()
-                    ]);
-                }
-                return [
-                    'success' => true,
-                    'images' => $result['output'],
-                    'status' => 'completed',
-                    'tracking_id' => $trackingId
-                ];
-            }
-            
-            if (isset($result['status']) && $result['status'] === 'processing') {
-                if (isset($log)) {
-                    $log->update(['status' => 'processing']);
-                }
-                return [
-                    'success' => true,
-                    'status' => 'processing',
-                    'request_id' => $result['id'] ?? null,
-                    'tracking_id' => $trackingId,
-                    'message' => 'Image generation started'
-                ];
-            }
-            
-            if (isset($log)) {
-                $log->update([
-                    'status' => 'failed',
-                    'error_message' => $result['message'] ?? 'Failed to start generation',
-                    'completed_at' => now()
-                ]);
-            }
-            
+                'go_fast' => true,
+                'megapixels' => '1',
+                'num_outputs' => $samples,
+                'aspect_ratio' => $aspectRatio,
+                'output_format' => 'webp',
+                'output_quality' => 80,
+                'num_inference_steps' => 4
+            ],
+            'webhook' => $webhookUrl,
+            'webhook_events_filter' => ['completed']
+        ];
+        
+        Log::info('Sending request to Replicate API with webhook');
+        
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://api.replicate.com/v1/models/black-forest-labs/flux-schnell/predictions');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $apiToken,
+            'Content-Type: application/json'
+        ]);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        Log::info("Replicate API response code: {$httpCode}");
+        
+        if ($httpCode !== 200 && $httpCode !== 201) {
             return [
                 'success' => false,
-                'message' => $result['message'] ?? 'Failed to start generation',
-                'tracking_id' => $trackingId
-            ];
-            
-        } catch (\Exception $e) {
-            Log::error('Generate image error: ' . $e->getMessage());
-            Log::error('Error trace: ' . $e->getTraceAsString());
-            
-            // Create failed log entry (without negative_prompt)
-            if (class_exists(\App\Models\ImageGenerationLog::class)) {
-                \App\Models\ImageGenerationLog::create([
-                    'tracking_id' => $this->generateTrackingId(),
-                    'scene_id' => $sceneId,
-                    'web_series_id' => $seriesId,
-                    'user_id' => $userId,
-                    'prompt' => $prompt,
-                    'status' => 'failed',
-                    'error_message' => $e->getMessage(),
-                    'api_called_at' => now(),
-                    'completed_at' => now()
-                ]);
-            }
-            
-            return [
-                'success' => false,
-                'message' => $e->getMessage()
+                'message' => "API returned status code: {$httpCode}"
             ];
         }
+        
+        $result = json_decode($response, true);
+        
+        return [
+            'success' => true,
+            'status' => 'processing',
+            'prediction_id' => $result['id'] ?? null,
+            'message' => 'Image generation started'
+        ];
+        
+    } catch (\Exception $e) {
+        Log::error('Generate image error: ' . $e->getMessage());
+        return [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
     }
+}
 
     /**
      * Call Chat API
