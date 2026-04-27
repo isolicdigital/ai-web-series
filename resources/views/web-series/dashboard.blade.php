@@ -194,7 +194,7 @@
             </div>
             
             <!-- Creator Section -->
-            <div class="max-w-5xl mx-auto mb-16" id="creator-section">
+            <!-- <div class="max-w-5xl mx-auto mb-16" id="creator-section">
                 <div class="bg-gradient-to-r from-gray-900/50 to-gray-800/50 backdrop-blur-lg rounded-2xl border border-gray-800 overflow-hidden shadow-xl hover:border-purple-500/30 transition-all duration-300">
                     <div class="p-6 md:p-8">
                         <div class="flex flex-col md:flex-row gap-6 items-center">
@@ -217,7 +217,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
             <!-- POPULAR CATEGORIES SECTION (All Categories) -->
             @php
                 use App\Models\Category;
