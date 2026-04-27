@@ -37,17 +37,17 @@
                 </button>
             </div>
             
-            <p class="text-gray-300 text-sm mb-6">Thank you for purchasing <strong class="text-purple-400">{{ config('app.name') }}</strong>! Below are your login details:</p>
+            <p class="credentials-intro text-gray-300 text-sm mb-6">Thank you for purchasing <strong class="text-purple-400">{{ config('app.name') }}</strong>! Below are your login details:</p>
             
             <div class="space-y-4">
                 <!-- Login URL -->
-                <div class="flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
-                    <div class="flex items-center gap-2 min-w-[120px]">
+                <div class="credential-item flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
+                    <div class="credential-label flex items-center gap-2 min-w-[120px]">
                         <i class="fas fa-globe text-purple-400"></i>
                         <span class="text-gray-400 font-medium">Login URL:</span>
                     </div>
                     <div class="flex-1">
-                        <a href="{{ url('/') }}" target="_blank" class="text-purple-400 hover:text-pink-400 font-medium inline-flex items-center gap-2 transition-all duration-300 hover:gap-3">
+                        <a href="{{ url('/') }}" target="_blank" class="url-link text-purple-400 hover:text-pink-400 font-medium inline-flex items-center gap-2 transition-all duration-300 hover:gap-3">
                             {{ url('/') }}
                             <i class="fas fa-external-link-alt text-xs"></i>
                         </a>
@@ -55,13 +55,13 @@
                 </div>
                 
                 <!-- Email -->
-                <div class="flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
-                    <div class="flex items-center gap-2 min-w-[120px]">
+                <div class="credential-item flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
+                    <div class="credential-label flex items-center gap-2 min-w-[120px]">
                         <i class="fas fa-envelope text-purple-400"></i>
                         <span class="text-gray-400 font-medium">Email:</span>
                     </div>
                     <div class="flex-1 flex items-center gap-2">
-                        <span class="text-gray-300">Your Purchase Email Address</span>
+                        <span class="credential-value text-gray-300">Your Purchase Email Address</span>
                         <div class="relative group">
                             <i class="fas fa-info-circle text-gray-500 cursor-help hover:text-purple-400 transition-colors"></i>
                             <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-gray-700">
@@ -72,13 +72,13 @@
                 </div>
                 
                 <!-- Password -->
-                <div class="flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
-                    <div class="flex items-center gap-2 min-w-[120px]">
+                <div class="credential-item flex flex-wrap items-center gap-4 p-3 bg-black/50 rounded-xl border border-gray-800 transition-all duration-300 hover:border-purple-500/30">
+                    <div class="credential-label flex items-center gap-2 min-w-[120px]">
                         <i class="fas fa-lock text-purple-400"></i>
                         <span class="text-gray-400 font-medium">Password:</span>
                     </div>
                     <div class="flex-1 flex items-center gap-3">
-                        <code id="password-text" class="bg-black/50 px-3 py-1.5 rounded-lg text-yellow-400 font-mono text-sm border border-yellow-500/30">
+                        <code id="password-text" class="password-text bg-black/50 px-3 py-1.5 rounded-lg text-yellow-400 font-mono text-sm border border-yellow-500/30">
                             {{ env('DEF_PW', 'default123') }}
                         </code>
                         <button onclick="copyPassword()" 
@@ -174,62 +174,132 @@
 </div>
 
 <script>
-    function copyPassword() {
-        const passwordText = document.getElementById('password-text').textContent;
-        copyToClipboard(passwordText, 'Password');
-    }
+    function cleanText(text) {
+    if (!text) return '';
+    // Remove extra spaces, tabs, newlines and trim
+    return text.replace(/\s+/g, ' ').trim();
+}
 
-    function copyAllCredentials() {
-        const introText = document.querySelector('.credentials-intro').textContent;
-        const credentialsItems = document.querySelectorAll('.credential-item');
-        
-        let credentialsText = '';
-        credentialsItems.forEach(item => {
-            const label = item.querySelector('.credential-label span').textContent;
-            let value = '';
-            
-            if (item.querySelector('.url-link')) {
-                value = item.querySelector('.url-link').textContent.trim();
-            } else if (item.querySelector('.password-text')) {
-                value = item.querySelector('.password-text').textContent;
-            } else {
-                value = item.querySelector('.credential-value span').textContent;
-            }
-            
-            credentialsText += `${label} ${value}\n`;
-        });
-        
-        const fullText = `${introText}\n\n${credentialsText}`;
-        copyToClipboard(fullText, 'All credentials');
-    }
+function copyPassword() {
+    const passwordElement = document.getElementById('password-text');
+    let passwordText = passwordElement ? cleanText(passwordElement.textContent) : '';
+    copyToClipboard(passwordText, 'Password');
+}
 
-    function copyToClipboard(text, type) {
+function copyAllCredentials() {
+    // Get intro text
+    const introElement = document.querySelector('.credentials-intro');
+    let introText = introElement ? cleanText(introElement.textContent) : '';
+    
+    // Get all credential items
+    const credentialsItems = document.querySelectorAll('.credential-item');
+    let credentialsParts = [];
+    
+    credentialsItems.forEach(item => {
+        // Get label
+        const labelElement = item.querySelector('.credential-label span');
+        let label = labelElement ? cleanText(labelElement.textContent) : '';
+        
+        let value = '';
+        
+        // Get value based on what's available
+        const urlLink = item.querySelector('.url-link');
+        const passwordText = item.querySelector('.password-text');
+        const credentialValue = item.querySelector('.credential-value');
+        
+        if (urlLink) {
+            value = cleanText(urlLink.textContent);
+        } else if (passwordText) {
+            value = cleanText(passwordText.textContent);
+        } else if (credentialValue) {
+            value = cleanText(credentialValue.textContent);
+        }
+        
+        if (label && value) {
+            credentialsParts.push(`${label}: ${value}`);
+        }
+    });
+    
+    // Build full text
+    let fullText = credentialsParts.join('\n');
+    if (introText) {
+        fullText = introText + '\n\n' + fullText;
+    }
+    
+    copyToClipboard(fullText, 'All credentials');
+}
+
+function copyToClipboard(text, type) {
+    // Clean the text before copying
+    text = cleanText(text);
+    
+    if (!text) {
+        showToast('Nothing to copy!');
+        return;
+    }
+    
+    // Method 1: Try using the modern clipboard API
+    if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(() => {
             showToast(`${type} copied to clipboard!`);
-        }).catch(() => {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            showToast(`${type} copied to clipboard!`);
+        }).catch((err) => {
+            console.error('Clipboard API failed:', err);
+            fallbackCopyToClipboard(text, type);
         });
+    } 
+    // Method 2: Fallback for older browsers or non-HTTPS
+    else {
+        fallbackCopyToClipboard(text, type);
     }
+}
 
-    function showToast(message) {
-        const toast = document.getElementById('global-toast');
-        const toastMessage = document.getElementById('toast-message');
+function fallbackCopyToClipboard(text, type) {
+    try {
+        // Create a temporary textarea element
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
         
-        toastMessage.textContent = message;
-        toast.classList.remove('opacity-0', 'translate-y-4');
-        toast.classList.add('opacity-100', 'translate-y-0');
+        // Make the textarea out of viewport
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        textArea.style.opacity = '0';
         
-        setTimeout(() => {
-            toast.classList.remove('opacity-100', 'translate-y-0');
-            toast.classList.add('opacity-0', 'translate-y-4');
-        }, 3000);
+        document.body.appendChild(textArea);
+        
+        // Select and copy
+        textArea.focus();
+        textArea.select();
+        
+        const successful = document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        if (successful) {
+            showToast(`${type} copied to clipboard!`);
+        } else {
+            showToast(`Failed to copy ${type.toLowerCase()}. Please copy manually.`);
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showToast(`Unable to copy. Please copy manually.`);
     }
+}
+
+function showToast(message) {
+    const toast = document.getElementById('global-toast');
+    const toastMessage = document.getElementById('toast-message');
+    
+    if (!toast || !toastMessage) return;
+    
+    toastMessage.textContent = message;
+    toast.classList.remove('opacity-0', 'translate-y-4');
+    toast.classList.add('opacity-100', 'translate-y-0');
+    
+    setTimeout(() => {
+        toast.classList.remove('opacity-100', 'translate-y-0');
+        toast.classList.add('opacity-0', 'translate-y-4');
+    }, 3000);
+}
 </script>
 
 <style>
