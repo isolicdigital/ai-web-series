@@ -5,172 +5,150 @@
 @section('css')
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <link href="{{ URL::asset('plugins/sweetalert/sweetalert2.min.css') }}" rel="stylesheet" />
-<link rel="stylesheet" href="{{ asset('custom/css/dfy.css') }}">
 <style>
-    /* DFY Menu Page Styles */
-    .dfy-menu-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
     }
-
-    .dfy-menu-header {
-        text-align: center;
-        margin-bottom: 2rem;
+    
+    ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+        border-radius: 4px;
     }
-
-    .dfy-menu-badge {
-        display: inline-block;
-        padding: 0.25rem 1rem;
-        background: var(--accent);
-        color: white;
-        border-radius: 30px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-bottom: 1rem;
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+        border-radius: 4px;
     }
-
-    .dfy-menu-title {
-        font-size: 2rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-        background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
+    
+    /* SweetAlert Dark Theme */
+    .swal2-popup {
+        background: #1a1a1a !important;
+        border: 1px solid rgba(139, 92, 246, 0.3) !important;
+        border-radius: 20px !important;
     }
-
-    .dfy-menu-subtitle {
-        color: var(--text-muted);
-        font-size: 1rem;
+    
+    .swal2-title {
+        color: #ffffff !important;
     }
-
-    /* Menu Grid */
-    .menu-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1.5rem;
-        margin-top: 1rem;
+    
+    .swal2-html-container {
+        color: #a0a0a0 !important;
     }
-
-    .menu-card {
-        background: var(--card-bg);
-        border: 1px solid var(--glass-border);
-        border-radius: 20px;
-        overflow: hidden;
-        transition: var(--transition);
-        cursor: pointer;
-        text-decoration: none;
-        display: block;
+    
+    .swal2-input {
+        background: #1f2937 !important;
+        border: 1px solid #374151 !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
+        padding: 12px 16px !important;
     }
-
-    .menu-card:hover {
-        transform: translateY(-6px);
-        box-shadow: var(--shadow);
-        border-color: var(--accent);
+    
+    .swal2-input:focus {
+        border-color: #8b5cf6 !important;
+        box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
     }
-
-    .menu-icon-block {
-        width: 100%;
-        height: 200px;
-        background: var(--surface);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 4rem;
-        color: var(--accent);
-        transition: var(--transition);
+    
+    .swal2-confirm {
+        background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+        border-radius: 40px !important;
+        font-weight: 600 !important;
     }
-
-    .menu-card:hover .menu-icon-block {
-        background: rgba(230, 88, 86, 0.1);
+    
+    .swal2-cancel {
+        background: #374151 !important;
+        border-radius: 40px !important;
+        font-weight: 600 !important;
     }
-
-    .menu-card-body {
-        padding: 1.25rem;
-        text-align: center;
-    }
-
-    .menu-card-title {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: var(--text-main);
-        margin-bottom: 0.5rem;
-    }
-
-    .menu-card-description {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-    }
-
-    /* Responsive */
-    @media (max-width: 992px) {
-        .menu-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .dfy-menu-container {
-            padding: 1rem;
-        }
-        
-        .menu-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .menu-icon-block {
-            height: 160px;
-            font-size: 3rem;
-        }
+    
+    .swal2-validation-message {
+        background: #1f2937 !important;
+        color: #f87171 !important;
     }
 </style>
 @endsection
 
 @section('content')
-<div class="dfy-menu-container">
-    <div class="dfy-menu-header">
-        <div class="dfy-menu-badge">Profit Pages</div>
-        <h1 class="dfy-menu-title">{{ $page_title ?? 'Page Builder' }}</h1>
-        <p class="dfy-menu-subtitle">Choose how you want to create your next high-converting page</p>
-    </div>
-
-    <div class="menu-grid">
-        <!-- 1-Click Cloner -->
-        <div class="menu-card" id="oneClickCloner">
-            <div class="menu-icon-block">
-                <i class="fas fa-clone"></i>
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center px-4 py-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-semibold mb-4 shadow-lg">
+                <i class="fas fa-chart-line mr-2 text-xs"></i>
+                Profit Pages
             </div>
-            <div class="menu-card-body">
-                <h5 class="menu-card-title">1-Click Cloner</h5>
-                <p class="menu-card-description">Clone any existing website with one click</p>
-            </div>
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-4">
+                {{ $page_title ?? 'Page Builder' }}
+            </h1>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                Choose how you want to create your next high-converting page
+            </p>
         </div>
+        
+        <!-- Menu Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            
+            <!-- 1-Click Cloner Card -->
+            <div class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer" id="oneClickCloner">
+                <div class="p-8 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                        <i class="fas fa-clone text-5xl text-purple-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-purple-300 transition-colors">1-Click Cloner</h3>
+                    <p class="text-gray-400 text-sm">Clone any existing website with one click</p>
+                </div>
+                <div class="px-8 pb-8">
+                    <div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="w-0 h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full group-hover:w-full transition-all duration-700"></div>
+                    </div>
+                </div>
+            </div>
 
-        <!-- High-Converting Templates -->
-        <a href="{{ route('page-builder.create') }}" class="menu-card">
-            <div class="menu-icon-block">
-                <i class="fas fa-fire"></i>
-            </div>
-            <div class="menu-card-body">
-                <h5 class="menu-card-title">High-Converting Templates</h5>
-                <p class="menu-card-description">Start with professionally designed templates</p>
-            </div>
-        </a>
+            <!-- High-Converting Templates Card -->
+            <a href="{{ route('page-builder.create') }}" class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer block">
+                <div class="p-8 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-orange-600/20 to-red-600/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                        <i class="fas fa-fire text-5xl text-orange-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-orange-300 transition-colors">High-Converting Templates</h3>
+                    <p class="text-gray-400 text-sm">Start with professionally designed templates</p>
+                </div>
+                <div class="px-8 pb-8">
+                    <div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="w-0 h-full bg-gradient-to-r from-orange-500 to-red-500 rounded-full group-hover:w-full transition-all duration-700"></div>
+                    </div>
+                </div>
+            </a>
 
-        <!-- My Campaigns -->
-        <a href="{{ route('page-builder.saves') }}" class="menu-card">
-            <div class="menu-icon-block">
-                <i class="fas fa-folder-open"></i>
-            </div>
-            <div class="menu-card-body">
-                <h5 class="menu-card-title">My Campaigns</h5>
-                <p class="menu-card-description">Manage and edit your saved pages</p>
-            </div>
-        </a>
+            <!-- My Campaigns Card -->
+            <a href="{{ route('page-builder.saves') }}" class="group bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-2xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1 cursor-pointer block">
+                <div class="p-8 text-center">
+                    <div class="w-24 h-24 mx-auto rounded-2xl bg-gradient-to-br from-green-600/20 to-emerald-600/20 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-500">
+                        <i class="fas fa-folder-open text-5xl text-green-400"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-green-300 transition-colors">My Campaigns</h3>
+                    <p class="text-gray-400 text-sm">Manage and edit your saved pages</p>
+                </div>
+                <div class="px-8 pb-8">
+                    <div class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                        <div class="w-0 h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full group-hover:w-full transition-all duration-700"></div>
+                    </div>
+                </div>
+            </a>
+        </div>
     </div>
 </div>
+
+<!-- Hidden CSRF Meta Tag if not present -->
+<meta name="csrf-token" content="{{ csrf_token() }}">
+
+<style>
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
 @endsection
 
 @section('js')
@@ -182,37 +160,46 @@ document.addEventListener('DOMContentLoaded', function() {
     if (oneClickCloner) {
         oneClickCloner.addEventListener('click', function() {
             Swal.fire({
-                title: '<i class="fas fa-clone"></i> 1-Click Cloner',
+                title: '<i class="fas fa-clone text-purple-400"></i> 1-Click Cloner',
                 html: `
-                    <div style="display: flex; flex-direction: column; gap: 20px; text-align: left;">
+                    <div class="space-y-4 text-left">
                         <div>
-                            <label style="display: block; text-align: left; margin-bottom: 8px; color: #e0e0ff; font-size: 0.875rem; font-weight: 500;">
-                                <i class="fas fa-heading"></i> Page Name
+                            <label class="block text-left text-gray-300 text-sm font-medium mb-2">
+                                <i class="fas fa-heading text-purple-400 mr-2"></i> Page Name
                             </label>
-                            <input id="swal-title" class="swal2-input" placeholder="e.g., My Awesome Landing Page" style="width: 100%; margin: 0; background: #1a1a26; color: white; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                            <input id="swal-title" class="swal2-input w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300" 
+                                   placeholder="e.g., My Awesome Landing Page" 
+                                   style="margin: 0;">
                         </div>
                         <div>
-                            <label style="display: block; text-align: left; margin-bottom: 8px; color: #e0e0ff; font-size: 0.875rem; font-weight: 500;">
-                                <i class="fas fa-link"></i> Website URL
+                            <label class="block text-left text-gray-300 text-sm font-medium mb-2">
+                                <i class="fas fa-link text-purple-400 mr-2"></i> Website URL
                             </label>
-                            <input id="swal-url" class="swal2-input" placeholder="https://example.com" style="width: 100%; margin: 0; background: #1a1a26; color: white; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px;">
+                            <input id="swal-url" class="swal2-input w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300" 
+                                   placeholder="https://example.com" 
+                                   style="margin: 0;">
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #a0a0a0;">
-                                <input type="checkbox" id="swal-confirm-checkbox" style="width: 16px; height: 16px; cursor: pointer;">
-                                I confirm that I own or have permission to use this page
+                            <label class="flex items-center gap-3 cursor-pointer text-gray-400 text-sm">
+                                <input type="checkbox" id="swal-confirm-checkbox" class="w-4 h-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500 focus:ring-offset-0">
+                                <span>I confirm that I own or have permission to use this page</span>
                             </label>
                         </div>
                     </div>
                 `,
-                background: '#121212',
+                background: '#1a1a1a',
                 color: '#ffffff',
-                confirmButtonColor: '#E65856',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: '<i class="fas fa-clone"></i> Start Cloning',
-                cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+                confirmButtonColor: '#8b5cf6',
+                cancelButtonColor: '#6b7280',
+                confirmButtonText: '<i class="fas fa-clone mr-2"></i> Start Cloning',
+                cancelButtonText: '<i class="fas fa-times mr-2"></i> Cancel',
                 showCancelButton: true,
                 focusConfirm: false,
+                customClass: {
+                    popup: 'rounded-2xl',
+                    confirmButton: 'px-6 py-2.5 rounded-xl font-semibold',
+                    cancelButton: 'px-6 py-2.5 rounded-xl font-semibold'
+                },
                 preConfirm: () => {
                     const title = document.getElementById('swal-title')?.value.trim();
                     const url = document.getElementById('swal-url')?.value.trim();
@@ -220,6 +207,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (!title || !url) {
                         Swal.showValidationMessage('Both fields are required');
+                        return false;
+                    }
+
+                    if (title.length < 3) {
+                        Swal.showValidationMessage('Page name must be at least 3 characters');
                         return false;
                     }
 
@@ -247,18 +239,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     Swal.fire({
                         title: 'Cloning page...',
-                        text: 'Please wait while we clone your website',
-                        background: '#121212',
+                        html: '<div class="flex flex-col items-center gap-3"><i class="fas fa-spinner fa-pulse text-3xl text-purple-400"></i><p class="text-gray-400 mt-2">Please wait while we clone your website</p></div>',
+                        background: '#1a1a1a',
                         color: '#ffffff',
                         allowOutsideClick: false,
+                        showConfirmButton: false,
                         didOpen: () => {
-                            Swal.showLoading();
-                            
                             fetch(clonerUrl, {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
                                 },
                                 body: JSON.stringify({ url: url })
                             })
@@ -274,12 +265,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                     
                                     window.location.href = finalUrl;
                                 } else {
-                                    Swal.fire('Error', data.message || 'Cloning failed', 'error');
+                                    Swal.fire({
+                                        title: 'Error',
+                                        text: data.message || 'Cloning failed',
+                                        icon: 'error',
+                                        confirmButtonColor: '#8b5cf6',
+                                        background: '#1a1a1a',
+                                        color: '#ffffff'
+                                    });
                                 }
                             })
                             .catch(error => {
                                 Swal.close();
-                                Swal.fire('Error', 'Cloning failed: ' + error.message, 'error');
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: 'Cloning failed: ' + error.message,
+                                    icon: 'error',
+                                    confirmButtonColor: '#8b5cf6',
+                                    background: '#1a1a1a',
+                                    color: '#ffffff'
+                                });
                             });
                         }
                     });

@@ -154,44 +154,43 @@
         <div class="container mx-auto px-4 py-12">
             
             <!-- Stats Overview Cards -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-                <div class="bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-2xl p-5 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-400 text-sm">Total Series</p>
-                            <p class="text-3xl font-bold text-white">{{ $stats['total_series'] ?? 0 }}</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
-                            <i class="fas fa-tv text-purple-400 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-gradient-to-br from-blue-600/10 to-cyan-600/10 rounded-2xl p-5 border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-400 text-sm">Total Episodes</p>
-                            <p class="text-3xl font-bold text-white">{{ $stats['total_episodes'] ?? 0 }}</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
-                            <i class="fas fa-list-ol text-blue-400 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
-                
-                
-                <div class="bg-gradient-to-br from-green-600/10 to-teal-600/10 rounded-2xl p-5 border border-green-500/20 hover:border-green-500/40 transition-all duration-300">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-gray-400 text-sm">Completion Rate</p>
-                            <p class="text-3xl font-bold text-white">{{ $completionRate ?? 0 }}%</p>
-                        </div>
-                        <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
-                            <i class="fas fa-chart-line text-green-400 text-xl"></i>
-                        </div>
-                    </div>
-                </div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+    <div class="bg-gradient-to-br from-purple-600/10 to-pink-600/10 rounded-2xl p-5 border border-purple-500/20">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">Total Series</p>
+                <p class="text-3xl font-bold text-white">{{ $mySeriesCount ?? 0 }}</p>
             </div>
+            <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center">
+                <i class="fas fa-tv text-purple-400 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-blue-600/10 to-cyan-600/10 rounded-2xl p-5 border border-blue-500/20">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">Total Episodes</p>
+                <p class="text-3xl font-bold text-white">{{ $myEpisodesCount ?? 0 }}</p>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <i class="fas fa-list-ol text-blue-400 text-xl"></i>
+            </div>
+        </div>
+    </div>
+    
+    <div class="bg-gradient-to-br from-green-600/10 to-teal-600/10 rounded-2xl p-5 border border-green-500/20">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-gray-400 text-sm">Completion Rate</p>
+                <p class="text-3xl font-bold text-white">{{ $completionRate ?? 0 }}%</p>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center">
+                <i class="fas fa-chart-line text-green-400 text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
             
             <!-- Creator Section -->
             <!-- <div class="max-w-5xl mx-auto mb-16" id="creator-section">
@@ -250,29 +249,64 @@
                         $imageUrl = $template && $template->init_image ? asset($template->init_image) : null;
                     @endphp
                     <div class="group cursor-pointer" onclick="window.location.href='{{ route('web-series.create') }}?category_id={{ $category->id }}'">
-                        <div class="relative rounded-xl overflow-hidden bg-gradient-to-br from-purple-600/20 to-pink-600/20 border border-purple-500/20 group-hover:border-purple-500/50 transition-all duration-300 group-hover:scale-9 hover:shadow-xl">
-                            @if($imageUrl)
-                                <div class="relative h-42 overflow-hidden">
-                                    <img src="{{ $imageUrl }}" 
-                                         alt="{{ $category->name }}"
-                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent"></div>
-                                </div>
-                            @else
-                                <div class="h-42 flex items-center justify-center">
-                                    <div class="text-5xl group-hover:scale-110 transition-transform">
-                                        <i class="fas {{ $category->icon ?? 'fa-tag' }} text-purple-400"></i>
-                                    </div>
-                                </div>
-                            @endif
-                            <div class="p-3 text-center">
-                                <h3 class="text-white font-semibold text-sm">{{ $category->name }}</h3>
-                                @if($category->description)
-                                    <p class="text-gray-400 text-xs mt-1 line-clamp-2">{{ Str::limit($category->description, 50) }}</p>
-                                @endif
-                            </div>
+    <div class="relative rounded-md overflow-hidden transition-all duration-300 transform group-hover:scale-100 group-hover:z-10 group-hover:shadow-2xl">
+        
+        <!-- Card Image -->
+        @if($imageUrl)
+            <div class="relative overflow-hidden">
+                <img src="{{ $imageUrl }}" 
+                     alt="{{ $category->name }}"
+                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                
+                <!-- Dark Gradient Overlay - Stronger for better text visibility -->
+                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent"></div>
+                
+                <!-- Content Container - Always Visible -->
+                <div class="absolute inset-0 flex flex-col justify-end p-4">
+                    <!-- Category Name -->
+                    <h2 class="text-white font-bold text-base md:text-lg mb-2 drop-shadow-lg">
+                        {{ $category->name }}
+                    </h2>
+                    
+                    <!-- Description - Always Visible -->
+                    <p class="text-gray-300 text-xs mb-3 line-clamp-2">
+                        {{ $category->description ?? 'Explore amazing stories in this genre' }}
+                    </p>
+                </div>
+            </div>
+        @else
+            <!-- Placeholder for categories without image -->
+            <div class="relative aspect-[2/3] bg-gradient-to-br from-purple-800 to-pink-800 flex items-center justify-center">
+                <i class="fas {{ $category->icon ?? 'fa-tag' }} text-white text-5xl opacity-30 mb-16"></i>
+                
+                <!-- Content Container -->
+                <div class="absolute inset-0 flex flex-col justify-end p-4">
+                    <h3 class="text-white font-bold text-base md:text-lg mb-2 text-center">
+                        {{ $category->name }}
+                    </h3>
+                    <p class="text-gray-300 text-xs mb-3 text-center line-clamp-2">
+                        {{ $category->description ?? 'Create amazing stories in this genre' }}
+                    </p>
+                    <div class="flex items-center justify-center gap-2 opacity-70 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center cursor-pointer hover:bg-white/80 transition transform hover:scale-110">
+                            <svg class="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
                         </div>
                     </div>
+                </div>
+            </div>
+        @endif
+        
+        
+        <!-- Hover Scale Indicator -->
+        <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+        </div>
+    </div>
+</div>
                     @endforeach
                 </div>
             </div>

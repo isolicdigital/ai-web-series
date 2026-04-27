@@ -6,26 +6,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="shortcut icon" href="{{ asset('custom/brand/favicon.ico') }}">
     <link rel="stylesheet" href="{{ asset('builder/dist/builder.css') }}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <style>
         @keyframes pulse-bg {
             0% {
-                background-color: #3490dc;
+                background-color: #8b5cf6;
             }
             50% {
-                background-color: #5fa8ec;
+                background-color: #a78bfa;
             }
             100% {
-                background-color: #3490dc;
+                background-color: #8b5cf6;
             }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         .btn-saving {
             animation: pulse-bg 1s infinite;
             color: white !important;
         }
+        
+        .animate-spin-custom {
+            animation: spin 1s linear infinite;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1a1a1a;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+            border-radius: 4px;
+        }
+        
+        /* SweetAlert Dark Theme */
+        .swal2-popup {
+            background: #1a1a1a !important;
+            border: 1px solid rgba(139, 92, 246, 0.3) !important;
+            border-radius: 20px !important;
+        }
+        
+        .swal2-title {
+            color: #ffffff !important;
+        }
+        
+        .swal2-html-container {
+            color: #a0a0a0 !important;
+        }
+        
+        .swal2-confirm {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899) !important;
+            border-radius: 40px !important;
+        }
+        
+        .swal2-cancel {
+            background: #374151 !important;
+            border-radius: 40px !important;
+        }
     </style>
     <script src="{{ asset('builder/dist/builder.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
         window.CSRF_TOKEN='{{ csrf_token() }}';
@@ -71,31 +122,33 @@
 
         const formFields = @json($formFields ?? []);
         
-        // window.addEventListener('load', function() {
-        //     const iframe = document.getElementById('builder_iframe');
-        //     if (iframe) {
-        //         iframe.style.height = window.innerHeight + 'px';
-        //     }
-        //     let retries = 0;
-        //     const maxRetries = 20; // ~6 seconds total
-        //     const enforceIframeStyle = setInterval(() => {
-        //         if (iframe) {
-        //             iframe.style.setProperty('height', '100vh', 'important');
-        //             iframe.style.setProperty('width', '100%', 'important');
-        //             iframe.style.setProperty('border', 'none', 'important');
-        //             iframe.style.setProperty('display', 'block', 'important');
-        //             iframe.setAttribute('scrolling', 'yes');
-
-        //             retries++;
-
-        //             // If iframe has desired height, or retries exceed max, stop
-        //             if (iframe.offsetHeight >= window.innerHeight || retries >= maxRetries) {
-        //                 clearInterval(enforceIframeStyle);
-        //             }
-        //         }
-        //     }, 300);
-
-        // });
+        // Custom Top Bar HTML to inject into editor
+        const customTopBar = `
+            <div class="bg-gradient-to-r from-gray-900 to-black border-b border-gray-800 shadow-lg">
+                <div class="flex items-center justify-between px-6 py-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                            <i class="fas fa-code text-white text-sm"></i>
+                        </div>
+                        <span class="text-white font-semibold text-sm">{{ $title }}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="btn-save px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-pink-500/25">
+                            <i class="fas fa-save"></i>
+                            <span>Save as Draft</span>
+                        </button>
+                        <button class="btn-export px-4 py-2 rounded-lg bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-emerald-500/25">
+                            <i class="fas fa-download"></i>
+                            <span>Save & Close</span>
+                        </button>
+                        <button class="btn-close px-4 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2">
+                            <i class="fas fa-times"></i>
+                            <span>Close</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
 
         document.addEventListener('DOMContentLoaded', () => {
             window.editor = new Editor({
@@ -140,6 +193,7 @@
 
             window.editor.init();
 
+            // Override save method
             window.editor.save = function (callback = null) {
                 const iframe = document.getElementById('builder_iframe');
                 const iframeDoc = iframe?.contentDocument || iframe?.contentWindow?.document;
@@ -168,65 +222,63 @@
                 cloneFrame.src = url;
 
                 cloneFrame.onload = () => {
-                const doc = cloneFrame.contentDocument || cloneFrame.contentWindow.document;
+                    const doc = cloneFrame.contentDocument || cloneFrame.contentWindow.document;
 
-                // ✅ Manually inject CSS links into the iframe head
-                const cssLinks = [
-                    '/assets/builder/assets/css/style.css',
-                    '/assets/builder/assets/css/blocks.css',
-                    '/assets/builder/dist/builder.css'
-                ];
+                    // Manually inject CSS links into the iframe head
+                    const cssLinks = [
+                        '/assets/builder/assets/css/style.css',
+                        '/assets/builder/assets/css/blocks.css',
+                        '/builder/dist/builder.css'
+                    ];
 
-                cssLinks.forEach(href => {
-                    const link = doc.createElement('link');
-                    link.rel = 'stylesheet';
-                    link.href = href;
-                    link.type = 'text/css';
-                    link.crossOrigin = 'anonymous'; // optional: if resources are CORS-safe
-                    doc.head.appendChild(link);
-                });
+                    cssLinks.forEach(href => {
+                        const link = doc.createElement('link');
+                        link.rel = 'stylesheet';
+                        link.href = href;
+                        link.type = 'text/css';
+                        link.crossOrigin = 'anonymous';
+                        doc.head.appendChild(link);
+                    });
 
-                // Allow time for CSS to apply
-                setTimeout(() => {
-                    html2canvas(doc.body, {
-                        backgroundColor: '#ffffff',
-                        scale: 0.4,
-                        useCORS: true
-                    }).then(canvas => {
-                        document.body.removeChild(cloneWrapper);
-                        URL.revokeObjectURL(url); // cleanup
+                    // Allow time for CSS to apply
+                    setTimeout(() => {
+                        html2canvas(doc.body, {
+                            backgroundColor: '#ffffff',
+                            scale: 0.4,
+                            useCORS: true
+                        }).then(canvas => {
+                            document.body.removeChild(cloneWrapper);
+                            URL.revokeObjectURL(url);
 
-                        canvas.toBlob(blob => {
-                            const formData = new FormData();
-                            formData.append('content', html);
-                            formData.append('thumbnail', blob, 'thumb.png');
-                            formData.append('_token', window.CSRF_TOKEN);
+                            canvas.toBlob(blob => {
+                                const formData = new FormData();
+                                formData.append('content', html);
+                                formData.append('thumbnail', blob, 'thumb.png');
+                                formData.append('_token', window.CSRF_TOKEN);
 
-                            fetch(saveUrl, {
-                                method: 'POST',
+                                fetch(saveUrl, {
+                                    method: 'POST',
                                     body: formData
                                 })
                                 .then(res => res.json())
                                 .then(() => {
-                                    $('.btn-save').removeClass('btn-saving').html('Draft Saved');
-                                    setTimeout(() => { $('.btn-save').html('Save as Draft'); }, 2000);
+                                    $('.btn-save').removeClass('btn-saving').html('<i class="fas fa-save"></i> Draft Saved');
+                                    setTimeout(() => { $('.btn-save').html('<i class="fas fa-save"></i> Save as Draft'); }, 2000);
                                     Swal.fire('Success', 'Saved successfully!', 'success');
-                                    // ✅ Execute callback if provided
                                     if (typeof callback === 'function') {
                                         callback();
                                     }
                                 })
                                 .catch(err => {
-                                    $('.btn-save').removeClass('btn-saving').html('Error');
-                                    setTimeout(() => { $('.btn-save').html('Save as Draft'); }, 2000);
+                                    $('.btn-save').removeClass('btn-saving').html('<i class="fas fa-exclamation-triangle"></i> Error');
+                                    setTimeout(() => { $('.btn-save').html('<i class="fas fa-save"></i> Save as Draft'); }, 2000);
                                     console.error('Save failed:', err);
                                     Swal.fire('Error', 'Save failed. Check console for details.', 'error');
                                 });
                             }, 'image/png');
                         });
-                    }, 500); // wait half a second for styles to render
+                    }, 500);
                 };
-
             };
 
             setTimeout(() => {
@@ -235,10 +287,9 @@
                     iframe.style.height = window.innerHeight + 'px';
                 }
                 let retries = 0;
-                const maxRetries = 20; // ~6 seconds total
+                const maxRetries = 20;
                 const enforceIframeStyle = setInterval(() => {
                     if (iframe) {
-                        // iframe.style.setProperty('height', '100vh', 'important');
                         iframe.style.setProperty('width', '100%', 'important');
                         iframe.style.setProperty('border', 'none', 'important');
                         iframe.style.setProperty('display', 'block', 'important');
@@ -246,12 +297,12 @@
 
                         retries++;
 
-                        // If iframe has desired height, or retries exceed max, stop
                         if (iframe.offsetHeight >= window.innerHeight || retries >= maxRetries) {
                             clearInterval(enforceIframeStyle);
                         }
                     }
                 }, 300);
+                
                 $(document).off("click", "a.save-design, .bp-save");
                 $(document).off("click", ".menu-bar-action.btn-export");
                 $(document).off("click", ".menu-bar-action.btn-close");
@@ -259,14 +310,14 @@
                 // Custom Save
                 $(document).on("click", ".btn-save", function (e) {
                     e.preventDefault();
-                    $(this).addClass('btn-saving').html('Saving ...');
+                    $(this).addClass('btn-saving').html('<i class="fas fa-spinner fa-spin"></i> Saving...');
                     window.editor.save();
                 });
 
                 // Custom Save & Close
                 $(document).on("click", ".btn-export", function (e) {
                     e.preventDefault();
-                    $(this).addClass('btn-saving').html('Downloading ...');
+                    $(this).addClass('btn-saving').html('<i class="fas fa-spinner fa-spin"></i> Downloading...');
                     window.editor.save(() => {
                         setTimeout(() => { window.location.href = "{{ route('page-builder.saves') }}"; }, 2000);
                     });
@@ -275,12 +326,43 @@
                 // Custom Close with confirmation
                 $(document).on("click", ".btn-close", function (e) {
                     e.preventDefault();
-                    window.location.href = "{{ route('page-builder.index') }}";
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: 'Any unsaved changes will be lost!',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="fas fa-check"></i> Yes, close',
+                        cancelButtonText: '<i class="fas fa-times"></i> Cancel',
+                        background: '#1a1a1a',
+                        color: '#ffffff',
+                        confirmButtonColor: '#8b5cf6',
+                        cancelButtonColor: '#6b7280'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "{{ route('page-builder.index') }}";
+                        }
+                    });
                 });
 
+            }, 500);
+
+            // Inject custom top bar into the builder interface
+            const injectTopBar = setInterval(() => {
+                const builderToolbar = document.querySelector('.builder-toolbar, .bp-toolbar, .menu-bar');
+                if (builderToolbar) {
+                    // Hide original toolbar and add our custom one
+                    builderToolbar.style.display = 'none';
+                    if (!document.querySelector('.custom-top-bar')) {
+                        const topBarDiv = document.createElement('div');
+                        topBarDiv.className = 'custom-top-bar';
+                        topBarDiv.innerHTML = customTopBar;
+                        document.body.insertBefore(topBarDiv, builderToolbar);
+                    }
+                    clearInterval(injectTopBar);
+                }
             }, 500);
         });
     </script>
 </head>
-<body class="overflow-hidden"></body>
+<body class="overflow-hidden bg-gradient-to-br from-gray-900 to-black"></body>
 </html>

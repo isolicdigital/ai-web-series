@@ -1,288 +1,92 @@
 @extends('layouts.app')
 
 @section('css')
-<link rel="stylesheet" href="{{ asset('custom/css/dfy.css') }}">
-<style>
-    /* DFY Templates Page Styles */
-    .dfy-templates-container {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 2rem;
-    }
-
-    /* Category Selector - matches aspect ratio selector style */
-    .dfy-category-selector {
-        margin-bottom: 2rem;
-    }
-
-    .dfy-category-selector label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        font-size: 0.875rem;
-    }
-
-    .form-select-custom {
-        width: 100%;
-        max-width: 300px;
-        padding: 0.75rem 1rem;
-        background: var(--surface);
-        border: 1px solid var(--glass-border);
-        border-radius: 12px;
-        color: var(--text-main);
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: var(--transition);
-    }
-
-    .form-select-custom:focus {
-        outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px var(--accent-glow);
-    }
-
-    /* Templates Grid - matches results-grid */
-    .template-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 1.5rem;
-        margin-top: 1rem;
-    }
-
-    /* Template Card - matches result-card */
-    .template-card {
-        position: relative;
-        border-radius: 16px;
-        overflow: hidden;
-        background: var(--card-bg);
-        border: 1px solid var(--glass-border);
-        transition: var(--transition);
-        cursor: pointer;
-        aspect-ratio: 4 / 3;
-    }
-
-    .template-card:hover {
-        transform: translateY(-4px);
-        box-shadow: var(--shadow);
-        border-color: var(--accent);
-    }
-
-    .template-thumbnail {
-        width: 100%;
-        height: 100%;
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        transition: var(--transition);
-    }
-
-    .template-card:hover .template-thumbnail {
-        transform: scale(1.05);
-    }
-
-    /* Template Overlay - matches result-overlay */
-    .template-overlay {
-        position: absolute;
-        inset: 0;
-        background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.9));
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
-        opacity: 0;
-        transition: var(--transition);
-        z-index: 5;
-        padding: 1rem;
-        text-align: center;
-    }
-
-    .template-card:hover .template-overlay {
-        opacity: 1;
-    }
-
-    .template-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--text-main);
-        margin-bottom: 0.5rem;
-        word-break: break-word;
-    }
-
-    .template-actions {
-        display: flex;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .template-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid var(--glass-border);
-        border-radius: 30px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--text-main);
-        cursor: pointer;
-        transition: var(--transition);
-        text-decoration: none;
-    }
-
-    .template-btn.primary {
-        background: var(--accent);
-        border-color: var(--accent);
-    }
-
-    .template-btn.primary:hover {
-        background: var(--accent-dark);
-        transform: translateY(-2px);
-    }
-
-    .template-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
-        text-decoration: none;
-        color: white;
-    }
-
-    /* SweetAlert Dark Theme */
-    .swal2-popup {
-        background: var(--card-bg) !important;
-        border: 1px solid var(--glass-border) !important;
-        border-radius: 20px !important;
-    }
-
-    .swal2-title {
-        color: var(--text-main) !important;
-    }
-
-    .swal2-html-container {
-        color: var(--text-muted) !important;
-    }
-
-    .swal2-input {
-        background: var(--surface) !important;
-        border: 1px solid var(--glass-border) !important;
-        color: var(--text-main) !important;
-        border-radius: 12px !important;
-        padding: 0.75rem 1rem !important;
-    }
-
-    .swal2-input:focus {
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 0 2px var(--accent-glow) !important;
-    }
-
-    .swal2-confirm {
-        background: var(--accent) !important;
-        border-radius: 40px !important;
-    }
-
-    .swal2-cancel {
-        background: #6c757d !important;
-        border-radius: 40px !important;
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-        .template-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    @media (max-width: 992px) {
-        .template-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1rem;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .dfy-templates-container {
-            padding: 1rem;
-        }
-        
-        .template-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-        
-        .form-select-custom {
-            max-width: 100%;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .template-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .template-title {
-            font-size: 0.9rem;
-        }
-        
-        .template-btn {
-            padding: 0.4rem 0.75rem;
-            font-size: 0.7rem;
-        }
-    }
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 @endsection
 
-@php
-    $endslug = \Str::afterLast(request()->url(), '/');
-@endphp
-
 @section('content')
-<div class="dfy-templates-container">
-    <!-- Header using DFY style -->
-    <div class="dfy-header">
-        <h1 class="dfy-title">Choose from <span style="color: var(--accent);">Templates</span></h1>
-        <p class="dfy-subtitle">Select a template to start building your high-converting page</p>
-    </div>
-
-    <!-- Category Selector -->
-    <div class="dfy-category-selector">
-        <label><i class="fas fa-filter"></i> Filter by Category</label>
-        <select id="page_builder_category" class="form-select-custom">
-            <option value="">All Categories</option>
-            @foreach($cats as $id => $cat)
-                <option value="{{ $id }}" {{ (\Str::afterLast(request()->url(), '/') == $id) ? 'selected' : '' }}>
-                    {{ $cat }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-
-    <!-- Templates Grid -->
-    <div class="template-grid">
-        @forelse($all_templates ?? [] as $temp)
-            <div class="template-card">
-                <div class="template-thumbnail" style="background-image: url('/builder/assets/templates/{{ $temp['temp_dir'] }}/{{ $temp['name'] }}/thumb.png');"></div>
-                <div class="template-overlay">
-                    <div class="template-title">{{ $temp['title'] }}</div>
-                    <div class="template-actions">
-                        <button class="template-btn primary edit-template"
-                                data-cat="{{ $temp['temp_dir'] }}"
-                                data-dir="{{ $temp['name'] }}">
-                            <i class="fas fa-edit"></i> Edit
-                        </button>
-                        <a href="/builder/assets/templates/{{ $temp['temp_dir'] }}/{{ $temp['name'] }}/" 
-                           class="template-btn" target="_blank">
-                            <i class="fas fa-eye"></i> View
-                        </a>
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 mb-6 shadow-lg">
+                <i class="fas fa-layer-group text-white text-2xl"></i>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-4">
+                Choose from <span class="text-purple-400">Templates</span>
+            </h1>
+            <p class="text-gray-400 text-lg max-w-2xl mx-auto">
+                Select a template to start building your high-converting page
+            </p>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="max-w-md mx-auto mb-10">
+            <label class="block text-white font-semibold mb-3 flex items-center gap-2">
+                <i class="fas fa-filter text-purple-400 text-sm"></i>
+                Filter by Category
+            </label>
+            <select id="page_builder_category" 
+                    class="w-full px-5 py-3 bg-gray-800/50 border border-gray-700 rounded-xl text-white focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all duration-300 cursor-pointer">
+                <option value="" class="bg-gray-900">All Categories</option>
+                @foreach($cats as $id => $cat)
+                    <option value="{{ $id }}" class="bg-gray-900" {{ (\Str::afterLast(request()->url(), '/') == $id) ? 'selected' : '' }}>
+                        {{ $cat }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+        
+        <!-- Templates Grid -->
+        @php
+            $hasTemplates = !empty($all_templates) && count($all_templates) > 0;
+        @endphp
+        
+        @if($hasTemplates)
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            @forelse($all_templates ?? [] as $temp)
+            <div class="template-card group relative bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+                <!-- Template Thumbnail -->
+                <div class="relative aspect-video overflow-hidden bg-gray-800">
+                    <div class="template-thumbnail w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                         style="background-image: url('/builder/assets/templates/{{ $temp['temp_dir'] }}/{{ $temp['name'] }}/thumb.png');">
+                    </div>
+                    
+                    <!-- Overlay -->
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-4">
+                        <h3 class="text-white font-semibold text-base mb-3 text-center">{{ $temp['title'] }}</h3>
+                        <div class="flex gap-3">
+                            <button class="edit-template px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-pink-500/25 transform hover:scale-105"
+                                    data-cat="{{ $temp['temp_dir'] }}"
+                                    data-dir="{{ $temp['name'] }}">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <a href="/builder/assets/templates/{{ $temp['temp_dir'] }}/{{ $temp['name'] }}/" 
+                               class="px-4 py-2 rounded-lg bg-gray-700/50 hover:bg-gray-600 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                               target="_blank">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- Template Title Bar -->
+                <div class="p-3 border-t border-gray-700/50">
+                    <h4 class="text-white font-medium text-sm truncate">{{ $temp['title'] }}</h4>
+                </div>
             </div>
-        @empty
-            @php
-                $dir = public_path("builder/assets/templates/{$temp_dir}/");
-                $templateUrl = array_diff(scandir($dir), ['..', '.']);
-            @endphp
+            @empty
+            @endforelse
+        </div>
+        @else
+        <!-- Fallback for when $all_templates is empty (using directory scan) -->
+        @php
+            $dir = public_path("builder/assets/templates/{$temp_dir}/");
+            $templateUrl = is_dir($dir) ? array_diff(scandir($dir), ['..', '.']) : [];
+        @endphp
+        @if(!empty($templateUrl))
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             @forelse($templateUrl as $name)
                 @php
                     $path = $dir . $name;
@@ -294,50 +98,72 @@
                         $title = $matches[1] ?? '';
                     }
                 @endphp
-                <div class="template-card">
-                    <div class="template-thumbnail" style="background-image: url('/builder/assets/templates/{{ $temp_dir }}/{{ $name }}/thumb.png');"></div>
-                    <div class="template-overlay">
-                        <div class="template-title">{{ $title ?: $name }}</div>
-                        <div class="template-actions">
-                            <button class="template-btn primary edit-template"
-                                    data-cat="{{ $temp_dir }}"
-                                    data-dir="{{ $name }}">
-                                <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <a href="/builder/assets/templates/{{ $temp_dir }}/{{ $name }}/" 
-                               class="template-btn" target="_blank">
-                                <i class="fas fa-eye"></i> View
-                            </a>
+                <div class="template-card group relative bg-gradient-to-br from-gray-900/80 to-gray-800/40 backdrop-blur-lg rounded-xl border border-gray-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-1">
+                    <div class="relative aspect-video overflow-hidden bg-gray-800">
+                        <div class="template-thumbnail w-full h-full bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
+                             style="background-image: url('/builder/assets/templates/{{ $temp_dir }}/{{ $name }}/thumb.png');">
                         </div>
+                        
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col items-center justify-center p-4">
+                            <h3 class="text-white font-semibold text-base mb-3 text-center">{{ $title ?: $name }}</h3>
+                            <div class="flex gap-3">
+                                <button class="edit-template px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-pink-500/25 transform hover:scale-105"
+                                        data-cat="{{ $temp_dir }}"
+                                        data-dir="{{ $name }}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <a href="/builder/assets/templates/{{ $temp_dir }}/{{ $name }}/" 
+                                   class="px-4 py-2 rounded-lg bg-gray-700/50 hover:bg-gray-600 text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 transform hover:scale-105"
+                                   target="_blank">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-3 border-t border-gray-700/50">
+                        <h4 class="text-white font-medium text-sm truncate">{{ $title ?: $name }}</h4>
                     </div>
                 </div>
             @empty
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <i class="fas fa-layer-group"></i>
-                    <h4>No Templates Found</h4>
-                    <p>No templates available in this category yet.</p>
-                </div>
             @endforelse
-        @endforelse
-    </div>
-</div>
-
-<!-- Hidden section (kept for compatibility) -->
-<div class="section-body d-none">
-    <div id="output-status"></div>
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0">
-                <div class="card-body">
-                    <div class="album py-5"></div>
-                </div>
-            </div>
         </div>
+        @else
+        <!-- Empty State -->
+        <div class="text-center py-20">
+            <div class="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-600/20 to-pink-600/20 flex items-center justify-center">
+                <i class="fas fa-layer-group text-purple-400 text-5xl"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-3">No Templates Found</h3>
+            <p class="text-gray-400 mb-6 max-w-md mx-auto">No templates available in this category yet.</p>
+        </div>
+        @endif
+        @endif
     </div>
 </div>
-@endsection
 
-@section('js')
+<style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #1a1a1a;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #8b5cf6, #ec4899);
+        border-radius: 4px;
+    }
+    
+    .template-thumbnail {
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+</style>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -366,8 +192,10 @@
                     showCancelButton: true,
                     confirmButtonText: '<i class="fas fa-check"></i> Use Template',
                     cancelButtonText: '<i class="fas fa-times"></i> Cancel',
-                    background: '#121212',
+                    background: '#1a1a1a',
                     color: '#ffffff',
+                    confirmButtonColor: '#8b5cf6',
+                    cancelButtonColor: '#6b7280',
                     inputValidator: (value) => {
                         if (!value) {
                             return 'Title is required!';
