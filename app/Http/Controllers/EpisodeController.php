@@ -352,4 +352,148 @@ class EpisodeController extends Controller
             ], 404);
         }
     }
+
+    public function generateNarration(Request $request)
+    {
+        Log::info('generateNarration called', [
+            'text_length' => strlen($request->input('text', '')),
+            'speaker' => $request->input('speaker', 'Aiden'),
+            'language' => $request->input('language', 'auto'),
+            'user_id' => auth()->id()
+        ]);
+
+        $text = $request->input('text');
+        $speaker = $request->input('speaker', 'Aiden');
+        $language = $request->input('language', 'auto');
+        
+        $apiToken = env('REPLICATE_API_TOKEN');
+        
+        if (!$apiToken) {
+            Log::error('REPLICATE_API_TOKEN not set');
+            return response()->json(['success' => false, 'message' => 'API token not configured'], 500);
+        }
+        
+        $payload = [
+            'input' => [
+                'mode' => 'custom_voice',
+                'text' => $text,
+                'speaker' => $speaker,
+                'language' => $language
+            ]
+        ];
+        
+        $maxRetries = 5;
+        $baseDelay = 10;
+        
+        for ($attempt = 1; $attempt <= $maxRetries; $attempt++) {
+            Log::info('Calling Replicate TTS API', ['payload' => $payload, 'attempt' => $attempt]);
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://api.replicate.com/v1/models/qwen/qwen3-tts/predictions');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: Bearer ' . $apiToken,
+                'Content-Type: application/json',
+                'Prefer: wait'
+            ]);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($payload));
+            
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            Log::info('Replicate TTS response', [
+                'http_code' => $httpCode,
+                'attempt' => $attempt,
+                'response_preview' => substr($response, 0, 500)
+            ]);
+            
+            if ($curlError) {
+                Log::error('CURL error in generateNarration', ['error' => $curlError, 'attempt' => $attempt]);
+                if ($attempt === $maxRetries) {
+                    return response()->json(['success' => false, 'message' => 'CURL error: ' . $curlError], 500);
+                }
+                sleep($baseDelay);
+                continue;
+            }
+            
+            if ($httpCode === 429) {
+                $data = json_decode($response, true);
+                $retryAfter = $data['retry_after'] ?? $baseDelay;
+                Log::warning('Rate limit hit, retrying', ['attempt' => $attempt, 'retry_after' => $retryAfter]);
+                
+                if ($attempt === $maxRetries) {
+                    Log::error('Max retries exceeded for rate limit');
+                    return response()->json(['success' => false, 'message' => 'Rate limit exceeded. Please try again later.'], 429);
+                }
+                sleep($retryAfter);
+                continue;
+            }
+            
+            // Accept both 200 and 201 (created) status codes
+            if ($httpCode !== 200 && $httpCode !== 201) {
+                Log::error('Replicate TTS API error', ['http_code' => $httpCode, 'response' => $response]);
+                return response()->json(['success' => false, 'message' => 'Narration generation failed: HTTP ' . $httpCode], 500);
+            }
+            
+            $data = json_decode($response, true);
+            
+            if (!$data || !isset($data['output'])) {
+                Log::error('Invalid response from Replicate TTS', ['response' => $response]);
+                return response()->json(['success' => false, 'message' => 'Invalid API response'], 500);
+            }
+            
+            Log::info('Narration generated successfully', [
+                'audio_url' => $data['output'],
+                'prediction_id' => $data['id'] ?? null,
+                'attempts' => $attempt
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'audio_url' => $data['output']
+            ]);
+        }
+        
+        return response()->json(['success' => false, 'message' => 'Max retries exceeded'], 500);
+    }
+
+    public function saveEpisodeVideo(Request $request)
+    {
+        Log::info('saveEpisodeVideo called', [
+            'series_id' => $request->input('series_id'),
+            'episode_number' => $request->input('episode_number'),
+            'user_id' => auth()->id(),
+            'file_size' => $request->file('video_blob')?->getSize()
+        ]);
+
+        $request->validate([
+            'series_id' => 'required|integer',
+            'episode_number' => 'required|integer',
+            'video_blob' => 'required|file|mimes:mp4|max:200000'
+        ]);
+        
+        $series = WebSeries::where('user_id', auth()->id())->findOrFail($request->series_id);
+        Log::info('Series found', ['series_id' => $series->id, 'project_name' => $series->project_name]);
+        
+        $episode = Episode::where('web_series_id', $series->id)
+            ->where('episode_number', $request->episode_number)
+            ->firstOrFail();
+        Log::info('Episode found', ['episode_id' => $episode->id, 'episode_number' => $episode->episode_number]);
+        
+        $file = $request->file('video_blob');
+        $path = $file->store("episodes/{$series->id}", 'public');
+        
+        Log::info('Video stored', ['path' => $path, 'full_url' => Storage::url($path)]);
+        
+        $episode->update([
+            'video' => Storage::url($path),
+            'status' => 'completed'
+        ]);
+        Log::info('Episode updated with final_video_url and status completed', ['episode_id' => $episode->id]);
+        
+        return response()->json(['success' => true, 'path' => $path]);
+    }
 }

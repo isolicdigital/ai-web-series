@@ -714,10 +714,10 @@ class WebSeriesController extends Controller
         }
     }
     
-    public function checkImageStatus(Request $request)
+    public function checkImageStatus(Request $request, $sceneId)
     {
         try {
-            $scene = Scene::find($request->scene_id);
+            $scene = Scene::find($scene_id);
             
             if (!$scene) {
                 return response()->json([
@@ -1171,7 +1171,7 @@ class WebSeriesController extends Controller
         }
     }
     
-    public function checkVideoStatus($sceneId)
+    public function checkVideoStatus(Request $request, $sceneId)
     {
         try {
             $scene = Scene::where('id', $sceneId)

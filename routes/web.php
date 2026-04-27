@@ -58,7 +58,8 @@ Route::middleware(['auth'])->group(function () {
     // Video generation routes
     Route::post('/generate-scene-video', [WebSeriesController::class, 'generateSceneVideo'])->name('generate.scene.video');
     Route::get('/api/scene/{sceneId}/video-status', [WebSeriesController::class, 'checkVideoStatus']);
-
+    Route::get('/api/scene/{sceneId}/image-status', [WebSeriesController::class, 'checkImageStatus']);
+    
     Route::get('/check-video-status/{sceneId}', [WebSeriesController::class, 'checkVideoStatus'])->name('check.video.status');
     Route::post('/generate-video', [WebSeriesController::class, 'generateSceneVideo'])->name('generate.video');
     // Async video generation endpoint
@@ -99,6 +100,9 @@ Route::get('/web-series/{seriesId}/create-episode', [WebSeriesController::class,
     Route::delete('/web-series/{seriesId}/episodes/{episodeNumber}', [WebSeriesController::class, 'destroyEpisode'])->name('web-series.destroy-episode');
     
     // Episode merge route
+    Route::post('/api/generate-narration', [EpisodeController::class, 'generateNarration'])->middleware('auth');
+    Route::post('/api/save-episode-video', [EpisodeController::class, 'saveEpisodeVideo'])->middleware('auth');
+
     Route::post('/web-series/merge-episode', [EpisodeController::class, 'merge'])->name('merge.episode');
     
     // Get full video for an episode

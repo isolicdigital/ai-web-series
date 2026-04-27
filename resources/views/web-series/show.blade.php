@@ -1722,12 +1722,18 @@ function downloadEpisode() {
     showToast('📥 Download started!', 'success');
 }
 
-function createFullEpisode() {
+async function createFullEpisode() {
     const seriesId = {{ $series->id }};
     const musicToggle = document.getElementById('musicToggle');
-    const addMusic = musicToggle ? musicToggle.checked : false;
     const narrationToggle = document.getElementById('narrationToggle');
+    const addMusic = musicToggle ? musicToggle.checked : false;
     const addNarration = narrationToggle ? narrationToggle.checked : false;
+    
+    const episodes = collectEpisodeVideos();
+    if (episodes.length === 0) {
+        showToast('No videos available. Generate clips first.', 'warning');
+        return;
+    }
     
     const loader = document.getElementById('fullPageLoader');
     const loaderMessage = document.getElementById('loaderMessage');
@@ -1738,36 +1744,233 @@ function createFullEpisode() {
     if (loaderProgress) loaderProgress.style.width = '0%';
     if (loaderPercent) loaderPercent.textContent = '0%';
     
-    let progress = 0;
-    const totalDuration = 3000;
-    const startTime = Date.now();
+    try {
+        let narrationUrl = null;
+        
+        if (addNarration) {
+            loaderMessage.textContent = "🎤 Generating narration voiceover...";
+            
+            const selectedVoice = document.getElementById('voiceSelect')?.value;
+            const selectedLanguage = document.getElementById('languageSelect')?.value;
+            const genderSwitch = document.getElementById('genderSwitch');
+            const gender = genderSwitch && genderSwitch.checked ? 'male' : 'female';
+            
+            if (!selectedVoice) {
+                throw new Error('Please select a voice first');
+            }
+            
+            const episodeConcept = document.querySelector('.bg-gradient-to-r.from-white')?.innerText || '';
+            const narrationText = episodes.map(e => e.title).join('. ');
+            
+            const response = await fetch('/api/generate-narration', {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    text: narrationText,
+                    speaker: selectedVoice,
+                    language: selectedLanguage
+                })
+            });
+            
+            const data = await response.json();
+            if (!data.success) throw new Error(data.message || 'Narration generation failed');
+            
+            narrationUrl = data.audio_url;
+            loaderProgress.style.width = '20%';
+            loaderPercent.textContent = '20%';
+        }
+        
+        let musicUrl = null;
+        if (addMusic && window.uploadedMusicUrl) {
+            musicUrl = window.uploadedMusicUrl;
+            loaderProgress.style.width = '30%';
+            loaderPercent.textContent = '30%';
+        }
+        
+        loaderMessage.textContent = "🎬 Starting video stitching...";
+        
+        const videoUrls = episodes.map(e => e.url);
+        const result = await stitchVideoWithFFmpeg(videoUrls, narrationUrl, musicUrl);
+        
+        loaderProgress.style.width = '90%';
+        loaderPercent.textContent = '90%';
+        loaderMessage.textContent = "✨ Finalizing episode...";
+        
+        const formData = new FormData();
+        formData.append('series_id', seriesId);
+        formData.append('episode_number', {{ isset($episode) ? $episode->episode_number : 1 }});
+        formData.append('video_blob', result.blob, 'episode.mp4');
+        
+        const saveResponse = await fetch('/api/save-episode-video', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+            body: formData
+        });
+        
+        const saveData = await saveResponse.json();
+        if (!saveData.success) throw new Error(saveData.message);
+        
+        loaderProgress.style.width = '100%';
+        loaderPercent.textContent = '100%';
+        
+        setTimeout(() => {
+            if (loader) loader.style.display = 'none';
+            showToast('✅ Episode created successfully!', 'success');
+            window.location.href = '/web-series/' + seriesId + '/episodes';
+        }, 500);
+        
+    } catch (error) {
+        if (loader) loader.style.display = 'none';
+        showToast('❌ Error: ' + error.message, 'error');
+        console.error(error);
+    }
+}
+
+async function stitchVideoWithFFmpeg(videoUrls, narrationUrl, musicUrl) {
+    return new Promise(async (resolve, reject) => {
+        if (typeof window.ffmpeg === 'undefined' || !window.ffmpegLoaded) {
+            await loadFFmpegForStitching();
+        }
+        
+        const ffmpeg = window.ffmpeg;
+        const fetchFile = window._ffmpegFetchFile;
+        
+        let hasError = false;
+        let errorMessage = '';
+        
+        ffmpeg.on('log', ({ message }) => {
+            console.log(message);
+            // Ignore Aborted() - it's normal
+            if (message.includes('Aborted()')) {
+                return;
+            }
+            // Check for real errors
+            if (message.includes('Error') && !message.includes('frame=')) {
+                hasError = true;
+                errorMessage = message;
+            }
+        });
+        
+        try {
+            for (let i = 0; i < videoUrls.length; i++) {
+                const response = await fetch(videoUrls[i]);
+                const blob = await response.blob();
+                await ffmpeg.writeFile(`v_${i}.mp4`, await fetchFile(blob));
+            }
+            
+            let concatContent = '';
+            for (let i = 0; i < videoUrls.length; i++) {
+                concatContent += `file 'v_${i}.mp4'\n`;
+            }
+            await ffmpeg.writeFile('concat_list.txt', concatContent);
+            
+            await ffmpeg.exec(['-y', '-f', 'concat', '-safe', '0', '-i', 'concat_list.txt', '-c', 'copy', 'concat.mp4']);
+            
+            let inputArgs = ['-y', '-i', 'concat.mp4'];
+            let filterComplex = '';
+            let audioSources = [];
+            let nextInputIndex = 1;
+            
+            if (narrationUrl) {
+                const narrationResponse = await fetch(narrationUrl);
+                const narrationBlob = await narrationResponse.blob();
+                await ffmpeg.writeFile('narration.wav', await fetchFile(narrationBlob));
+                inputArgs.push('-i', 'narration.wav');
+                audioSources.push(`[${nextInputIndex}:a]volume=1.0[vol]`);
+                nextInputIndex++;
+            }
+            
+            if (musicUrl) {
+                const musicResponse = await fetch(musicUrl);
+                const musicBlob = await musicResponse.blob();
+                await ffmpeg.writeFile('music.mp3', await fetchFile(musicBlob));
+                inputArgs.push('-i', 'music.mp3');
+                audioSources.push(`[${nextInputIndex}:a]volume=0.3[music]`);
+                nextInputIndex++;
+            }
+            
+            let audioMap = '-an';
+            if (audioSources.length > 0) {
+                const mixedStreams = audioSources.join(';');
+                const amixInputs = audioSources.length;
+                filterComplex = `${mixedStreams};${audioSources.map((_, i) => `[vol${i > 0 ? i : ''}]`).join('')}amix=inputs=${amixInputs}:duration=longest[aout]`;
+                audioMap = '-map [aout] -c:a aac -b:a 128k';
+            }
+            
+            const outputFile = 'final_episode.mp4';
+            const execArgs = inputArgs.concat(
+                filterComplex ? ['-filter_complex', filterComplex] : [],
+                ['-map', '0:v', '-c:v', 'libx264', '-preset', 'fast', '-crf', '23'],
+                audioMap ? audioMap.split(' ') : ['-an'],
+                ['-shortest', outputFile]
+            ).flat();
+            
+            await ffmpeg.exec(execArgs);
+            
+            // Check if output file exists and has content
+            let data;
+            try {
+                data = await ffmpeg.readFile(outputFile);
+            } catch (e) {
+                throw new Error('Output file not created');
+            }
+            
+            if (!data || data.byteLength < 1024) {
+                throw new Error('Output file is empty');
+            }
+            
+            const blob = new Blob([data.buffer], { type: 'video/mp4' });
+            resolve({ blob, url: URL.createObjectURL(blob) });
+            
+        } catch (error) {
+            if (hasError) {
+                reject(new Error(errorMessage));
+            } else {
+                reject(error);
+            }
+        }
+    });
+}
+
+async function loadFFmpegForStitching() {
+    const FFMPEG_BASE = '/ffmpeg';
+    const FFMPEG_JS = `${FFMPEG_BASE}/ffmpeg.js`;
+    const UTIL_JS = `${FFMPEG_BASE}/ffmpeg-util.js`;
+    const WORKER_URL = `${FFMPEG_BASE}/814.ffmpeg.js`;
+    const CORE_JS = `${FFMPEG_BASE}/ffmpeg-core.js`;
+    const CORE_WASM = `${FFMPEG_BASE}/ffmpeg-core.wasm`;
     
-    const progressInterval = setInterval(() => {
-        const elapsed = Date.now() - startTime;
-        progress = Math.min((elapsed / totalDuration) * 100, 100);
-        if (loaderProgress) loaderProgress.style.width = `${progress}%`;
-        if (loaderPercent) loaderPercent.textContent = `${Math.floor(progress)}%`;
-        
-        const messages = [
-            "🎬 Merging video segments...",
-            "🎤 Adding background narration...",
-            "🎵 Syncing audio tracks...",
-            "✨ Rendering final episode..."
-        ];
-        const messageIndex = Math.floor(progress / 25);
-        if (messageIndex < messages.length && loaderMessage) {
-            loaderMessage.textContent = messages[messageIndex];
-        }
-        
-        if (progress >= 100) {
-            clearInterval(progressInterval);
-            setTimeout(() => {
-                if (loader) loader.style.display = 'none';
-                showToast('✅ Episode created successfully!', 'success');
-                window.location.href = '/web-series/' + seriesId + '/episodes';
-            }, 1000);
-        }
-    }, 100);
+    function loadScript(src) {
+        return new Promise((res, rej) => {
+            const s = document.createElement('script');
+            s.src = src;
+            s.onload = res;
+            s.onerror = () => rej(new Error('Script load failed: ' + src));
+            document.head.appendChild(s);
+        });
+    }
+    
+    await loadScript(FFMPEG_JS);
+    await loadScript(UTIL_JS);
+    
+    const { FFmpeg } = window.FFmpegWASM;
+    const { toBlobURL, fetchFile } = window.FFmpegUtil;
+    
+    const ffmpeg = new FFmpeg();
+    ffmpeg.on('log', ({ message }) => console.log(message));
+    
+    const coreURL = await toBlobURL(CORE_JS, 'text/javascript');
+    const wasmURL = await toBlobURL(CORE_WASM, 'application/wasm');
+    const workerURL = await toBlobURL(WORKER_URL, 'text/javascript');
+    
+    await ffmpeg.load({ coreURL, wasmURL, workerURL });
+    
+    window.ffmpeg = ffmpeg;
+    window._ffmpegFetchFile = fetchFile;
+    window.ffmpegLoaded = true;
 }
 
 // ==================== INITIALIZATION ====================

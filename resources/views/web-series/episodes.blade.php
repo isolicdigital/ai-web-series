@@ -213,7 +213,7 @@
                     
                     <!-- Action Buttons -->
                     <div class="mt-4 pt-3 border-t border-gray-800 flex gap-2">
-                        <button onclick="event.stopPropagation(); {{ $isCompleted ? 'openVideoModal(' . $episode->id . ', \'' . addslashes($episode->title) . '\', ' . $episode->episode_number . ')' : 'continueEditing(' . $series->id . ', ' . $episode->episode_number . ')' }}" 
+                        <button onclick="event.stopPropagation(); {{ $isCompleted ? 'openVideoModal('.$episode->video_url.')' : 'continueEditing(' . $series->id . ', ' . $episode->episode_number . ')' }}" 
                                 class="flex-1 py-2 {{ $isCompleted ? 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700' : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' }} rounded-lg text-white text-sm font-medium transition-all duration-300 flex items-center justify-center gap-2">
                             @if($isCompleted)
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -306,8 +306,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h2 class="text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent" id="modalEpisodeTitle">Episode Title</h2>
-                    <p class="text-gray-400 text-sm" id="modalEpisodeInfo">Episode 1</p>
+                    <h2 class="text-xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent" id="modalEpisodeTitle">Episode Player</h2>
+                    <p class="text-gray-400 text-sm" id="modalEpisodeInfo">{{ env('APP_NAME') }}</p>
                 </div>
             </div>
             <button onclick="closeVideoModal()" class="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-300">
@@ -417,43 +417,14 @@ document.getElementById('confirmDeleteEpisodeBtn').addEventListener('click', asy
     }
 });
 
-function openVideoModal(episodeId, episodeTitle, episodeNumber) {
-    document.getElementById('modalEpisodeTitle').textContent = episodeTitle;
-    document.getElementById('modalEpisodeInfo').textContent = `Episode ${episodeNumber}`;
-    
+function openVideoModal(video_url) {
     const videoPlayer = document.getElementById('modalVideoPlayer');
     videoPlayer.innerHTML = '<source src="" type="video/mp4">';
     document.getElementById('videoModal').style.display = 'flex';
-    
-    if (isDemoUser) {
-        const demoVideoUrl = `/demo/video/${episodeNumber}`;
-        currentVideoUrl = demoVideoUrl;
-        currentEpisodeId = episodeId;
-        videoPlayer.src = demoVideoUrl;
-        videoPlayer.load();
-        videoPlayer.play().catch(e => console.log('Auto-play prevented:', e));
-        showToast('🎬 Loading episode...', 'info');
-    } else {
-        fetch(`/web-series/${episodeId}/full-video`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.video_url) {
-                    currentVideoUrl = data.video_url;
-                    currentEpisodeId = episodeId;
-                    videoPlayer.src = data.video_url;
-                    videoPlayer.load();
-                    videoPlayer.play().catch(e => console.log('Auto-play prevented:', e));
-                } else {
-                    showToast(data.message || 'Failed to load episode', 'error');
-                    closeVideoModal();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showToast('Failed to load episode', 'error');
-                closeVideoModal();
-            });
-    }
+
+    videoPlayer.src = video_url;
+    videoPlayer.load();
+    videoPlayer.play().catch(e => console.log('Auto-play prevented:', e));
 }
 
 function closeVideoModal() {

@@ -15,6 +15,7 @@ class Episode extends Model
         'prompt',
         'concept',
         'total_scenes',
+        'video',
         'status'
     ];
     
