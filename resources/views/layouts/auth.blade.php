@@ -7,6 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name'))</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('custom/brand/favicon.png') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -29,6 +30,28 @@
             background-size: 200% auto;
         }
     </style>
+    <script>
+        // Define the function globally
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('togglePasswordBtn');
+            const icon = toggleBtn ? toggleBtn.querySelector('i') : null;
+            
+            if (passwordInput && icon) {
+                if (passwordInput.type === 'password') {
+                    passwordInput.type = 'text';
+                    icon.classList.remove('fa-eye');
+                    icon.classList.add('fa-eye-slash');
+                    icon.style.color = '#ff2d95';
+                } else {
+                    passwordInput.type = 'password';
+                    icon.classList.remove('fa-eye-slash');
+                    icon.classList.add('fa-eye');
+                    icon.style.color = 'rgba(255,255,255,0.4)';
+                }
+            }
+        }
+    </script>
     @stack('styles')
 </head>
 <body class="bg-[#0a0a1a]">

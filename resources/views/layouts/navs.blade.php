@@ -18,30 +18,7 @@
                 <a href="{{ route('web-series.my-series') }}" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10">
                     <i class="fas fa-tv mr-2 text-xs"></i>My Series
                 </a>
-                
-                <!-- Comedy Studio Dropdown -->
-                <div class="relative group">
-                    <a href="#" class="nav-link px-4 py-2 text-gray-300 hover:text-white transition-all text-sm font-medium rounded-lg hover:bg-white/10 inline-flex items-center gap-1">
-                        <i class="fas fa-microphone-alt mr-1 text-xs"></i>Comedy
-                        <i class="fas fa-chevron-down text-[10px]"></i>
-                    </a>
-                    <div class="absolute top-full left-0 mt-1 w-48 bg-black/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-800 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div class="p-2">
-                            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                                <i class="fas fa-microphone-alt w-4 text-purple-400"></i>
-                                Comedy Studio
-                            </a>
-                            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                                <i class="fas fa-book-open w-4 text-blue-400"></i>
-                                My Jokes
-                            </a>
-                            <a href="#" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                                <i class="fas fa-video w-4 text-green-400"></i>
-                                My Videos
-                            </a>
-                        </div>
-                    </div>
-                </div>
+
                 
                 <!-- DFY Dropdown (Admin or Level 3+) -->
                 @php 
@@ -102,14 +79,23 @@
             @endphp
             
             <div class="hidden md:flex items-center gap-2 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 px-3 py-1.5 rounded-full border border-yellow-500/40 shadow-lg">
-                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
-                    <i class="fas fa-coins text-white text-xs"></i>
-                </div>
-                <div class="flex flex-col">
-                    <span class="text-white text-sm font-bold leading-tight">{{ number_format($totalCredits) }}</span>
-                    <span class="text-[9px] text-yellow-400 leading-tight">credits</span>
-                </div>
-            </div>
+    <div class="w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center">
+        <i class="fas fa-coins text-white text-xs"></i>
+    </div>
+    <div class="flex flex-col">
+        <span class="text-white text-sm font-bold leading-tight">{{ number_format($totalCredits) }}</span>
+        <span class="text-[9px] text-yellow-400 leading-tight">credits</span>
+    </div>
+    
+    <!-- Divider -->
+    <div class="w-px h-8 bg-yellow-500/30 mx-1"></div>
+    
+    <!-- Buy Credit Button -->
+    <a href="{{ route('buycredits') }}" class="flex items-center gap-1.5 text-yellow-400 hover:text-yellow-300 transition-all group">
+        <i class="fas fa-plus-circle text-xs group-hover:scale-110 transition-transform"></i>
+        <span class="text-xs font-medium">Buy</span>
+    </a>
+</div>
             
             <!-- Admin Dropdown (Admin only) -->
             @if($isAdmin)
@@ -145,7 +131,7 @@
                             @if(Auth::user()->plan)
                                 {{ Auth::user()->plan }} Plan
                             @else
-                                Free Plan
+                                FE Version
                             @endif
                         </span>
                     </div>
@@ -155,64 +141,67 @@
                 <!-- Dropdown Menu -->
                 <div class="absolute right-0 mt-3 w-64 bg-black/95 backdrop-blur-xl rounded-xl shadow-2xl border border-gray-800 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div class="p-2">
-                        <!-- User Info -->
-                        <div class="px-3 py-3 border-b border-gray-800">
-                            <div class="flex items-center gap-3">
-                                <i class="fas fa-user-circle text-4xl text-purple-400"></i>
-                                <div>
-                                    <p class="text-white font-semibold text-sm">{{ Auth::user()->name ?? 'User' }}</p>
-                                    <p class="text-gray-400 text-xs">{{ Auth::user()->email ?? 'user@example.com' }}</p>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Menu Items -->
-                        <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-user-circle w-4 text-purple-400"></i>
-                            <span>My Profile</span>
-                        </a>
-                        <a href="{{ route('web-series.my-series') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-tv w-4 text-blue-400"></i>
-                            <span>My Series</span>
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-book-open w-4 text-green-400"></i>
-                            <span>My Jokes</span>
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-video w-4 text-red-400"></i>
-                            <span>My Videos</span>
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-history w-4 text-blue-400"></i>
-                            <span>Generation History</span>
-                        </a>
-                        <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-cog w-4 text-gray-400"></i>
-                            <span>Settings</span>
-                        </a>
-                        <a href="{{ env('TRAINING_URL', '#') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-graduation-cap w-4 text-purple-400"></i>
-                            <span>Training</span>
-                        </a>
-                        <a href="{{ env('SUPPORT_EXT', '#') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm" target="_blank">
-                            <i class="fas fa-headset w-4 text-yellow-400"></i>
-                            <span>Support</span>
-                        </a>
-                        <a href="https://aistandup.live/upgrades" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm" target="_blank">
-                            <i class="fas fa-rocket w-4 text-green-400"></i>
-                            <span>Upgrades</span>
-                        </a>
-                        
-                        <hr class="border-gray-800 my-2">
-                        
-                        <a href="{{ route('logout') }}" 
-                           onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
-                           class="flex items-center gap-3 px-3 py-2.5 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all text-sm">
-                            <i class="fas fa-sign-out-alt w-4"></i>
-                            <span>Logout</span>
-                        </a>
-                    </div>
+    <!-- User Info -->
+    <div class="px-3 py-3 border-b border-gray-800">
+        <div class="flex items-center gap-3">
+            <i class="fas fa-user-circle text-4xl text-purple-400"></i>
+            <div>
+                <p class="text-white font-semibold text-sm">{{ Auth::user()->name ?? 'User' }}</p>
+                <p class="text-gray-400 text-xs">{{ Auth::user()->email ?? 'user@example.com' }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Menu Items -->
+    <a href="{{ route('profile.edit') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
+        <i class="fas fa-user-circle w-4 text-purple-400"></i>
+        <span>My Profile</span>
+    </a>
+    
+    <!-- Buy Credit Button (Prominent) -->
+    <a href="{{ route('buycredits') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
+        <i class="fas fa-coins w-4 text-yellow-300 group-hover:scale-110 transition-transform"></i>
+        <span>Buy Credits</span>
+    </a>
+    
+    <a href="{{ route('web-series.my-series') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
+        <i class="fas fa-tv w-4 text-blue-400"></i>
+        <span>My Series</span>
+    </a>
+    
+    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
+        <i class="fas fa-cog w-4 text-gray-400"></i>
+        <span>Settings</span>
+    </a>
+    
+    <a href="{{ env('TRAINING_URL', '#') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm">
+        <i class="fas fa-graduation-cap w-4 text-purple-400"></i>
+        <span>Training</span>
+    </a>
+    
+    <a href="{{ env('SUPPORT_EXT', '#') }}" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm" target="_blank">
+        <i class="fas fa-headset w-4 text-yellow-400"></i>
+        <span>Support</span>
+    </a>
+    
+    <a href="#" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all text-sm" target="_blank">
+        <i class="fas fa-rocket w-4 text-green-400"></i>
+        <span>Upgrades</span>
+    </a>
+    
+    <hr class="border-gray-800 my-2">
+    
+    <a href="{{ route('logout') }}" 
+       onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+       class="flex items-center gap-3 px-3 py-2.5 text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all text-sm">
+        <i class="fas fa-sign-out-alt w-4"></i>
+        <span>Logout</span>
+    </a>
+    
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+        @csrf
+    </form>
+</div>
                 </div>
             </div>
             

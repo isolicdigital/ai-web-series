@@ -494,7 +494,7 @@ function waitForFirstImageAndRedirect(sceneId, seriesId) {
         
         // Calculate progress from 70% to 95%
         const newProgress = Math.min(startProgress + (progressPerAttempt * attempts), endProgress);
-        updateLoaderProgress(newProgress, `Generating image (${attempts}/${maxAttempts})...`);
+        updateLoaderProgress(newProgress, `Generating Segments (${attempts}/${maxAttempts})...`);
         
         try {
             const response = await fetch(`/api/scene/${sceneId}/image-status`, {
